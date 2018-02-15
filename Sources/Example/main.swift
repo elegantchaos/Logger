@@ -1,4 +1,4 @@
-import Foundation
+import Logger
 
 let test = Logger("test")
 let test2 = Logger("test2")

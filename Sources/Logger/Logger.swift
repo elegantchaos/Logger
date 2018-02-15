@@ -1,7 +1,7 @@
 import Foundation
 
 public class Logger {
-  public static let defaultHandler = LogHandler("default")
+  public static let defaultHandler = NSLogHandler("default")
 
   let name : String
   var handlers : [LogHandler] = []
@@ -19,7 +19,7 @@ public class Logger {
     let defaults = UserDefaults.standard
     if let logs = defaults.string(forKey: "logs") {
       let items = logs.split(separator:",")
-      if logs.contains("\(name)") {
+      if items.contains(String.SubSequence("\(name)")) {
         enabled = true
       }
     }
@@ -39,7 +39,7 @@ public class Logger {
   }
 
   public func debug(_ logged : @autoclosure () -> Any, file: String = #file, line: Int = #line,  column: Int = #column, function: String = #function) {
-    #if DEBUG
+    #if debug
       log(logged, file: file, line: line, column: column, function: function)
     #endif
   }
