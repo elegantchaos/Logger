@@ -2,10 +2,10 @@ import Foundation
 
 public class Logger {
   public static let defaultHandler = NSLogHandler("default")
-
-  static let enabledLogs = Logger.readEnabledLogs()
+  static let defaultManager = LogManager()
 
   let name : String
+  let manager : LogManager
   var handlers : [LogHandler] = []
   let handlersSetup : () -> [LogHandler]
 
@@ -15,31 +15,11 @@ public class Logger {
   public init(_ name : String, handlers : @autoclosure @escaping () -> [LogHandler] = [defaultHandler]) {
     self.name = name
     self.handlersSetup = handlers
-  }
-
-  static internal func readEnabledLogs() -> [String] {
-    let defaults = UserDefaults.standard
-    guard let logs = defaults.string(forKey: "logs") else {
-      return []
-    }
-    var items = Set(logs.split(separator:","))
-
-    if let additions = defaults.string(forKey: "logs+") {
-      let itemsToAdd = Set(additions.split(separator:","))
-      items.formUnion(itemsToAdd)
-    }
-
-    if let subtractions = defaults.string(forKey: "logs-") {
-      let itemsToRemove = Set(subtractions.split(separator:","))
-      items.subtract(itemsToRemove)
-    }
-
-    defaults.set(logs, forKey: "logs")
-    return items.map { return String($0) }
+    self.manager = Logger.defaultManager
   }
 
   internal func readSettings() {
-    if Logger.enabledLogs.contains("\(name)") {
+    if manager.enabledLogs.contains("\(name)") {
       enabled = true
     }
   }
