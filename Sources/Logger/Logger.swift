@@ -3,6 +3,8 @@ import Foundation
 public class Logger {
   public static let defaultHandler = NSLogHandler("default")
 
+  static let enabledLogs = Logger.readEnabledLogs()
+
   let name : String
   var handlers : [LogHandler] = []
   let handlersSetup : () -> [LogHandler]
@@ -15,13 +17,30 @@ public class Logger {
     self.handlersSetup = handlers
   }
 
-  internal func readSettings() {
+  static internal func readEnabledLogs() -> [String] {
     let defaults = UserDefaults.standard
-    if let logs = defaults.string(forKey: "logs") {
-      let items = logs.split(separator:",")
-      if items.contains(String.SubSequence("\(name)")) {
-        enabled = true
-      }
+    guard let logs = defaults.string(forKey: "logs") else {
+      return []
+    }
+    var items = Set(logs.split(separator:","))
+
+    if let additions = defaults.string(forKey: "logs+") {
+      let itemsToAdd = Set(additions.split(separator:","))
+      items.formUnion(itemsToAdd)
+    }
+
+    if let subtractions = defaults.string(forKey: "logs-") {
+      let itemsToRemove = Set(subtractions.split(separator:","))
+      items.subtract(itemsToRemove)
+    }
+
+    defaults.set(logs, forKey: "logs")
+    return items.map { return String($0) }
+  }
+
+  internal func readSettings() {
+    if Logger.enabledLogs.contains("\(name)") {
+      enabled = true
     }
   }
 
