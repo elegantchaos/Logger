@@ -1,0 +1,9 @@
+//
+//  Logger.xcconfig
+//  Logger
+//
+//  Created by Sam Deane on 27/02/2018.
+//
+
+MACOSX_DEPLOYMENT_TARGET = 10.12
+
