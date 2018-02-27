@@ -4,8 +4,10 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+import Foundation
+
 public class NSLogHandler : LogHandler {
   override public func log(channel: Logger, context : LogContext, logged : () -> Any) {
-    print("\(channel.name): \(logged())")
+    NSLog("\(channel.name): \(logged())")
   }
 }

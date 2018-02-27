@@ -4,11 +4,8 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-import Logger
-
-let test = Logger("test")
-let test2 = Logger("test2", subsystem: "other subsystem")
-
-test.log("blah")
-test2.log("hello")
-test.debug("debug blah")
+public class PrintLogHandler : LogHandler {
+  override public func log(channel: Logger, context : LogContext, logged : () -> Any) {
+    print("\(channel.name): \(logged())")
+  }
+}
