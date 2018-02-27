@@ -1,3 +1,9 @@
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Created by Sam Deane, 31/01/2018.
+// All code (c) 2018 - present day, Elegant Chaos Limited.
+// For licensing terms, see http://elegantchaos.com/license/liberal/.
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 import Foundation
 
 public class Logger {
@@ -22,7 +28,7 @@ public class Logger {
     if manager.enabledLogs.contains("\(name)") {
       enabled = true
     }
-    
+
   }
 
   public func log(_ logged : @autoclosure () -> Any, file: String = #file, line: Int = #line,  column: Int = #column, function: String = #function) {
