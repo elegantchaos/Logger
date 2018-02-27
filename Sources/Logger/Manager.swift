@@ -6,9 +6,9 @@
 
 import Foundation
 
-class LogManager {
+class Manager {
     typealias AssociatedLoggerData = [Logger:Any]
-    typealias AssociatedHandlerData = [LogHandler:AssociatedLoggerData]
+    typealias AssociatedHandlerData = [Handler:AssociatedLoggerData]
     
     var associatedData : AssociatedHandlerData = [:]
     
@@ -60,7 +60,7 @@ class LogManager {
      If no data is stored, the setter closure is called to provide it.
      */
     
-    public func associatedData<T>(handler: LogHandler, logger : Logger, setter : ()->T ) -> T {
+    public func associatedData<T>(handler: Handler, logger : Logger, setter : ()->T ) -> T {
         var handlerData = associatedData[handler]
         if handlerData == nil {
             handlerData = [:]

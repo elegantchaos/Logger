@@ -9,18 +9,18 @@ import Foundation
 public class Logger {
     
     public static let defaultHandler = OSLogHandler("default")
-    static let defaultManager = LogManager()
+    static let defaultManager = Manager()
     
     let name : String
     let subsystem : String
-    let manager : LogManager
-    var handlers : [LogHandler] = []
-    let handlersSetup : () -> [LogHandler]
+    let manager : Manager
+    var handlers : [Handler] = []
+    let handlersSetup : () -> [Handler]
     
     public var enabled = false
     var setup = false
     
-    public init(_ name : String, subsystem : String = "com.elegantchaos.logger", handlers : @autoclosure @escaping () -> [LogHandler] = [defaultHandler]) {
+    public init(_ name : String, subsystem : String = "com.elegantchaos.logger", handlers : @autoclosure @escaping () -> [Handler] = [defaultHandler]) {
         self.name = name
         self.subsystem = subsystem
         self.handlersSetup = handlers
@@ -42,7 +42,7 @@ public class Logger {
         }
         
         if (enabled) {
-            let context = LogContext(file:file, line:line, column:column, function:function)
+            let context = Context(file:file, line:line, column:column, function:function)
             handlers.forEach({ $0.log(channel:self, context:context, logged:logged) })
         }
     }

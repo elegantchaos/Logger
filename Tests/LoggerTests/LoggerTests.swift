@@ -7,10 +7,10 @@
 import XCTest
 @testable import Logger
 
-class TestHandler : LogHandler {
+class TestHandler : Handler {
   var logged : [Any] = []
 
-  override func log(channel: Logger, context: LogContext, logged: () -> Any) {
+  override func log(channel: Logger, context: Context, logged: () -> Any) {
     self.logged.append(logged())
   }
 }

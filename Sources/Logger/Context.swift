@@ -4,7 +4,7 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-public class LogContext : CustomStringConvertible {
+public class Context : CustomStringConvertible {
     let file: String
     let line : Int
     let function : String

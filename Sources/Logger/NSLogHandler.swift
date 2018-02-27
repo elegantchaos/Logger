@@ -6,8 +6,8 @@
 
 import Foundation
 
-public class NSLogHandler : LogHandler {
-  override public func log(channel: Logger, context : LogContext, logged : () -> Any) {
+public class NSLogHandler : Handler {
+  override public func log(channel: Logger, context : Context, logged : () -> Any) {
     NSLog("\(channel.name): \(logged())")
   }
 }

@@ -4,8 +4,8 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-public class PrintLogHandler : LogHandler {
-  override public func log(channel: Logger, context : LogContext, logged : () -> Any) {
+public class PrintLogHandler : Handler {
+  override public func log(channel: Logger, context : Context, logged : () -> Any) {
     print("\(channel.name): \(logged())")
   }
 }

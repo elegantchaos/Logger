@@ -4,7 +4,7 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-public class LogHandler {
+public class Handler {
 
   let name : String
 
@@ -12,19 +12,19 @@ public class LogHandler {
     self.name = name
   }
 
-  public func log(channel: Logger, context : LogContext, logged : () -> Any) {
+  public func log(channel: Logger, context : Context, logged : () -> Any) {
   }
 }
 
 
-extension LogHandler : Hashable {
+extension Handler : Hashable {
     // For now, we treat handlers with the same name as equal.
     
     public var hashValue: Int {
         return name.hashValue
     }
     
-    public static func == (lhs: LogHandler, rhs: LogHandler) -> Bool {
+    public static func == (lhs: Handler, rhs: Handler) -> Bool {
         return (lhs.name == rhs.name)
     }
     

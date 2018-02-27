@@ -6,10 +6,10 @@
 
 import os
 
-public class OSLogHandler : LogHandler {
+public class OSLogHandler : Handler {
     static var LogObjects : [Logger:OSLog] = [:]
     
-    override public func log(channel: Logger, context : LogContext, logged : () -> Any) {
+    override public func log(channel: Logger, context : Context, logged : () -> Any) {
         let log = channel.manager.associatedData(handler: self, logger: channel) {
             return OSLog(subsystem: channel.subsystem, category:channel.name)
         }
