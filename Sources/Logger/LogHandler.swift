@@ -15,3 +15,17 @@ public class LogHandler {
   public func log(channel: Logger, context : LogContext, logged : () -> Any) {
   }
 }
+
+
+extension LogHandler : Hashable {
+    // For now, we treat handlers with the same name as equal.
+    
+    public var hashValue: Int {
+        return name.hashValue
+    }
+    
+    public static func == (lhs: LogHandler, rhs: LogHandler) -> Bool {
+        return (lhs.name == rhs.name)
+    }
+    
+}
