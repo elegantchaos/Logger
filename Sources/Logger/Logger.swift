@@ -22,6 +22,7 @@ public class Logger {
     if manager.enabledLogs.contains("\(name)") {
       enabled = true
     }
+    
   }
 
   public func log(_ logged : @autoclosure () -> Any, file: String = #file, line: Int = #line,  column: Int = #column, function: String = #function) {
