@@ -7,7 +7,7 @@
 import Logger
 
 let test = Logger("test")
-let test2 = Logger("test2", subsystem: "com.elegantchaos.other", handlers: [NSLogHandler("nslog")])
+let test2 = Logger("com.elegantchaos.other.test2", handlers: [NSLogHandler("nslog")])
 
 test.log("blah")
 test2.log("hello")

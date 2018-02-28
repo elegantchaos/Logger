@@ -10,6 +10,7 @@ public class Logger {
     
     public static let defaultHandler = OSLogHandler("default")
     static let defaultManager = Manager()
+    static let defaultSubsystem = "com.elegantchaos.logger"
     
     let name : String
     let subsystem : String
@@ -20,9 +21,16 @@ public class Logger {
     public var enabled = false
     var setup = false
     
-    public init(_ name : String, subsystem : String = "com.elegantchaos.logger", handlers : @autoclosure @escaping () -> [Handler] = [defaultHandler]) {
-        self.name = name
-        self.subsystem = subsystem
+    public init(_ name : String, handlers : @autoclosure @escaping () -> [Handler] = [defaultHandler]) {
+        let components = name.split(separator: ".")
+        let last = components.count - 1
+        if last > 0 {
+            self.name = String(components[last])
+            self.subsystem = components[..<last].joined(separator: ".")
+        } else {
+            self.name = name
+            self.subsystem = defaultSubsystem
+        }
         self.handlersSetup = handlers
         self.manager = Logger.defaultManager
     }
