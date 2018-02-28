@@ -6,8 +6,12 @@
 
 import Foundation
 
+/**
+ Outputs log messages using NSLog()
+ */
+
 public class NSLogHandler : Handler {
   override public func log(channel: Logger, context : Context, logged : () -> Any) {
-    NSLog("\(channel.name): \(logged())")
+    NSLog("[\(channel.subsystem).\(channel.name)] \(logged())")
   }
 }

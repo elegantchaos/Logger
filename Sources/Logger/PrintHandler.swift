@@ -4,8 +4,12 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+/**
+ Outputs log messages using swift's print() function.
+ */
+
 public class PrintLogHandler : Handler {
-  override public func log(channel: Logger, context : Context, logged : () -> Any) {
-    print("\(channel.name): \(logged())")
-  }
+    override public func log(channel: Logger, context : Context, logged : () -> Any) {
+        print("[\(channel.subsystem).\(channel.name)] \(logged())")
+    }
 }
