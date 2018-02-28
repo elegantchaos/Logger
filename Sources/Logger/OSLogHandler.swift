@@ -6,6 +6,10 @@
 
 import os
 
+/**
+ Outputs log messages using os_log().
+ */
+
 public class OSLogHandler : Handler {
     static var LogObjects : [Logger:OSLog] = [:]
     
