@@ -56,7 +56,7 @@ To enable/disable additional channels when you run, without wiping out the previ
 
 ### Discussion
 
-This is a swift version of a pattern I've implemented [a number of times before](http://github.com/elegantchaos/ECLogging). I often use it as a kind of test project to learn a language with, but I also use the library functionality in pretty much everything that I do. 
+This is a swift version of a pattern I've implemented [a number of times before](http://elegantchaos.com/2011/11/16/eclogging-better-logging-for-objective-c). I often use it as a kind of test project to learn a language with, but I also use the library functionality in pretty much everything that I do. 
 
 The main idea is that when debugging complex problems, it's often useful to be able to write extensive logging code. 
 
