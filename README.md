@@ -8,17 +8,51 @@ Enable individual channels with minimal overhead for the disabled ones.
 
 ### Basic Usage:
 
+Just import the module and make one or more channels.
+
 ```swift
 
 import Logger
 
-let logger = Logger("main")
-let detailLogger = Logger("detail")
+let logger = Logger("com.acme.example.main")
+let detailLogger = Logger("com.acme.example.detail")
+````
 
+To log output, just write it to a channel. Different kinds or levels of info can go to different channels as required:
 
+```swift
 logger.log("Hello world!")
 detailLogger.log("We just logged hello world in the main channel")
 ```
+
+To log for debug builds only:
+
+```swift
+logger.debug("This will never show up in a release build")
+```
+
+To enable specific channels when you run:
+
+```
+.build/debug/Example -logs "main"
+```
+
+To enable channels persistently:
+
+```
+defaults write com.acme.Example logs "main, detail"
+```
+
+To enable/disable additional channels when you run, without wiping out the previous persistent settings: 
+
+```
+.build/debug/Example -logs+ "detail"  # runs with the previous channel config, but the detail channel also enabled
+.build/debug/Example -logs- "detail"  # runs with the previous channel config, but the detail channel disabled
+```
+
+
+
+
 
 ### Discussion
 

@@ -29,7 +29,7 @@ public class Logger {
             self.subsystem = components[..<last].joined(separator: ".")
         } else {
             self.name = name
-            self.subsystem = defaultSubsystem
+            self.subsystem = Logger.defaultSubsystem
         }
         self.handlersSetup = handlers
         self.manager = Logger.defaultManager
