@@ -73,7 +73,9 @@ Additional features and/or motivations:
 
 #### This Version
 
-Motto for this version: "less is more". The implementation of ECLogging started getting a bit gnarly.
+Motto for this version: *less is more*. 
+
+The implementation of ECLogging started getting a bit gnarly. This aims to be a stripped down version with just the essentials. 
 
 Specific aims
 
