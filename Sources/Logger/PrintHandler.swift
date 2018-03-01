@@ -8,7 +8,7 @@
  Outputs log messages using swift's print() function.
  */
 
-public class PrintLogHandler : Handler {
+public class PrintHandler : Handler {
     override public func log(channel: Logger, context : Context, logged : () -> Any) {
         print("[\(channel.subsystem).\(channel.name)] \(logged())")
     }

@@ -4,6 +4,8 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+#if os(macOS)
+
 import os
 
 /**
@@ -12,13 +14,15 @@ import os
 
 public class OSLogHandler : Handler {
     static var LogObjects : [Logger:OSLog] = [:]
-    
+
     override public func log(channel: Logger, context : Context, logged : () -> Any) {
         let log = channel.manager.associatedData(handler: self, logger: channel) {
             return OSLog(subsystem: channel.subsystem, category:channel.name)
         }
-        
+
         let message = "\(logged())"
         os_log("%@", dso: context.dso, log: log, type: .default, message)
     }
 }
+
+#endif

@@ -4,6 +4,8 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+#if os(macOS)
+
 import Foundation
 
 /**
@@ -15,3 +17,5 @@ public class NSLogHandler : Handler {
     NSLog("[\(channel.subsystem).\(channel.name)] \(logged())")
   }
 }
+
+#endif
