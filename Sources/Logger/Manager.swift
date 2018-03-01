@@ -33,7 +33,7 @@ class Manager {
 
     public lazy var enabledLogs : [String] = {
         let defaults = UserDefaults.standard
-        print("\(defaults.dictionaryRepresentation())")
+
         guard let logs = defaults.string(forKey: "logs") else {
             return []
         }
