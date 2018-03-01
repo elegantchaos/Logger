@@ -5,6 +5,8 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import XCTest
+import Foundation
+
 @testable import Logger
 
 class TestHandler : Handler {
@@ -33,8 +35,19 @@ class LoggerTests: XCTestCase {
     XCTAssert(handler.logged.count == 0)
   }
 
+  func testSettings() {
+      let defaults = UserDefaults.standard
+  defaults.set(1.23, forKey:"test")
+      defaults.set("test1,test2", forKey:"logs")
+      print(Manager().enabledLogs)
+      defaults.set("test3", forKey:"logs+")
+      print(Manager().enabledLogs)
+      defaults.set("test1", forKey:"logs-")
+      print(Manager().enabledLogs)
+  }
     static var allTests = [
         ("testLoggingEnabled", testLoggingEnabled),
         ("testLoggingDisabled", testLoggingDisabled),
+        ("testSettings", testSettings),
     ]
 }
