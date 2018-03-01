@@ -17,7 +17,8 @@ public class NSLogHandler : Handler {
   }
 
   override public func log(channel: Logger, context : Context, logged : () -> Any) {
-    NSLog("[\(channel.subsystem).\(channel.name)] \(logged())")
+    let tag = self.tag(channel: channel)
+    NSLog("\(tag)\(logged())")
   }
 }
 

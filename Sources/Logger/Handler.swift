@@ -5,15 +5,31 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 public class Handler {
+    
+    let name : String
+    let showName : Bool
+    let showSubsystem : Bool
+    
+    public init(_ name : String, showName : Bool = true, showSubsystem : Bool = false) {
+        self.name = name
+        self.showName = showName
+        self.showSubsystem = showSubsystem
+    }
+    
+    public func log(channel: Logger, context : Context, logged : () -> Any) {
+    }
 
-  let name : String
-
-  public init(_ name : String) {
-    self.name = name
-  }
-
-  public func log(channel: Logger, context : Context, logged : () -> Any) {
-  }
+    internal func tag(channel : Logger) -> String {
+        if showName && showSubsystem {
+            return "[\(channel.subsystem).\(channel.name)] "
+        } else if showName {
+            return "[\(channel.name)] "
+        } else if showSubsystem {
+            return "[\(channel.subsystem)] "
+        } else {
+            return ""
+        }
+    }
 }
 
 

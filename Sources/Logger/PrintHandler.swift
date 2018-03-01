@@ -14,6 +14,7 @@ public class PrintHandler : Handler {
     }
 
     override public func log(channel: Logger, context : Context, logged : () -> Any) {
-        print("[\(channel.subsystem).\(channel.name)] \(logged())")
+        let tag = self.tag(channel: channel)
+        print("\(tag)\(logged())")
     }
 }

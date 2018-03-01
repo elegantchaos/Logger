@@ -6,9 +6,18 @@
 
 import Logger
 
-let test = Logger("test")
-let test2 = Logger("com.elegantchaos.other.test2", handlers: [PrintHandler()])
+let stdout = Logger.stdout
 
-test.log("blah")
-test2.log("hello")
-test.debug("debug blah")
+let test = Logger("test")
+let test2 = Logger("com.elegantchaos.other.test2", handlers: [PrintHandler("print", showName: true, showSubsystem: true)])
+
+stdout.log("This should get printed to stdout.")
+stdout.log("There shouldn't be any contex information included in the output.\n")
+
+test.log("This should get printed to the default console location.")
+test.log("On the Mac it'll be the console. On Linux, currently, it's stdout.")
+test.log("Unlike the Logger.stdout channel, this one also shows the channel name.\n\n")
+
+test2.log("This should always be logged to stdout, but will show the console name and the subsystem.\n")
+
+test.debug("This should only appear for debug builds.\n")

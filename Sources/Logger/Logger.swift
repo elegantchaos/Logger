@@ -7,26 +7,30 @@
 import Foundation
 
 public class Logger {
-
+    
+    public static let stdoutHandler = PrintHandler("default", showName: false, showSubsystem: false)
+    
     #if os(macOS) || os(iOS)
       public static let defaultHandler = OSLogHandler("default")
     #else
-      public static let defaultHandler = PrintHandler("default")
+      public static let defaultHandler = stdoutHandler
     #endif
 
     static let defaultManager = Manager()
     static let defaultSubsystem = "com.elegantchaos.logger"
-
+    
+    public static let stdout = Logger("stdout", handlers:[stdoutHandler], enabled: true)
+    
     let name : String
     let subsystem : String
     let manager : Manager
     var handlers : [Handler] = []
     let handlersSetup : () -> [Handler]
 
-    public var enabled = false
+    public var enabled : Bool
     var setup = false
 
-    public init(_ name : String, handlers : @autoclosure @escaping () -> [Handler] = [defaultHandler]) {
+    public init(_ name : String, handlers : @autoclosure @escaping () -> [Handler] = [defaultHandler], enabled : Bool = false) {
         let components = name.split(separator: ".")
         let last = components.count - 1
         if last > 0 {
@@ -38,6 +42,7 @@ public class Logger {
         }
         self.handlersSetup = handlers
         self.manager = Logger.defaultManager
+        self.enabled = enabled
     }
 
     internal func readSettings() {
