@@ -8,10 +8,10 @@ import Foundation
 
 public class Logger {
 
-    #if os(Mac)
-    public static let defaultHandler = OSLogHandler("default")
+    #if os(macOS) || os(iOS)
+      public static let defaultHandler = OSLogHandler("default")
     #else
-    public static let defaultHandler = PrintHandler("default")
+      public static let defaultHandler = PrintHandler("default")
     #endif
 
     static let defaultManager = Manager()
