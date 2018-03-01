@@ -12,6 +12,10 @@ import Foundation
  */
 
 public class NSLogHandler : Handler {
+  public convenience init() {
+    self.init("nslog")
+  }
+
   override public func log(channel: Logger, context : Context, logged : () -> Any) {
     NSLog("[\(channel.subsystem).\(channel.name)] \(logged())")
   }

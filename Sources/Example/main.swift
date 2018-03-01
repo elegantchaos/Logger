@@ -7,7 +7,7 @@
 import Logger
 
 let test = Logger("test")
-let test2 = Logger("com.elegantchaos.other.test2", handlers: [PrintHandler("print")])
+let test2 = Logger("com.elegantchaos.other.test2", handlers: [PrintHandler()])
 
 test.log("blah")
 test2.log("hello")

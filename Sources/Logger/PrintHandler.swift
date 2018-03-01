@@ -9,6 +9,10 @@
  */
 
 public class PrintHandler : Handler {
+    public convenience init() {
+      self.init("print")
+    }
+
     override public func log(channel: Logger, context : Context, logged : () -> Any) {
         print("[\(channel.subsystem).\(channel.name)] \(logged())")
     }

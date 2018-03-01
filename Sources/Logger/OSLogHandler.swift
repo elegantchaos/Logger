@@ -13,7 +13,9 @@ import os
  */
 
 public class OSLogHandler : Handler {
-    static var LogObjects : [Logger:OSLog] = [:]
+    public convenience init() {
+      self.init("oslog")
+    }
 
     override public func log(channel: Logger, context : Context, logged : () -> Any) {
         let log = channel.manager.associatedData(handler: self, logger: channel) {
