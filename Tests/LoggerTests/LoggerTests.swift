@@ -18,6 +18,13 @@ class TestHandler : Handler {
 }
 
 class LoggerTests: XCTestCase {
+    override func setUp() {
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: "logs+")
+        defaults.removeObject(forKey: "logs-")
+        defaults.removeObject(forKey: "logs")
+    }
+    
     func testLoggingEnabled() {
         let handler = TestHandler("test")
         let logger = Logger("test", handlers: [handler])
@@ -34,12 +41,18 @@ class LoggerTests: XCTestCase {
         logger.log("blah")
         XCTAssert(handler.logged.count == 0)
     }
+
+    func testDebugLogging() {
+        let handler = TestHandler("test")
+        let logger = Logger("test", handlers: [handler])
+        logger.enabled = true
+        logger.debug("blah")
+        XCTAssert(handler.logged.count == 1)
+        XCTAssert(handler.logged[0] as! String == "blah")
+    }
     
     func testSettings() {
         let defaults = UserDefaults.standard
-        // reset
-        defaults.removeObject(forKey: "logs+")
-        defaults.removeObject(forKey: "logs-")
         
         // test the -logs parameter
         defaults.set("test1,test2", forKey:"logs")
@@ -67,9 +80,55 @@ class LoggerTests: XCTestCase {
         defaults.removeObject(forKey: "logs")
     }
     
+    func testEnabledViaSettings() {
+        let defaults = UserDefaults.standard
+        defaults.set("test", forKey:"logs")
+        let l = Logger("test", manager: Manager()) // assign a new log manager so that it picks up the changed settings
+        l.log("blah") // log something so that the channel is setup
+        XCTAssertTrue(l.enabled)
+        defaults.removeObject(forKey: "logs")
+    }
+    
+    func testContextDescription() {
+        let c = Context(file: "test.swift", line: 123,  column: 456, function: "testFunc")
+        XCTAssertEqual(c.description, "test.swift: 123,456 - testFunc")
+    }
+    
+    func testLoggerSimpleName() {
+        let l = Logger("simpleName")
+        XCTAssertEqual(l.name, "simpleName")
+        XCTAssertEqual(l.subsystem, Logger.defaultSubsystem)
+    }
+
+    func testLoggerComplexName() {
+        let l = Logger("com.elegantchaos.logger.test.name")
+        XCTAssertEqual(l.name, "name")
+        XCTAssertEqual(l.subsystem, "com.elegantchaos.logger.test")
+    }
+
+    func testLoggerComparison() {
+        let l1 = Logger("test")
+        let l2 = Logger("test")
+        XCTAssertEqual(l1, l2)
+        XCTAssertEqual(l1.hashValue, l2.hashValue)
+    }
+
+    func testHandlerComparison() {
+        let h1 = Handler("test")
+        let h2 = Handler("test")
+        XCTAssertEqual(h1, h2)
+        XCTAssertEqual(h1.hashValue, h2.hashValue)
+    }
+
     static var allTests = [
         ("testLoggingEnabled", testLoggingEnabled),
         ("testLoggingDisabled", testLoggingDisabled),
+        ("testDebugLogging", testDebugLogging),
         ("testSettings", testSettings),
+        ("testEnabledViaSettings", testEnabledViaSettings),
+        ("testContextDescription", testContextDescription),
+        ("testLoggerSimpleName", testLoggerSimpleName),
+        ("testLoggerComplexName", testLoggerComplexName),
+        ("testLoggerComparison", testLoggerComparison),
         ]
 }
