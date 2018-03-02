@@ -40,7 +40,7 @@ public class Logger {
      though, which is why it's not a true singleton.
      */
     
-    static let defaultManager = Manager()
+    public static let defaultManager = Manager()
     
     /**
      Default subsystem if nothing else is specified.
@@ -74,7 +74,7 @@ public class Logger {
     public var enabled : Bool
     var setup = false
     
-    public init(_ name : String, handlers : @autoclosure @escaping () -> [Handler] = [defaultHandler], enabled : Bool = false) {
+    public init(_ name : String, handlers : @autoclosure @escaping () -> [Handler] = [defaultHandler], enabled : Bool = false, manager : Manager = Logger.defaultManager) {
         let components = name.split(separator: ".")
         let last = components.count - 1
         if last > 0 {
@@ -85,7 +85,7 @@ public class Logger {
             self.subsystem = Logger.defaultSubsystem
         }
         self.handlersSetup = handlers
-        self.manager = Logger.defaultManager
+        self.manager = manager
         self.enabled = enabled
     }
     
