@@ -1,2 +1,12 @@
-swift test -Xswiftc -profile-generate -Xswiftc -profile-coverage-mapping -Xswiftc "-target" -Xswiftc "x86_64-apple-macosx10.12" $@
-# xcrun llvm-profdata merge -o testprof.profdata default.profraw
+
+swift test --configuration debug -Xswiftc -profile-generate -Xswiftc -profile-coverage-mapping -Xswiftc "-target" -Xswiftc "x86_64-apple-macosx10.12" $@
+xcrun llvm-profdata merge *.profraw -o .build/swiftc.profdata
+rm *.profraw
+files=.build/debug/Logger.build/*.swift.o
+for file in $files
+do
+  echo $file
+  xcrun llvm-cov show -instr-profile .build/swiftc.profdata $file
+done
+
+xcrun llvm-cov report -instr-profile .build/swiftc.profdata $files
