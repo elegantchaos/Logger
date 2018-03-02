@@ -1,0 +1,2 @@
+swift test -Xswiftc -profile-generate -Xswiftc -profile-coverage-mapping -Xswiftc "-target" -Xswiftc "x86_64-apple-macosx10.12" $@
+# xcrun llvm-profdata merge -o testprof.profdata default.profraw
