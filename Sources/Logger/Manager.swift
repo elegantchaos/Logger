@@ -6,7 +6,7 @@
 
 import Foundation
 
-class Manager {
+public class Manager {
     typealias AssociatedLoggerData = [Logger:Any]
     typealias AssociatedHandlerData = [Handler:AssociatedLoggerData]
 
