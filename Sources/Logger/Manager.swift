@@ -76,4 +76,31 @@ public class Manager {
 
         return loggerData!
     }
+    
+    /**
+     Returns a copy of the input arguments array which has had any
+     arguments that we handle stripped out of it.
+     
+     This is useful for clients that are parsing the command line arguments,
+     particularly with something like Docopt.
+     
+     Our options are meant to be semi-hidden, and we don't really want every
+     client of this library to have to know about all of them, or to have
+     to document them.
+    */
+    
+    static public func removeLoggingOptions(from arguments : [String]) -> [String] {
+        var args : [String] = []
+        var dropNext = false
+        for argument in arguments {
+            if (argument == "-logs") || (argument == "-logs+" || argument == "-logs-") {
+                dropNext = true
+            } else if dropNext {
+                dropNext = false
+            } else {
+                args.append(argument)
+            }
+        }
+        return args
+    }
 }

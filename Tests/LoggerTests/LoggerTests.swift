@@ -124,6 +124,13 @@ class LoggerTests: XCTestCase {
         XCTAssertEqual(h1.hashValue, h2.hashValue)
     }
 
+    func testArgumentsWithoutLoggingOptions() {
+        let stripped = Manager.removeLoggingOptions(from: ["blah", "-logs", "test,test2", "-logs+", "added", "-logs-", "removed", "waffle"])
+        XCTAssertEqual(stripped.count, 2)
+        XCTAssertEqual(stripped[0], "blah")
+        XCTAssertEqual(stripped[1], "waffle")
+    }
+    
     static var allTests = [
         ("testLoggingEnabled", testLoggingEnabled),
         ("testLoggingDisabled", testLoggingDisabled),
@@ -134,5 +141,6 @@ class LoggerTests: XCTestCase {
         ("testLoggerSimpleName", testLoggerSimpleName),
         ("testLoggerComplexName", testLoggerComplexName),
         ("testLoggerComparison", testLoggerComparison),
+        ("testArgumentsWithoutLoggingOptions", testArgumentsWithoutLoggingOptions),
         ]
 }
