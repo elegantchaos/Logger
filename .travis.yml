@@ -5,11 +5,12 @@ matrix:
       dist: trusty
       sudo: required
       env:
+        - SWIFT_BRANCH=swift-4.0.3-release
         - SWIFT_VERSION=swift-4.0.3-RELEASE
       install:
         - sudo apt-get install clang libicu-dev
         - mkdir swift
-        - curl https://swift.org/builds/swift-4.0.3-release/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar xz -C swift &> /dev/null
+        - curl https://swift.org/builds/$SWIFT_BRANCH/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar xz -C swift &> /dev/null
         - export PATH=$(pwd)/swift/$SWIFT_VERSION-ubuntu14.04/usr/bin:$PATH
         - swift package update
       script:
@@ -27,3 +28,11 @@ notifications:
   slack:
     rooms:
       secure: d1idbHYYMnE1o+Mu0PJWuYo6lFTJNEMe0yLb3dpYWb18ZWVvwgrKWxFYI7WHQSWEJBNsIyTu4wfArBoFqccphEPS7qTQ6rFaFzS6ktC+XNx7DouBHJQmlXBaWQlQiC3CQnMFIBq9/yjlcAUgE80ltt48jdk2tVw33EJGIe1PPo+7GqF1vTeQmkYuqXdpvwba5YL9kCsFr6MHHeB/TEy/J57kei22L5flDYP2DanhsAl0XsXPIwSZkrzcSvG18gckdkR+PVw1xBnDtFknmSvvhlMRRytqZNBnZ4gExr7Mp/lzFj6WiayLyx95FmUp0yLPf2Dr8CDlD8kJPIG/SQnD46+rMRxMRnOMEg02MOxN8v2zc6HAjLTAJr0WRKtRqW+QCik1Z+Bp/g2Cap7O3qaAZx2JQ6hHdLAOh7PvobeN/j7DN/cDCmbhlCJdwx/n/Mn34NYq4H8X8lGtWtXxSk5YPpQEj0WfY14JYiRDhU2a85KuOcNq4dxx/1INHS+PCfbAEt0w60I2MKayg/CfHyWsOgNXyB7K4wbaa/C4KAYr0Nyx9d9kP+/YoOMNykZCasEm8LY9Woqc5tX7wvu6BBZXImiHcKHY7v0RCLN3K5bpboYzGt7znBCHqk+9a2MF822H4JpvUx9l6MglVWS+cYhmMXhBkdGXZyFwHw+A3Rqms+8=
+
+# Swift 4.0.3
+#  - SWIFT_BRANCH=swift-4.0.3-release
+#  - SWIFT_VERSION=swift-4.0.3-RELEASE
+
+# Swift 4.1
+#  - SWIFT_BRANCH=swift-4.1-branch
+#  - SWIFT_VERSION=swift-4.1-DEVELOPMENT-SNAPSHOT-2018-03-09-a
