@@ -1,7 +1,7 @@
 matrix:
   include:
     - os: linux
-      language: generic
+      language: swift
       dist: trusty
       sudo: required
       env:
@@ -9,8 +9,8 @@ matrix:
       install:
         - mkdir swift
         - curl https://swift.org/builds/swift-4.0.3-release/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar xz -C swift &> /dev/null
-        - ls
-        - env PATH=$(pwd)/swift/$SWIFT_VERSION-ubuntu14.04/usr/bin:$PATH swift package update
+        - export PATH=$(pwd)/swift/$SWIFT_VERSION-ubuntu14.04/usr/bin:$PATH
+        - swift package update
     - os: osx
       osx_image: xcode9.2
       language: swift
