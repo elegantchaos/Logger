@@ -1,7 +1,7 @@
 matrix:
   include:
     - os: linux
-      language: swift
+      language: generic
       dist: trusty
       sudo: required
       env:
@@ -12,12 +12,16 @@ matrix:
         - curl https://swift.org/builds/swift-4.0.3-release/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz -s | tar xz -C swift &> /dev/null
         - export PATH=$(pwd)/swift/$SWIFT_VERSION-ubuntu14.04/usr/bin:$PATH
         - swift package update
+      script:
+        - swift test
+
     - os: osx
       osx_image: xcode9.2
       language: swift
-      install: swift package update
-
-script: swift test -Xswiftc -target -Xswiftc x86_64-apple-macosx10.12
+      install:
+        - swift package update
+      script:
+        - swift test -Xswiftc -target -Xswiftc x86_64-apple-macosx10.12
 
 notifications:
   slack:
