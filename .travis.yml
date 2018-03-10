@@ -5,8 +5,8 @@ matrix:
       dist: trusty
       sudo: required
       env:
-        - SWIFT_BRANCH=swift-4.0.3-release
-        - SWIFT_VERSION=swift-4.0.3-RELEASE
+        - SWIFT_BRANCH=swift-4.1-branch
+        - SWIFT_VERSION=swift-4.1-DEVELOPMENT-SNAPSHOT-2018-03-09-a
       install:
         - sudo apt-get install clang libicu-dev
         - mkdir swift
