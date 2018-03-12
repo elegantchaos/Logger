@@ -18,13 +18,6 @@ class TestHandler : Handler {
 }
 
 class LoggerTests: XCTestCase {
-    override func setUp() {
-        let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: "logs+")
-        defaults.removeObject(forKey: "logs-")
-        defaults.removeObject(forKey: "logs")
-    }
-    
     func testLoggingEnabled() {
         let handler = TestHandler("test")
         let logger = Logger("test", handlers: [handler])
@@ -56,18 +49,18 @@ class LoggerTests: XCTestCase {
     }
     
     func testSettings() {
-        let defaults = UserDefaults.standard
+        let defaults = UserDefaults()
         
         // test the -logs parameter
         defaults.set("test1,test2", forKey:"logs")
-        let l1 = Manager().enabledLogs
+        let l1 = Manager(defaults: defaults).enabledLogs
         XCTAssertTrue(l1.contains("test1"))
         XCTAssertTrue(l1.contains("test2"))
 
         // test the logs+ parameter
         defaults.set("test1,test2", forKey:"logs")
         defaults.set("test3", forKey:"logs+")
-        let l2 = Manager().enabledLogs
+        let l2 = Manager(defaults: defaults).enabledLogs
         XCTAssertTrue(l2.contains("test1"))
         XCTAssertTrue(l2.contains("test2"))
         XCTAssertTrue(l2.contains("test3"))
@@ -76,21 +69,18 @@ class LoggerTests: XCTestCase {
         // test the logs- parameter
         defaults.set("test1,test2", forKey:"logs")
         defaults.set("test1", forKey:"logs-")
-        let l3 = Manager().enabledLogs
+        let l3 = Manager(defaults: defaults).enabledLogs
         XCTAssertFalse(l3.contains("test1"))
         XCTAssertTrue(l3.contains("test2"))
         XCTAssertFalse(l3.contains("test3"))
-        defaults.removeObject(forKey: "logs-")
-        defaults.removeObject(forKey: "logs")
     }
     
     func testEnabledViaSettings() {
-        let defaults = UserDefaults.standard
+        let defaults = UserDefaults()
         defaults.set("test", forKey:"logs")
-        let l = Logger("test", manager: Manager()) // assign a new log manager so that it picks up the changed settings
+        let l = Logger("test", manager: Manager(defaults: defaults))
         l.log("blah") // log something so that the channel is setup
         XCTAssertTrue(l.enabled)
-        defaults.removeObject(forKey: "logs")
     }
     
     func testContextDescription() {
