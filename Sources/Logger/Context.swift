@@ -4,7 +4,11 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-public class Context : CustomStringConvertible {
+/**
+ Encapsulates the context (function, line number, etc) in which the log statement was made.
+ */
+
+public struct Context : CustomStringConvertible {
     let file: String
     let line : Int
     let function : String
