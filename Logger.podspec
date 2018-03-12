@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
                          DESC
 
   s.homepage         = 'https://github.com/elegantchaos/Logger'
-  s.license          = { :type => 'custom', :file => 'LICENSE' }
+  s.license          = { :type => 'custom', :file => 'LICENSE.md' }
   s.author           = { 'Sam Deane' => 'sam@elegantchaos.com' }
   s.source           = { :git => 'https://github.com/elegantchaos/Logger.git', :tag => s.version.to_s }
 
