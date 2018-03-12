@@ -18,9 +18,15 @@ class TestHandler : Handler {
 }
 
 class LoggerTests: XCTestCase {
+    func blankDefaults() -> UserDefaults {
+        let defaults = UserDefaults(suiteName: "LoggerTests")!
+        defaults.removePersistentDomain(forName: "LoggerTests")
+        return defaults
+    }
+    
     func testLoggingEnabled() {
         let handler = TestHandler("test")
-        let logger = Logger("test", handlers: [handler])
+        let logger = Logger("test", handlers: [handler], manager: Manager(defaults: blankDefaults()))
         logger.enabled = true
         logger.log("blah")
         XCTAssert(handler.logged.count == 1)
@@ -29,7 +35,7 @@ class LoggerTests: XCTestCase {
     
     func testLoggingDisabled() {
         let handler = TestHandler("test")
-        let logger = Logger("test", handlers: [handler])
+        let logger = Logger("test", handlers: [handler], manager: Manager(defaults: blankDefaults()))
         logger.enabled = false
         logger.log("blah")
         XCTAssert(handler.logged.count == 0)
@@ -49,9 +55,9 @@ class LoggerTests: XCTestCase {
     }
     
     func testSettings() {
-        let defaults = UserDefaults()
-        
         // test the -logs parameter
+        let defaults = blankDefaults()
+        defaults.removePersistentDomain(forName: "test")
         defaults.set("test1,test2", forKey:"logs")
         let l1 = Manager(defaults: defaults).enabledLogs
         XCTAssertTrue(l1.contains("test1"))
@@ -76,7 +82,7 @@ class LoggerTests: XCTestCase {
     }
     
     func testEnabledViaSettings() {
-        let defaults = UserDefaults()
+        let defaults = blankDefaults()
         defaults.set("test", forKey:"logs")
         let l = Logger("test", manager: Manager(defaults: defaults))
         l.log("blah") // log something so that the channel is setup
