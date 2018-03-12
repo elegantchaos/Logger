@@ -12,6 +12,14 @@ public class Manager {
 
     var associatedData : AssociatedHandlerData = [:]
 
+    let defaults : UserDefaults
+    
+    
+    init(defaults : UserDefaults = UserDefaults.standard) {
+        self.defaults = defaults
+    }
+    
+    
     /**
      An array of the names of the enabled log channels.
 
@@ -32,8 +40,6 @@ public class Manager {
      */
 
     public lazy var enabledLogs : [String] = {
-        let defaults = UserDefaults.standard
-
         guard let logs = defaults.string(forKey: "logs") else {
             return []
         }
