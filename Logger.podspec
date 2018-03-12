@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'Logger'
-  s.version          = '1.0.6'
+  s.version          = '1.0.7'
   s.summary          = 'Configurable logging for Swift.'
 
   s.description      = <<-DESC
