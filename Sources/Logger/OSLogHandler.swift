@@ -12,7 +12,7 @@ import os
  Outputs log messages using os_log().
  */
 
-public class OSLogHandler : Handler {
+@available(macOS 10.12, iOS 10.0, *) public class OSLogHandler : Handler {
     public convenience init() {
       self.init("oslog")
     }

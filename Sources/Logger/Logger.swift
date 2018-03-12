@@ -24,11 +24,15 @@ public class Logger {
      On Linux it is a PrintHandler which will log to stdout.
      */
     
-    #if os(macOS) || os(iOS)
-    public static let defaultHandler = OSLogHandler("default")
-    #else
-    public static let defaultHandler = stdoutHandler // TODO should this be stderr instead?
-    #endif
+    static func initDefaultHandler() -> Handler {
+        if #available(macOS 10.12, iOS 10.0, *) {
+            return OSLogHandler("default")
+        } else {
+            return stdoutHandler // TODO: should perhaps be stderr instead?
+        }
+    }
+    
+    public static let defaultHandler = initDefaultHandler()
     
     /**
      Default log manager to use for channels if nothing else is specified.
