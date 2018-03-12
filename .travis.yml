@@ -5,8 +5,8 @@ matrix:
       dist: trusty
       sudo: required
       env:
-        - SWIFT_BRANCH=swift-4.1-branch
-        - SWIFT_VERSION=swift-4.1-DEVELOPMENT-SNAPSHOT-2018-03-09-a
+        - SWIFT_BRANCH=development
+        - SWIFT_VERSION=swift-DEVELOPMENT-SNAPSHOT-2018-03-11-a
       install:
         - sudo apt-get install clang libicu-dev
         - mkdir swift
@@ -21,6 +21,8 @@ matrix:
       language: swift
       install:
         - swift package update
+
+
       script:
         - swift test -Xswiftc -target -Xswiftc x86_64-apple-macosx10.12
 

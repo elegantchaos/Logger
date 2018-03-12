@@ -6,6 +6,12 @@
 
 import Foundation
 
+/**
+ Represents a channel through which log messages can be sent.
+ Each channel can be enabled/disabled, and configured to send its output
+ to one or more handlers.
+ */
+
 public class Logger {
     
     /**
@@ -24,11 +30,17 @@ public class Logger {
      On Linux it is a PrintHandler which will log to stdout.
      */
     
-    #if os(macOS) || os(iOS)
-    public static let defaultHandler = OSLogHandler("default")
-    #else
-    public static let defaultHandler = stdoutHandler // TODO should this be stderr instead?
-    #endif
+    static func initDefaultHandler() -> Handler {
+        #if os(macOS) || os(iOS)
+        if #available(macOS 10.12, iOS 10.0, *) {
+            return OSLogHandler("default")
+        }
+        #endif
+        
+        return stdoutHandler // TODO: should perhaps be stderr instead?
+    }
+    
+    public static let defaultHandler = initDefaultHandler()
     
     /**
      Default log manager to use for channels if nothing else is specified.
