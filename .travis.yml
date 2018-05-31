@@ -24,7 +24,7 @@ matrix:
       install:
         - wget https://swift.org/builds/$SWIFT_BRANCH/xcode/$SWIFT_VERSION/$SWIFT_VERSION-osx.pkg
         - sudo installer -pkg $SWIFT_VERSION-osx.pkg -target /
-        - export PATH="/Library/Developer/Toolchains/$SWIFT_VERSION/$SWIFT_VERSION.xctoolchain/usr/bin:$PATH"
+        - export PATH="/Library/Developer/Toolchains/$SWIFT_VERSION.xctoolchain/usr/bin:$PATH"
         - swift package update
 
       script:
