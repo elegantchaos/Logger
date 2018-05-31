@@ -1,12 +1,13 @@
+env:
+  global:
+    - SWIFT_BRANCH=swift-4.2-branch
+    - SWIFT_VERSION=swift-4.2-DEVELOPMENT-SNAPSHOT-2018-05-30-a
 matrix:
   include:
     - os: linux
       language: generic
       dist: trusty
       sudo: required
-      env:
-        - SWIFT_BRANCH=swift-4.2-branch
-        - SWIFT_VERSION=swift-4.2-DEVELOPMENT-SNAPSHOT-2018-05-30-a
       install:
         - sudo apt-get install clang libicu-dev
         - mkdir swift
@@ -25,7 +26,7 @@ matrix:
         - sudo installer -pkg $SWIFT_VERSION/$SWIFT_VERSION-osx.pkg -target /
         - export PATH="/Library/Developer/Toolchains/$SWIFT_VERSION/$SWIFT_VERSION.xctoolchain/usr/bin:$PATH"
         - swift package update
-        
+
       script:
         - swift test -Xswiftc -target -Xswiftc x86_64-apple-macosx10.12
 
