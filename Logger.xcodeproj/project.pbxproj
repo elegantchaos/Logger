@@ -61,7 +61,7 @@
 
 /* Begin PBXFileReference section */
 		"Logger::Example::Product" /* Example */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = Example; sourceTree = BUILT_PRODUCTS_DIR; };
-		"Logger::Logger::Product" /* Logger.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Logger.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		"Logger::Logger::Product" /* Logger.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Logger.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		"Logger::LoggerTests::Product" /* LoggerTests.xctest */ = {isa = PBXFileReference; lastKnownFileType = file; path = LoggerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		OBJ_10 /* Handler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Handler.swift; sourceTree = "<group>"; };
 		OBJ_11 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
@@ -248,6 +248,11 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 9999;
+				TargetAttributes = {
+					"Logger::Logger" = {
+						LastSwiftMigration = 1000;
+					};
+				};
 			};
 			buildConfigurationList = OBJ_2 /* Build configuration list for PBXProject "Logger" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -410,7 +415,7 @@
 				PRODUCT_MODULE_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 				TARGET_NAME = Logger;
 			};
 			name = Debug;
@@ -433,7 +438,7 @@
 				PRODUCT_MODULE_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 				TARGET_NAME = Logger;
 			};
 			name = Release;
