@@ -108,7 +108,7 @@ public class Logger {
         
     }
     
-    public func log(_ logged : @autoclosure () -> Any, file: String = #file, line: Int = #line,  column: Int = #column, function: String = #function) {
+    public func log(_ logged : @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,  column: UInt = #column, function: StaticString = #function) {
         if (!setup) {
             readSettings()
             handlers = handlersSetup()
@@ -121,10 +121,15 @@ public class Logger {
         }
     }
     
-    public func debug(_ logged : @autoclosure () -> Any, file: String = #file, line: Int = #line,  column: Int = #column, function: String = #function) {
-        #if debug
+    public func debug(_ logged : @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,  column: UInt = #column, function: StaticString = #function) {
+        #if debug || DEBUG
         log(logged, file: file, line: line, column: column, function: function)
         #endif
+    }
+
+    public func fatal(_ logged : @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,  column: UInt = #column, function: StaticString = #function) -> Never {
+        log(logged, file: file, line: line, column: column, function: function)
+        manager.fatalHandler("\(logged())", self, file, line)
     }
 }
 

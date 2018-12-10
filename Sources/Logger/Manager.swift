@@ -109,4 +109,13 @@ public class Manager {
         }
         return args
     }
+    
+    public typealias FatalHandler = (Any, Logger, StaticString, UInt) -> Never
+    
+    static public func defaultFatalHandler(_ message: Any, logger: Logger, file: StaticString = #file, line: UInt = #line) -> Never {
+        fatalError("Channel \(logger.name) was sent fatal message.\n\(message)", file: file, line: line)
+}
+    
+    public var fatalHandler: FatalHandler = defaultFatalHandler
+    
 }
