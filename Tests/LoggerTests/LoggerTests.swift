@@ -6,6 +6,7 @@
 
 import XCTest
 import Foundation
+import LoggerTestSupport
 
 @testable import Logger
 
@@ -135,33 +136,4 @@ class LoggerTests: XCTestCase {
         
         XCTAssertEqual(logged, "Oh bugger")
     }
-}
-
-import XCTest
-
-extension XCTestCase {
-    func XCTAssertFatalError(testcase: @escaping () -> Void) -> Any? {
-        func unreachable() -> Never {
-            repeat {
-                RunLoop.current.run()
-            } while (true)
-        }
-
-        let expectation = self.expectation(description: "expectingFatalError")
-        var fatalLogged: Any? = nil
-        
-        let _ = Logger.defaultManager.installFatalErrorHandler() { logged, logger, _, _ in
-            fatalLogged = logged
-            expectation.fulfill()
-            unreachable()
-        }
-        
-        DispatchQueue.global(qos: .userInitiated).async(execute: testcase)
-        
-        wait(for: [expectation], timeout: 1.0)
-        
-        Logger.defaultManager.resetFatalErrorHandler()
-        return fatalLogged
-    }
-    
 }

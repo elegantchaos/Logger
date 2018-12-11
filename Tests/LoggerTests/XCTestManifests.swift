@@ -10,6 +10,7 @@ extension LoggerTests {
         ("testContextDescription", testContextDescription),
         ("testDebugLogging", testDebugLogging),
         ("testEnabledViaSettings", testEnabledViaSettings),
+        ("testFatalError", testFatalError),
         ("testHandlerComparison", testHandlerComparison),
         ("testLoggerComparison", testLoggerComparison),
         ("testLoggerComplexName", testLoggerComplexName),

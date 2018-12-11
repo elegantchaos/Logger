@@ -10,6 +10,9 @@ let package = Package(
         .library(
             name: "Logger",
             targets: ["Logger"]),
+        .library(
+            name: "LoggerTestSupport",
+            targets: ["LoggerTestSupport"]),
         .executable(
             name: "Example",
             targets: ["Example"]
@@ -28,9 +31,12 @@ let package = Package(
         .target(
               name: "Example",
               dependencies: ["Logger"]),
+        .target(
+            name: "LoggerTestSupport",
+            dependencies: ["Logger"]),
         .testTarget(
             name: "LoggerTests",
-            dependencies: ["Logger"]),
+            dependencies: ["Logger", "LoggerTestSupport"]),
     ],
     swiftLanguageVersions: [.v4_2]
   )
