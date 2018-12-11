@@ -130,7 +130,17 @@ public class Manager {
      Install a custom handler for fatal errors.
     */
     
-    public func installFatalErrorHandler(_ handler: @escaping FatalHandler) {
+    @discardableResult public func installFatalErrorHandler(_ handler: @escaping FatalHandler) -> FatalHandler {
+        let previous = fatalHandler
         fatalHandler = handler
+        return previous
+    }
+    
+    /**
+     Restore the default fatal error handler.
+    */
+    
+ public func resetFatalErrorHandler() {
+    fatalHandler = Manager.defaultFatalHandler
     }
 }

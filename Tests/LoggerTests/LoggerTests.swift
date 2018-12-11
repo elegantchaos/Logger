@@ -127,16 +127,41 @@ class LoggerTests: XCTestCase {
         XCTAssertEqual(stripped[1], "waffle")
     }
     
-    static var allTests = [
-        ("testLoggingEnabled", testLoggingEnabled),
-        ("testLoggingDisabled", testLoggingDisabled),
-        ("testDebugLogging", testDebugLogging),
-        ("testSettings", testSettings),
-        ("testEnabledViaSettings", testEnabledViaSettings),
-        ("testContextDescription", testContextDescription),
-        ("testLoggerSimpleName", testLoggerSimpleName),
-        ("testLoggerComplexName", testLoggerComplexName),
-        ("testLoggerComparison", testLoggerComparison),
-        ("testArgumentsWithoutLoggingOptions", testArgumentsWithoutLoggingOptions),
-        ]
+    func testFatalError() {
+        let logged = XCTAssertFatalError() {
+            let l = Logger("test")
+            l.fatal("Oh bugger")
+        } as? String
+        
+        XCTAssertEqual(logged, "Oh bugger")
+    }
+}
+
+import XCTest
+
+extension XCTestCase {
+    func XCTAssertFatalError(testcase: @escaping () -> Void) -> Any? {
+        func unreachable() -> Never {
+            repeat {
+                RunLoop.current.run()
+            } while (true)
+        }
+
+        let expectation = self.expectation(description: "expectingFatalError")
+        var fatalLogged: Any? = nil
+        
+        let _ = Logger.defaultManager.installFatalErrorHandler() { logged, logger, _, _ in
+            fatalLogged = logged
+            expectation.fulfill()
+            unreachable()
+        }
+        
+        DispatchQueue.global(qos: .userInitiated).async(execute: testcase)
+        
+        wait(for: [expectation], timeout: 1.0)
+        
+        Logger.defaultManager.resetFatalErrorHandler()
+        return fatalLogged
+    }
+    
 }
