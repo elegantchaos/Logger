@@ -1,12 +1,3 @@
-
-swift test --configuration debug -Xswiftc -profile-generate -Xswiftc -profile-coverage-mapping -Xswiftc "-target" -Xswiftc "x86_64-apple-macosx10.12" $@
-xcrun llvm-profdata merge *.profraw -o .build/swiftc.profdata
-rm *.profraw
-files=.build/debug/Logger.build/*.swift.o
-for file in $files
-do
-  echo $file
-  xcrun llvm-cov show -instr-profile .build/swiftc.profdata $file
-done
-
-xcrun llvm-cov report -instr-profile .build/swiftc.profdata $files
+xcrun swift package generate-xcodeproj --xcconfig-overrides LoggerMobile.xcconfig --enable-code-coverage
+xcrun swift test --generate-linuxmain
+xcodebuild test -workspace Logger.xcworkspace -scheme Logger-Package  -destination "name=iPhone 6" -enableCodeCoverage YES
