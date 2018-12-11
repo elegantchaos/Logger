@@ -1,6 +1,8 @@
 import XCTest
-@testable import LoggerTests
 
-XCTMain([
-    testCase(LoggerTests.allTests),
-])
+import LoggerTests
+
+var tests = [XCTestCaseEntry]()
+tests += LoggerTests.__allTests()
+
+XCTMain(tests)
