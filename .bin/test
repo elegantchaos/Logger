@@ -1,3 +1,6 @@
 xcrun swift package generate-xcodeproj --xcconfig-overrides LoggerMobile.xcconfig --enable-code-coverage
 xcrun swift test --generate-linuxmain
 xcodebuild test -workspace Logger.xcworkspace -scheme Logger-Package  -destination "name=iPhone 6" -enableCodeCoverage YES
+
+#   - set -o pipefail && xcodebuild test -workspace Logger.xcworkspace -scheme Logger-Package -destination "name=iPhone 6" -enableCodeCoverage YES -resultBundlePath Mobile.xcresult | tee Mobile.log | xcpretty -f `xcpretty-travis-formatter`
+
