@@ -6,6 +6,7 @@
 
 import XCTest
 import Foundation
+import LoggerTestSupport
 
 @testable import Logger
 
@@ -46,7 +47,7 @@ class LoggerTests: XCTestCase {
         let logger = Logger("test", handlers: [handler])
         logger.enabled = true
         logger.debug("blah")
-        #if debug
+        #if DEBUG
             XCTAssert(handler.logged.count == 1)
             XCTAssert(handler.logged[0] as! String == "blah")
         #else
@@ -127,16 +128,12 @@ class LoggerTests: XCTestCase {
         XCTAssertEqual(stripped[1], "waffle")
     }
     
-    static var allTests = [
-        ("testLoggingEnabled", testLoggingEnabled),
-        ("testLoggingDisabled", testLoggingDisabled),
-        ("testDebugLogging", testDebugLogging),
-        ("testSettings", testSettings),
-        ("testEnabledViaSettings", testEnabledViaSettings),
-        ("testContextDescription", testContextDescription),
-        ("testLoggerSimpleName", testLoggerSimpleName),
-        ("testLoggerComplexName", testLoggerComplexName),
-        ("testLoggerComparison", testLoggerComparison),
-        ("testArgumentsWithoutLoggingOptions", testArgumentsWithoutLoggingOptions),
-        ]
+    func testFatalError() {
+        let logged = XCTAssertFatalError() {
+            let l = Logger("test")
+            l.fatal("Oh bugger")
+        } as? String
+        
+        XCTAssertEqual(logged, "Oh bugger")
+    }
 }

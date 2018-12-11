@@ -9,13 +9,13 @@
  */
 
 public struct Context : CustomStringConvertible {
-    let file: String
-    let line : Int
-    let function : String
-    let column : Int
+    let file: StaticString
+    let line : UInt
+    let function : StaticString
+    let column : UInt
     let dso : UnsafeRawPointer
     
-    public init(file: String = #file, line: Int = #line,  column: Int = #column, function: String = #function, dso: UnsafeRawPointer = #dsohandle) {
+    public init(file: StaticString = #file, line: UInt = #line,  column: UInt = #column, function: StaticString = #function, dso: UnsafeRawPointer = #dsohandle) {
         self.file = file
         self.line = line
         self.function = function

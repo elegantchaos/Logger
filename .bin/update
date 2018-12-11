@@ -1,2 +1,3 @@
 swift package update
-swift package generate-xcodeproj --xcconfig-overrides Logger.xcconfig
+swift package generate-xcodeproj --xcconfig-overrides Logger.xcconfig --enable-code-coverage
+swift test --generate-linuxmain
