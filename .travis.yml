@@ -21,8 +21,6 @@ matrix:
       language: swift
       install:
         - sudo gem install xcpretty-travis-formatter
-        - wget https://swift.org/builds/$SWIFT_BRANCH/xcode/$SWIFT_VERSION/$SWIFT_VERSION-osx.pkg
-        - .bin/update
 
       script:
         - swift test -Xswiftc -target -Xswiftc x86_64-apple-macosx10.12
