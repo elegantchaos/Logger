@@ -129,7 +129,7 @@ public class Logger {
 
     public func fatal(_ logged : @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,  column: UInt = #column, function: StaticString = #function) -> Never {
         log(logged, file: file, line: line, column: column, function: function)
-        manager.fatalHandler("\(logged())", self, file, line)
+        manager.fatalHandler(logged(), self, file, line)
     }
 }
 
