@@ -122,7 +122,7 @@ public class Logger {
     }
     
     public func debug(_ logged : @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,  column: UInt = #column, function: StaticString = #function) {
-        #if debug || DEBUG
+        #if DEBUG
         log(logged, file: file, line: line, column: column, function: function)
         #endif
     }

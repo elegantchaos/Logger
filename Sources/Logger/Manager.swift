@@ -109,13 +109,28 @@ public class Manager {
         }
         return args
     }
+
+    // MARK: Fatal Error Handling
     
     public typealias FatalHandler = (Any, Logger, StaticString, UInt) -> Never
     
+    internal var fatalHandler: FatalHandler = defaultFatalHandler
+
+    /**
+     Default handler when a channel is sent a fatal error.
+ 
+     Just calls the system's fatal error function and exits.
+    */
+    
     static public func defaultFatalHandler(_ message: Any, logger: Logger, file: StaticString = #file, line: UInt = #line) -> Never {
         fatalError("Channel \(logger.name) was sent fatal message.\n\(message)", file: file, line: line)
-}
+    }
     
-    public var fatalHandler: FatalHandler = defaultFatalHandler
+    /**
+     Install a custom handler for fatal errors.
+    */
     
+    public func installFatalErrorHandler(_ handler: @escaping FatalHandler) {
+        fatalHandler = handler
+    }
 }

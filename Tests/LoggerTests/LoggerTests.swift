@@ -46,7 +46,7 @@ class LoggerTests: XCTestCase {
         let logger = Logger("test", handlers: [handler])
         logger.enabled = true
         logger.debug("blah")
-        #if debug
+        #if DEBUG
             XCTAssert(handler.logged.count == 1)
             XCTAssert(handler.logged[0] as! String == "blah")
         #else
