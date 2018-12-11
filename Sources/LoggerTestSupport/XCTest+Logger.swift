@@ -35,5 +35,34 @@ extension XCTestCase {
         let _ = Logger.defaultManager.installFatalErrorHandler(previousErrorHandler)
         return fatalLogged
     }
+ 
+    /**
+     Assert that a fatal error has been reported via the Log Manager, and check
+     that the message/object logged matches an expected value.
+     */
+
+    public func XCTAssertFatalError<T: Equatable>(equals: T, testcase: @escaping () -> Void) {
+        let result = XCTAssertFatalError(testcase: testcase)
+        guard let error = result as? T else {
+            XCTFail("unexpected message type: \(String(describing: result))")
+            return
+        }
+
+        XCTAssertEqual(error, equals)
+    }
+
+    /**
+     Assert that a fatal error has been reported via the Log Manager, and check
+     that a test passes.
+     */
     
+    public func XCTAssertFatalError<T>(testing: (T) -> Bool, testcase: @escaping () -> Void) {
+        let result = XCTAssertFatalError(testcase: testcase)
+        guard let error = result as? T else {
+            XCTFail("unexpected message type: \(String(describing: result))")
+            return
+        }
+
+        XCTAssertTrue(testing(error))
+    }
 }
