@@ -56,7 +56,7 @@ public class Manager {
         #else
         let mode = "release"
         #endif
-        print("Logger running in \(mode) mode.")
+        print("\nLogger running in \(mode) mode.")
         if enabledChannels.isEmpty {
             print("All channels currently disabled.\n")
         } else {
