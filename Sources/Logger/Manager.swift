@@ -239,11 +239,11 @@ extension Manager {
         var args: [String] = []
         var dropNext = false
         for argument in arguments {
-            if (argument == "-\(Manager.logsKey)") || (argument == "--\(Manager.logsKey)") {
+            if argument == "-\(Manager.logsKey)" {
                 dropNext = true
             } else if dropNext {
                 dropNext = false
-            } else {
+            } else if !argument.starts(with: "--logs=") {
                 args.append(argument)
             }
         }

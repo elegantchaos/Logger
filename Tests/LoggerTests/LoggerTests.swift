@@ -56,30 +56,37 @@ class LoggerTests: XCTestCase {
     }
     
     func testSettings() {
-        // test the -logs parameter
+        // test the logs parameter from a clean slate
         let defaults = blankDefaults()
         defaults.removePersistentDomain(forName: "test")
         defaults.set("test1,test2", forKey:"logs")
-        let l1 = Manager(defaults: defaults).enabledLogs
+        let l1 = Manager(defaults: defaults).channelsEnabledInSettings
         XCTAssertTrue(l1.contains("test1"))
         XCTAssertTrue(l1.contains("test2"))
 
-        // test the logs+ parameter
-        defaults.set("test1,test2", forKey:"logs")
-        defaults.set("test3", forKey:"logs+")
-        let l2 = Manager(defaults: defaults).enabledLogs
+        // test adding in channels
+        defaults.set("+test3,+test4", forKey:"logs")
+        let l2 = Manager(defaults: defaults).channelsEnabledInSettings
         XCTAssertTrue(l2.contains("test1"))
         XCTAssertTrue(l2.contains("test2"))
         XCTAssertTrue(l2.contains("test3"))
-        defaults.removeObject(forKey: "logs+")
-        
-        // test the logs- parameter
-        defaults.set("test1,test2", forKey:"logs")
-        defaults.set("test1", forKey:"logs-")
-        let l3 = Manager(defaults: defaults).enabledLogs
+        XCTAssertTrue(l2.contains("test4"))
+
+        // test removing channels
+        defaults.set("-test1,-test3", forKey:"logs")
+        let l3 = Manager(defaults: defaults).channelsEnabledInSettings
         XCTAssertFalse(l3.contains("test1"))
         XCTAssertTrue(l3.contains("test2"))
         XCTAssertFalse(l3.contains("test3"))
+        XCTAssertTrue(l3.contains("test4"))
+        
+        // test resetting channels
+        defaults.set("=test1,test3", forKey:"logs")
+        let l4 = Manager(defaults: defaults).channelsEnabledInSettings
+        XCTAssertTrue(l4.contains("test1"))
+        XCTAssertFalse(l4.contains("test2"))
+        XCTAssertTrue(l4.contains("test3"))
+        XCTAssertFalse(l4.contains("test4"))
     }
     
     func testEnabledViaSettings() {
@@ -122,7 +129,7 @@ class LoggerTests: XCTestCase {
     }
 
     func testArgumentsWithoutLoggingOptions() {
-        let stripped = Manager.removeLoggingOptions(from: ["blah", "-logs", "test,test2", "-logs+", "added", "-logs-", "removed", "waffle"])
+        let stripped = Manager.removeLoggingOptions(from: ["blah", "-logs", "test,test2", "--logs=wibble", "waffle"])
         XCTAssertEqual(stripped.count, 2)
         XCTAssertEqual(stripped[0], "blah")
         XCTAssertEqual(stripped[1], "waffle")
