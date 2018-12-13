@@ -77,8 +77,8 @@ public class Logger {
     
     public static let stdout = Logger("stdout", handlers:[stdoutHandler], enabled: true)
     
-    let name : String
-    let subsystem : String
+    public let name : String
+    public let subsystem : String
     let manager : Manager
     var handlers : [Handler] = []
     let handlersSetup : () -> [Handler]
@@ -97,12 +97,14 @@ public class Logger {
             self.subsystem = Logger.defaultSubsystem
         }
         self.handlersSetup = handlers
-        self.manager = manager
         self.enabled = enabled
+        self.manager = manager
+
+        manager.register(channel: self)
     }
     
     internal func readSettings() {
-        if manager.enabledLogs.contains("\(name)") {
+        if manager.channelsEnabledInSettings.contains("\(name)") {
             enabled = true
         }
         
