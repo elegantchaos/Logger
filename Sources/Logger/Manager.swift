@@ -188,8 +188,10 @@ extension Manager {
             persistent = newItems
         }
         
-        let string = persistent.joined(separator: ",")
-        let list = persistent.map { return String($0) }
+        var uniquePersistent = Set<String.SubSequence>()
+        for item in persistent { uniquePersistent.insert(item) }
+        let string = uniquePersistent.joined(separator: ",")
+        let list = uniquePersistent.map { return String($0) }
 
         defaults.set(string, forKey: Manager.persistentLogsKey)
         defaults.set("", forKey: Manager.logsKey)
