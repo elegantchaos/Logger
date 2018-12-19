@@ -4,6 +4,8 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+#if !os(iOS) || targetEnvironment(simulator)
+
 import XCTest
 import Logger
 
@@ -66,3 +68,5 @@ extension XCTestCase {
         XCTAssertTrue(testing(error))
     }
 }
+
+#endif
