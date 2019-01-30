@@ -10,15 +10,51 @@ import LoggerTestSupport
 
 @testable import Logger
 
-class TestHandler : Handler {
-    var logged : [Any] = []
+/**
+ Test item that fulfills an expectation when it's logged.
+ */
+
+struct TestItem: CustomStringConvertible {
+    let test: XCTestCase
+    let expectation = XCTestExpectation(description: "logged")
+    let message: String
     
-    override func log(channel: Logger, context: Context, logged: () -> Any) {
-        self.logged.append(logged())
+    init(_ message: String, test: XCTestCase) {
+        self.message = message
+        self.test = test
+    }
+    
+    var description: String {
+        expectation.fulfill()
+        return message
+    }
+    
+    func wait() {
+        test.wait(for: [expectation], timeout: 1.0)
     }
 }
 
+/**
+ Test log handler that keeps a list of the things its logged.
+ */
+
+class TestHandler : Handler {
+    var logged : [Any] = []
+    
+    override func log(channel: Logger, context: Context, logged: Any) {
+        self.logged.append("\(logged)")
+    }
+}
+
+/**
+ Tests
+ */
+
 class LoggerTests: XCTestCase {
+    func makeItem(_ message: String) -> TestItem {
+        return TestItem(message, test: self)
+    }
+    
     func blankDefaults() -> UserDefaults {
         let defaults = UserDefaults(suiteName: "LoggerTests")!
         defaults.removePersistentDomain(forName: "LoggerTests")
@@ -26,10 +62,12 @@ class LoggerTests: XCTestCase {
     }
     
     func testLoggingEnabled() {
+        let item = makeItem("blah")
         let handler = TestHandler("test")
         let logger = Logger("test", handlers: [handler], manager: Manager(defaults: blankDefaults()))
         logger.enabled = true
-        logger.log("blah")
+        logger.log(item)
+        item.wait()
         XCTAssert(handler.logged.count == 1)
         XCTAssert(handler.logged[0] as! String == "blah")
     }
@@ -43,15 +81,18 @@ class LoggerTests: XCTestCase {
     }
 
     func testDebugLogging() {
+        let item = makeItem("logged")
         let handler = TestHandler("test")
         let logger = Logger("test", handlers: [handler])
         logger.enabled = true
-        logger.debug("blah")
+        logger.debug("debug-only")
+        logger.log(item)
+        item.wait()
+
         #if DEBUG
-            XCTAssert(handler.logged.count == 1)
-            XCTAssert(handler.logged[0] as! String == "blah")
+            XCTAssert(handler.logged.first as! String == "debug-only")
         #else
-            XCTAssert(handler.logged.count == 0)
+            XCTAssert(handler.logged.first as! String == "logged")
         #endif
     }
     
@@ -93,7 +134,9 @@ class LoggerTests: XCTestCase {
         let defaults = blankDefaults()
         defaults.set("test", forKey:"logs")
         let l = Logger("test", manager: Manager(defaults: defaults))
-        l.log("blah") // log something so that the channel is setup
+        let item = makeItem("blah")
+        l.log(item) // log something so that the channel is setup
+        item.wait()
         XCTAssertTrue(l.enabled)
     }
     

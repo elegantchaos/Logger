@@ -27,7 +27,7 @@ public class Handler {
      Log something.
      */
     
-    public func log(channel: Logger, context : Context, logged : () -> Any) {
+    public func log(channel: Logger, context : Context, logged : Any) {
     }
     
     /**

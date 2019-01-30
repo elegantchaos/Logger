@@ -75,7 +75,7 @@ public class Channel {
      Unlike most channels, we want this one to default to always being on.
      */
     
-    public static let stdout = Logger("stdout", handlers:[stdoutHandler], enabled: true)
+    public static let stdout = Channel("stdout", handlers:[stdoutHandler], enabled: true)
     
     public let name : String
     public let subsystem : String
@@ -120,20 +120,39 @@ public class Channel {
         
     }
     
-    public func log(_ logged : @escaping @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,  column: UInt = #column, function: StaticString = #function) {
+    /**
+     Log something.
+     
+     The logged value is an autoclosure, to avoid doing unnecessary work if the channel is disabled.
+     
+     If the channel is enabled, we capture the logged value in the calling thread, by evaluating the autoclosure.
+     We then log the value asynchronously. The log manager serialises the logging, to avoid race conditions.
+ 
+     The first time a channel is used, it needs to be set up. We can't know at this point whether we are going
+     to actually log anything, the act of setting up the channel will read settings and potentially enable/disable it.
+     Therefore we capture the logged value anyway, then perform the setup asynchronously, and finally log the captured
+     value if required.
+     
+     Note that reading the `setup` and `enabled` flags is not serialised, to avoid taking unnecessary locks. Setup is
+     however guaranteed to only occur once.
+     */
+    
+    public func log(_ logged : @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,  column: UInt = #column, function: StaticString = #function) {
         if (!setup) {
+            let value = logged()
             manager.queue.async {
                 self.doSetup()
                 if self.enabled {
                     let context = Context(file:file, line:line, column:column, function:function)
-                    self.handlers.forEach({ $0.log(channel:self, context:context, logged:logged) })
+                    self.handlers.forEach({ $0.log(channel:self, context:context, logged:value) })
                 }
             }
             
         } else if (enabled) {
+            let value = logged()
             manager.queue.async {
                 let context = Context(file:file, line:line, column:column, function:function)
-                self.handlers.forEach({ $0.log(channel:self, context:context, logged:logged) })
+                self.handlers.forEach({ $0.log(channel:self, context:context, logged:value) })
             }
         }
     }

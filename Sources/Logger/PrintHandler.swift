@@ -13,8 +13,8 @@ public class PrintHandler : Handler {
       self.init("print")
     }
 
-    override public func log(channel: Channel, context : Context, logged : () -> Any) {
+    override public func log(channel: Channel, context : Context, logged : Any) {
         let tag = self.tag(channel: channel)
-        print("\(tag)\(logged())")
+        print("\(tag)\(logged)")
     }
 }

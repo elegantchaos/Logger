@@ -17,12 +17,12 @@ import os
       self.init("oslog")
     }
 
-    override public func log(channel: Channel, context : Context, logged : () -> Any) {
+    override public func log(channel: Channel, context : Context, logged : Any) {
         let log = channel.manager.associatedData(handler: self, logger: channel) {
             return OSLog(subsystem: channel.subsystem, category:channel.name)
         }
 
-        let message = "\(logged())"
+        let message = "\(logged)"
         os_log("%@", dso: context.dso, log: log, type: .default, message)
     }
 }
