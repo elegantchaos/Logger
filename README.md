@@ -3,10 +3,10 @@
 Configurable logging for Swift.
 
 Declare multiple log channels. 
-Log messages and objects to them. 
+Send log messages and objects to them. 
 Enable individual channels with minimal overhead for the disabled ones.
 
-### Basic Usage:
+### Basic Usage
 
 Just import the module and make one or more channels.
 
@@ -14,8 +14,8 @@ Just import the module and make one or more channels.
 
 import Logger
 
-let logger = Logger("com.acme.example.main")
-let detailLogger = Logger("com.acme.example.detail")
+let logger = Channel("com.acme.example.main")
+let detailLogger = Channel("com.acme.example.detail")
 ````
 
 To log output, just write it to a channel. Different kinds or levels of info can go to different channels as required:
@@ -31,23 +31,27 @@ To log for debug builds only:
 logger.debug("This will never show up in a release build")
 ```
 
-To enable specific channels when you run:
+### Configuration
+
+The list of enabled channels is persistent between runs of your program, and all channels start disabled by default.
+
+You can enable specific channels from the command line when you run:
 
 ```
-.build/debug/Example -logs "main"
+.build/debug/Example -logs "+myChannel,+anotherChannel"
 ```
 
-To enable channels persistently:
+
+You can also disable channels:
 
 ```
-defaults write com.acme.Example logs "main, detail"
+.build/debug/Example -logs "-myChannel,-anotherChannel"
 ```
 
-To enable/disable additional channels when you run, without wiping out the previous persistent settings: 
+Or completely reset the list of enabled channels: 
 
 ```
-.build/debug/Example -logs+ "detail"  # runs with the previous channel config, but the detail channel also enabled
-.build/debug/Example -logs- "detail"  # runs with the previous channel config, but the detail channel disabled
+.build/debug/Example -logs "=someChannel,someOtherChannel"
 ```
 
 
@@ -75,11 +79,14 @@ Additional features and/or motivations:
 
 Motto for this version: *less is more*. 
 
-The implementation of ECLogging started getting a bit gnarly. This aims to be a stripped down version with just the essentials. 
+The implementation of [ECLogging](https://github.com/elegantchaos/ECLogging) started getting a bit gnarly. 
+
+This aims to be a stripped down version with just the essentials. 
 
 Specific aims
 
 - swifty
+- asynchronous
 - simple(r) way to enable/disable channels from the command line
 - support the new os_log() model
 

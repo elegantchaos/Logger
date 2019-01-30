@@ -7,13 +7,14 @@
 import Foundation
 
 public class Manager {
-    typealias AssociatedLoggerData = [Logger:Any]
-    typealias AssociatedHandlerData = [Handler:AssociatedLoggerData]
+    typealias AssociatedChannelData = [Channel:Any]
+    typealias AssociatedHandlerData = [Handler:AssociatedChannelData]
     
     let defaults: UserDefaults
-    var channels: [Logger] = []
+    var channels: [Channel] = []
     var associatedData: AssociatedHandlerData = [:]
     var fatalHandler: FatalHandler = defaultFatalHandler
+    var queue: DispatchQueue = DispatchQueue(label: "com.elegantchaos.logger", qos: .utility, attributes: [], autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency.inherit)
     lazy var channelsEnabledInSettings: [String] = loadChannelSettings()
 
     init(defaults: UserDefaults = UserDefaults.standard) {
@@ -27,20 +28,20 @@ public class Manager {
      If no data is stored, the setter closure is called to provide it.
      */
     
-    public func associatedData<T>(handler: Handler, logger: Logger, setter: ()->T ) -> T {
+    public func associatedData<T>(handler: Handler, channel: Channel, setter: ()->T ) -> T {
         var handlerData = associatedData[handler]
         if handlerData == nil {
             handlerData = [:]
             associatedData[handler] = handlerData
         }
         
-        var loggerData = handlerData![logger] as? T
-        if loggerData == nil {
-            loggerData = setter()
-            handlerData![logger] = loggerData
+        var channelData = handlerData![channel] as? T
+        if channelData == nil {
+            channelData = setter()
+            handlerData![channel] = channelData
         }
         
-        return loggerData!
+        return channelData!
     }
     
     
@@ -63,13 +64,27 @@ public class Manager {
             print("Enabled log channels: \(enabledChannels)\n")
         }
     }
+    
+    /**
+     Pause until everything in the log queue has been logged.
+ 
+     You shouldn't generally need to do this, but it's helpful if you
+     need to ensure that all output reaches its destination before some
+     action (exiting, for example).
+ */
+    
+    public func flush() {
+        queue.sync() {
+            // do nothing
+        }
+    }
 }
 
 // MARK: Fatal Error Handling
 
 extension Manager {
     
-    public typealias FatalHandler = (Any, Logger, StaticString, UInt) -> Never
+    public typealias FatalHandler = (Any, Channel, StaticString, UInt) -> Never
     
     
     /**
@@ -78,8 +93,8 @@ extension Manager {
      Just calls the system's fatal error function and exits.
      */
     
-    static public func defaultFatalHandler(_ message: Any, logger: Logger, file: StaticString = #file, line: UInt = #line) -> Never {
-        fatalError("Channel \(logger.name) was sent fatal message.\n\(message)", file: file, line: line)
+    static public func defaultFatalHandler(_ message: Any, channel: Channel, file: StaticString = #file, line: UInt = #line) -> Never {
+        fatalError("Channel \(channel.name) was sent fatal message.\n\(message)", file: file, line: line)
     }
     
     /**
@@ -104,7 +119,7 @@ extension Manager {
 // MARK: Channels
 
 extension Manager {
-    func register(channel: Logger) {
+    func register(channel: Channel) {
         channels.append(channel)
     }
     
@@ -115,13 +130,13 @@ extension Manager {
      which may not necessarily be when the application first runs.
      */
     
-    public var registeredChannels: [Logger] {
+    public var registeredChannels: [Channel] {
         get {
             return channels
         }
     }
     
-    public var enabledChannels: [Logger] {
+    public var enabledChannels: [Channel] {
         return channels.filter { $0.enabled }
     }
     
@@ -206,7 +221,7 @@ extension Manager {
      next time the application runs.
     */
     
-    public func update(channels: [Logger], state: Bool) {
+    public func update(channels: [Channel], state: Bool) {
         for channel in channels {
             channel.enabled = state
             let change = channel.enabled ? "enabled" : "disabled"

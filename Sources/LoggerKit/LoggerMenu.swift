@@ -26,10 +26,10 @@ public class LoggerMenu: NSMenu, NSMenuDelegate, NSMenuItemValidation {
         
         addItem(NSMenuItem.separator())
 
-        for logger in Logger.defaultManager.registeredChannels {
-            let item = NSMenuItem(title: logger.name, action: #selector(toggleChannel(_:)), keyEquivalent: "")
+        for channel in Logger.defaultManager.registeredChannels {
+            let item = NSMenuItem(title: channel.name, action: #selector(toggleChannel(_:)), keyEquivalent: "")
             item.target = self
-            item.representedObject = logger
+            item.representedObject = channel
             addItem(item)
         }
     }
