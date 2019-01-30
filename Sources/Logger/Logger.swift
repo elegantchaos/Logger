@@ -100,7 +100,17 @@ public class Logger {
         self.enabled = enabled
         self.manager = manager
 
-        manager.register(channel: self)
+        manager.queue.async {
+            manager.register(channel: self)
+        }
+    }
+    
+    internal func doSetup() {
+        if !setup {
+            readSettings()
+            handlers = handlersSetup()
+            setup = true
+        }
     }
     
     internal func readSettings() {
@@ -110,16 +120,21 @@ public class Logger {
         
     }
     
-    public func log(_ logged : @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,  column: UInt = #column, function: StaticString = #function) {
+    public func log(_ logged : @escaping @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,  column: UInt = #column, function: StaticString = #function) {
         if (!setup) {
-            readSettings()
-            handlers = handlersSetup()
-            setup = true
-        }
-        
-        if (enabled) {
-            let context = Context(file:file, line:line, column:column, function:function)
-            handlers.forEach({ $0.log(channel:self, context:context, logged:logged) })
+            manager.queue.async {
+                self.doSetup()
+                if self.enabled {
+                    let context = Context(file:file, line:line, column:column, function:function)
+                    self.handlers.forEach({ $0.log(channel:self, context:context, logged:logged) })
+                }
+            }
+            
+        } else if (enabled) {
+            manager.queue.async {
+                let context = Context(file:file, line:line, column:column, function:function)
+                self.handlers.forEach({ $0.log(channel:self, context:context, logged:logged) })
+            }
         }
     }
     

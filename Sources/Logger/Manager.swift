@@ -14,6 +14,7 @@ public class Manager {
     var channels: [Logger] = []
     var associatedData: AssociatedHandlerData = [:]
     var fatalHandler: FatalHandler = defaultFatalHandler
+    var queue: DispatchQueue = DispatchQueue(label: "com.elegantchaos.logger", qos: .utility, attributes: [], autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency.inherit)
     lazy var channelsEnabledInSettings: [String] = loadChannelSettings()
 
     init(defaults: UserDefaults = UserDefaults.standard) {
