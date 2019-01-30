@@ -8,8 +8,8 @@ import Logger
 
 let stdout = Logger.stdout
 
-let test = Logger("test")
-let test2 = Logger("com.elegantchaos.other.test2", handlers: [PrintHandler("print", showName: true, showSubsystem: true)])
+let test = Channel("test")
+let test2 = Channel("com.elegantchaos.other.test2", handlers: [PrintHandler("print", showName: true, showSubsystem: true)])
 
 stdout.log("This should get printed to stdout.")
 stdout.log("There shouldn't be any contex information included in the output.\n")
@@ -21,3 +21,5 @@ test.log("Unlike the Logger.stdout channel, this one also shows the channel name
 test2.log("This should always be logged to stdout, but will show the console name and the subsystem.\n")
 
 test.debug("This should only appear for debug builds.\n")
+
+Logger.defaultManager.flush()

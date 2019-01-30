@@ -64,6 +64,20 @@ public class Manager {
             print("Enabled log channels: \(enabledChannels)\n")
         }
     }
+    
+    /**
+     Pause until everything in the log queue has been logged.
+ 
+     You shouldn't generally need to do this, but it's helpful if you
+     need to ensure that all output reaches its destination before some
+     action (exiting, for example).
+ */
+    
+    public func flush() {
+        queue.sync() {
+            // do nothing
+        }
+    }
 }
 
 // MARK: Fatal Error Handling
