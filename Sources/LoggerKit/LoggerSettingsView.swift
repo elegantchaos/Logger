@@ -8,6 +8,8 @@ import UIKit
 import Logger
 
 public class LoggerSettingsView: UIViewController, UITableViewDelegate, UITableViewDataSource {
+    public typealias DoneCallback = () -> Void
+    
     var tableView: UITableView!
     let manager = Logger.defaultManager
 
@@ -26,24 +28,24 @@ public class LoggerSettingsView: UIViewController, UITableViewDelegate, UITableV
         tableView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
         tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
         tableView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-    }
-    
-    public override func viewWillAppear(_ animated: Bool) {
-        tableView.reloadData()
-    }
-    
-    public func show(in controller: UIViewController, done: () -> Void) {
-        edgesForExtendedLayout = UIRectEdge()
         
-        if let nav = controller.navigationController {
-            nav.pushViewController(self, animated: true)
-        } else {
-            let nav = UINavigationController(rootViewController: self)
-            title = "Log Settings"
-            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneModal(_:)))
-            controller.present(nav, animated: true) {
-                
-            }
+        tableView.setNeedsDisplay()
+    }
+    
+    public func show(in controller: UIViewController, sender: UIView, done: DoneCallback? = nil) {
+        title = "Log Settings"
+        let nav = UINavigationController(rootViewController: self)
+        nav.modalPresentationStyle = .popover
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneModal(_:)))
+        if let popover = nav.popoverPresentationController {
+            popover.sourceView = sender
+            popover.sourceRect = sender.bounds
+            popover.permittedArrowDirections = UIPopoverArrowDirection.any
+            popover.canOverlapSourceViewRect = false
+        }
+        
+        controller.present(nav, animated: true) {
+            done?()
         }
     }
     
