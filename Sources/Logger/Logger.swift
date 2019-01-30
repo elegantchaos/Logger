@@ -12,7 +12,7 @@ import Foundation
  to one or more handlers.
  */
 
-public class Logger {
+public class Channel {
     
     /**
      Default log handler which prints to standard out,
@@ -150,7 +150,7 @@ public class Logger {
     }
 }
 
-extension Logger : Hashable {
+extension Channel : Hashable {
     // For now, we treat loggers with the same name as equal,
     // as long as they belong to the same manager.
     
@@ -158,8 +158,14 @@ extension Logger : Hashable {
         return name.hashValue
     }
     
-    public static func == (lhs: Logger, rhs: Logger) -> Bool {
+    public static func == (lhs: Channel, rhs: Channel) -> Bool {
         return (lhs.name == rhs.name) && (lhs.manager === rhs.manager)
     }
     
 }
+
+/**
+ Externally, channels are declared with Logger(...)
+ */
+
+public typealias Logger = Channel

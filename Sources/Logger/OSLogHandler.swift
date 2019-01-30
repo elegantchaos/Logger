@@ -17,7 +17,7 @@ import os
       self.init("oslog")
     }
 
-    override public func log(channel: Logger, context : Context, logged : () -> Any) {
+    override public func log(channel: Channel, context : Context, logged : () -> Any) {
         let log = channel.manager.associatedData(handler: self, logger: channel) {
             return OSLog(subsystem: channel.subsystem, category:channel.name)
         }

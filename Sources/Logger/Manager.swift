@@ -7,11 +7,11 @@
 import Foundation
 
 public class Manager {
-    typealias AssociatedLoggerData = [Logger:Any]
-    typealias AssociatedHandlerData = [Handler:AssociatedLoggerData]
+    typealias AssociatedChannelData = [Channel:Any]
+    typealias AssociatedHandlerData = [Handler:AssociatedChannelData]
     
     let defaults: UserDefaults
-    var channels: [Logger] = []
+    var channels: [Channel] = []
     var associatedData: AssociatedHandlerData = [:]
     var fatalHandler: FatalHandler = defaultFatalHandler
     var queue: DispatchQueue = DispatchQueue(label: "com.elegantchaos.logger", qos: .utility, attributes: [], autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency.inherit)
@@ -28,7 +28,7 @@ public class Manager {
      If no data is stored, the setter closure is called to provide it.
      */
     
-    public func associatedData<T>(handler: Handler, logger: Logger, setter: ()->T ) -> T {
+    public func associatedData<T>(handler: Handler, logger: Channel, setter: ()->T ) -> T {
         var handlerData = associatedData[handler]
         if handlerData == nil {
             handlerData = [:]
@@ -70,7 +70,7 @@ public class Manager {
 
 extension Manager {
     
-    public typealias FatalHandler = (Any, Logger, StaticString, UInt) -> Never
+    public typealias FatalHandler = (Any, Channel, StaticString, UInt) -> Never
     
     
     /**
@@ -79,7 +79,7 @@ extension Manager {
      Just calls the system's fatal error function and exits.
      */
     
-    static public func defaultFatalHandler(_ message: Any, logger: Logger, file: StaticString = #file, line: UInt = #line) -> Never {
+    static public func defaultFatalHandler(_ message: Any, logger: Channel, file: StaticString = #file, line: UInt = #line) -> Never {
         fatalError("Channel \(logger.name) was sent fatal message.\n\(message)", file: file, line: line)
     }
     
@@ -105,7 +105,7 @@ extension Manager {
 // MARK: Channels
 
 extension Manager {
-    func register(channel: Logger) {
+    func register(channel: Channel) {
         channels.append(channel)
     }
     
@@ -116,13 +116,13 @@ extension Manager {
      which may not necessarily be when the application first runs.
      */
     
-    public var registeredChannels: [Logger] {
+    public var registeredChannels: [Channel] {
         get {
             return channels
         }
     }
     
-    public var enabledChannels: [Logger] {
+    public var enabledChannels: [Channel] {
         return channels.filter { $0.enabled }
     }
     
@@ -207,7 +207,7 @@ extension Manager {
      next time the application runs.
     */
     
-    public func update(channels: [Logger], state: Bool) {
+    public func update(channels: [Channel], state: Bool) {
         for channel in channels {
             channel.enabled = state
             let change = channel.enabled ? "enabled" : "disabled"
