@@ -26,12 +26,10 @@ public class LoggerSettingsView: UITableViewController {
     enum Command: String {
         case enableAllChannels = "Enable All"
         case disableAllChannels = "Disable All"
-        case resetAllSettings = "Reset All"
         
         static let commands: [Command] = [
             .enableAllChannels,
             .disableAllChannels,
-            .resetAllSettings
         ]
     }
     
@@ -65,6 +63,7 @@ public class LoggerSettingsView: UITableViewController {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: LoggerSettingsView.cellIdentifier)
         let nav = UINavigationController(rootViewController: self)
         nav.modalPresentationStyle = .popover
+        tableView.reloadData()
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneModal(_:)))
         if let popover = nav.popoverPresentationController {
             popover.sourceView = sender
@@ -145,9 +144,6 @@ public class LoggerSettingsView: UITableViewController {
         case .disableAllChannels:
             manager.update(channels: manager.registeredChannels, state: false)
             tableView.reloadSections(IndexSet([1]), with: .automatic)
-            
-        case .resetAllSettings:
-            break
         }
     }
     
