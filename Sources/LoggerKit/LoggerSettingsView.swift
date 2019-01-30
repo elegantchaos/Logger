@@ -8,61 +8,28 @@ import UIKit
 import Logger
 
 public class LoggerSettingsView: UIViewController, UITableViewDelegate, UITableViewDataSource {
-//    var headerView: UIView!
-//    var titleLabel: UILabel!
     var tableView: UITableView!
-    
-    //    var settingsController: LoggingSettingsViewController
-    //@property (strong, nonatomic) IBOutlet ECLogTranscriptViewController* oTranscriptController;
-    
+    let manager = Logger.defaultManager
+
     public override func loadView() {
         super.loadView()
-        
-//        headerView = UIView()
-//        headerView.backgroundColor = .red
-//        self.view.addSubview(headerView)
-//
-//        titleLabel = UILabel()
-//        titleLabel.text = "test"
-//        titleLabel.textAlignment = .center
-//        titleLabel.font = UIFont(name: titleLabel.font.fontName, size: 20)
-//        headerView.addSubview(titleLabel)
         
         tableView = UITableView()
         tableView.allowsSelection = true
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.sectionHeaderHeight = 40
         view.addSubview(tableView)
-        
-//        headerView.translatesAutoresizingMaskIntoConstraints = false
-//        headerView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
-//        headerView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-//        headerView.widthAnchor.constraint(equalTo: self.view.widthAnchor).isActive = true
-//        headerView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.15).isActive = true
-//
-//        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-//        titleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor).isActive = true
-//        titleLabel.bottomAnchor.constraint(equalTo: headerView.bottomAnchor).isActive = true
-//        titleLabel.widthAnchor.constraint(equalTo: headerView.widthAnchor, multiplier: 0.4).isActive = true
-//        titleLabel.heightAnchor.constraint(equalTo: headerView.heightAnchor, multiplier: 0.5).isActive = true
         
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
         tableView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
         tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
         tableView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-        
     }
     
     public override func viewWillAppear(_ animated: Bool) {
-        //    [self.oTranscriptController setupInitialLogItems];
-        super.viewWillAppear(animated)
-    }
-    
-    public override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        //    self.oSettingsController.navController = self.navigationController;
-        //    [[ECLogManager sharedInstance] saveChannelSettings];
+        tableView.reloadData()
     }
     
     public func show(in controller: UIViewController, done: () -> Void) {
@@ -72,7 +39,7 @@ public class LoggerSettingsView: UIViewController, UITableViewDelegate, UITableV
             nav.pushViewController(self, animated: true)
         } else {
             let nav = UINavigationController(rootViewController: self)
-            title = "Logging"
+            title = "Log Settings"
             navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneModal(_:)))
             controller.present(nav, animated: true) {
                 
@@ -87,8 +54,6 @@ public class LoggerSettingsView: UIViewController, UITableViewDelegate, UITableV
     }
     
     enum Command {
-        case showChannels
-        case showHandlers
         case enableAllChannels
         case disableAllChannels
         case resetAllSettings
@@ -101,24 +66,10 @@ public class LoggerSettingsView: UIViewController, UITableViewDelegate, UITableV
     }
     
     let items = [
-        Item(name: "Configure Channels", accessory: .disclosureIndicator, command: .showChannels),
-        Item(name: "Default Handlers", accessory: .disclosureIndicator, command: .showHandlers),
         Item(name: "Enable All", accessory: .disclosureIndicator, command: .enableAllChannels),
         Item(name: "Disable All", accessory: .disclosureIndicator, command: .disableAllChannels),
         Item(name: "Reset All", accessory: .disclosureIndicator, command: .resetAllSettings)
     ]
-    
-    func showChannels() {
-        //                ECDebugChannelsViewController* controller = [[ECDebugChannelsViewController alloc] initWithStyle:UITableViewStyleGrouped];
-        //                controller.settingsViewController = self;
-        //                [self pushViewController:controller];
-    }
-    
-    func showHandlers() {
-        //                    ECDebugHandlersViewController* controller = [[ECDebugHandlersViewController alloc] initWithStyle:UITableViewStyleGrouped];
-        //                    controller.settingsViewController = self;
-        //                    [self pushViewController:controller];
-    }
     
 //    func pushViewController(controller: UIViewController) {
 //        if let navigation = self.navController ?? self.navigationController {
@@ -126,16 +77,20 @@ public class LoggerSettingsView: UIViewController, UITableViewDelegate, UITableV
 //        }
 //    }
     
-    private func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
+    public func numberOfSections(in tableView: UITableView) -> Int {
+        return 2
     }
     
-    private func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return "Settings"
+    public func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return section == 0 ? "Settings" : "Channels"
     }
     
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return items.count
+        if section == 0 {
+            return items.count
+        } else {
+            return manager.registeredChannels.count
+        }
     }
     
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -143,32 +98,39 @@ public class LoggerSettingsView: UIViewController, UITableViewDelegate, UITableV
             return UITableViewCell(style: .default, reuseIdentifier: "DebugViewCell")
         }
         
-        let item = items[indexPath.row]
-        cell.textLabel?.text = item.name
-//        cell.textLabel?.font = settingsFont
-        cell.accessoryType = item.accessory
+        if indexPath.section == 0 {
+            let item = items[indexPath.row]
+            cell.textLabel?.text = item.name
+            //        cell.textLabel?.font = settingsFont
+            cell.accessoryType = item.accessory
+        } else {
+            let channel = manager.registeredChannels[indexPath.row]
+            cell.textLabel?.text = channel.name
+            cell.accessoryType = channel.enabled ? .checkmark : .none
+        }
         return cell
     }
     
-    private func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let item = items[indexPath.row]
-        switch item.command {
-        case .showChannels:
-            showChannels()
-            
-        case .showHandlers:
-            showHandlers()
-            
-        case .enableAllChannels:
-            let manager = Logger.defaultManager
-            manager.update(channels: manager.registeredChannels, state: true)
-            
-        case .disableAllChannels:
-            let manager = Logger.defaultManager
-            manager.update(channels: manager.registeredChannels, state: false)
-            
-        case .resetAllSettings:
-            break
+    public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if indexPath.section == 0 {
+            let item = items[indexPath.row]
+            switch item.command {
+            case .enableAllChannels:
+                manager.update(channels: manager.registeredChannels, state: true)
+                tableView.reloadSections(IndexSet([1]), with: .automatic)
+                
+            case .disableAllChannels:
+                manager.update(channels: manager.registeredChannels, state: false)
+                tableView.reloadSections(IndexSet([1]), with: .automatic)
+
+            case .resetAllSettings:
+                break
+            }
+        } else {
+            let channel = manager.registeredChannels[indexPath.row]
+            manager.update(channels: [channel], state: !channel.enabled)
+            tableView.reloadRows(at: [indexPath], with: .automatic)
+
         }
         
         tableView.deselectRow(at: indexPath, animated: true)
