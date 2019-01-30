@@ -3,18 +3,35 @@
 //  All code (c) 2019 - present day, Elegant Chaos Limited.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-#if os(iOS)
+#if canImport(UIKit)
 import UIKit
 import Logger
 
 public class LoggerSettingsView: UITableViewController {
     public typealias DoneCallback = () -> Void
     
+    enum Command: String {
+        case enableAllChannels = "Enable All"
+        case disableAllChannels = "Disable All"
+        case resetAllSettings = "Reset All"
+        
+        static let commands: [Command] = [
+            .enableAllChannels,
+            .disableAllChannels,
+            .resetAllSettings
+        ]
+    }
+    
+    static let cellIdentifier = "cell"
+    static let sections = [ "Settings", "Channels" ]
+    static let commandsSection = 0
+
     let manager = Logger.defaultManager
     let font = UIFont.systemFont(ofSize: UIFont.labelFontSize)
     
     public func show(in controller: UIViewController, sender: UIView, done: DoneCallback? = nil) {
         title = "Log Settings"
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: LoggerSettingsView.cellIdentifier)
         let nav = UINavigationController(rootViewController: self)
         nav.modalPresentationStyle = .popover
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneModal(_:)))
@@ -36,31 +53,17 @@ public class LoggerSettingsView: UITableViewController {
         }
     }
     
-    enum Command: String {
-        case enableAllChannels = "Enable All"
-        case disableAllChannels = "Disable All"
-        case resetAllSettings = "Reset All"
-
-        static let commands: [Command] = [
-            .enableAllChannels,
-            .disableAllChannels,
-            .resetAllSettings
-        ]
-    }
-    
-    let sections = [ "Settings", "Channels" ]
-    let commandsSection = 0
     
     override public func numberOfSections(in tableView: UITableView) -> Int {
-        return sections.count
+        return LoggerSettingsView.sections.count
     }
     
     override public func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return sections[section]
+        return LoggerSettingsView.sections[section]
     }
     
     override public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if section == commandsSection {
+        if section == LoggerSettingsView.commandsSection {
             return Command.commands.count
         } else {
             return manager.registeredChannels.count
@@ -68,11 +71,8 @@ public class LoggerSettingsView: UITableViewController {
     }
    
     override public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "DebugViewCell") else {
-            return UITableViewCell(style: .default, reuseIdentifier: "DebugViewCell")
-        }
-        
-        if indexPath.section == commandsSection {
+        let cell = tableView.dequeueReusableCell(withIdentifier: LoggerSettingsView.cellIdentifier)!
+        if indexPath.section == LoggerSettingsView.commandsSection {
             setupCommandRow(indexPath, cell)
         } else {
             setupChannelRow(indexPath, cell)
@@ -83,7 +83,7 @@ public class LoggerSettingsView: UITableViewController {
     }
     
     override public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if indexPath.section == commandsSection {
+        if indexPath.section == LoggerSettingsView.commandsSection {
             selectCommand(indexPath, tableView)
         } else {
             selectChannel(indexPath, tableView)
