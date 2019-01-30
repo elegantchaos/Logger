@@ -18,7 +18,7 @@ import os
     }
 
     override public func log(channel: Channel, context : Context, logged : Any) {
-        let log = channel.manager.associatedData(handler: self, logger: channel) {
+        let log = channel.manager.associatedData(handler: self, channel: channel) {
             return OSLog(subsystem: channel.subsystem, category:channel.name)
         }
 

@@ -41,7 +41,7 @@ struct TestItem: CustomStringConvertible {
 class TestHandler : Handler {
     var logged : [Any] = []
     
-    override func log(channel: Logger, context: Context, logged: Any) {
+    override func log(channel: Channel, context: Context, logged: Any) {
         self.logged.append("\(logged)")
     }
 }
@@ -64,9 +64,9 @@ class LoggerTests: XCTestCase {
     func testLoggingEnabled() {
         let item = makeItem("blah")
         let handler = TestHandler("test")
-        let logger = Logger("test", handlers: [handler], manager: Manager(defaults: blankDefaults()))
-        logger.enabled = true
-        logger.log(item)
+        let channel = Channel("test", handlers: [handler], manager: Manager(defaults: blankDefaults()))
+        channel.enabled = true
+        channel.log(item)
         item.wait()
         XCTAssert(handler.logged.count == 1)
         XCTAssert(handler.logged[0] as! String == "blah")
@@ -74,19 +74,19 @@ class LoggerTests: XCTestCase {
     
     func testLoggingDisabled() {
         let handler = TestHandler("test")
-        let logger = Logger("test", handlers: [handler], manager: Manager(defaults: blankDefaults()))
-        logger.enabled = false
-        logger.log("blah")
+        let channel = Channel("test", handlers: [handler], manager: Manager(defaults: blankDefaults()))
+        channel.enabled = false
+        channel.log("blah")
         XCTAssert(handler.logged.count == 0)
     }
 
     func testDebugLogging() {
         let item = makeItem("logged")
         let handler = TestHandler("test")
-        let logger = Logger("test", handlers: [handler])
-        logger.enabled = true
-        logger.debug("debug-only")
-        logger.log(item)
+        let channel = Channel("test", handlers: [handler])
+        channel.enabled = true
+        channel.debug("debug-only")
+        channel.log(item)
         item.wait()
 
         #if DEBUG
@@ -133,11 +133,11 @@ class LoggerTests: XCTestCase {
     func testEnabledViaSettings() {
         let defaults = blankDefaults()
         defaults.set("test", forKey:"logs")
-        let l = Logger("test", manager: Manager(defaults: defaults))
+        let channel = Channel("test", manager: Manager(defaults: defaults))
         let item = makeItem("blah")
-        l.log(item) // log something so that the channel is setup
+        channel.log(item) // log something so that the channel is setup
         item.wait()
-        XCTAssertTrue(l.enabled)
+        XCTAssertTrue(channel.enabled)
     }
     
     func testContextDescription() {
@@ -145,23 +145,23 @@ class LoggerTests: XCTestCase {
         XCTAssertEqual(c.description, "test.swift: 123,456 - testFunc")
     }
     
-    func testLoggerSimpleName() {
-        let l = Logger("simpleName")
-        XCTAssertEqual(l.name, "simpleName")
-        XCTAssertEqual(l.subsystem, Logger.defaultSubsystem)
+    func testChannelSimpleName() {
+        let channel = Channel("simpleName")
+        XCTAssertEqual(channel.name, "simpleName")
+        XCTAssertEqual(channel.subsystem, Channel.defaultSubsystem)
     }
 
-    func testLoggerComplexName() {
-        let l = Logger("com.elegantchaos.logger.test.name")
-        XCTAssertEqual(l.name, "name")
-        XCTAssertEqual(l.subsystem, "com.elegantchaos.logger.test")
+    func testChannelComplexName() {
+        let channel = Channel("com.elegantchaos.logger.test.name")
+        XCTAssertEqual(channel.name, "name")
+        XCTAssertEqual(channel.subsystem, "com.elegantchaos.logger.test")
     }
 
-    func testLoggerComparison() {
-        let l1 = Logger("test")
-        let l2 = Logger("test")
-        XCTAssertEqual(l1, l2)
-        XCTAssertEqual(l1.hashValue, l2.hashValue)
+    func testChannelComparison() {
+        let channel1 = Channel("test")
+        let channel2 = Channel("test")
+        XCTAssertEqual(channel1, channel2)
+        XCTAssertEqual(channel1.hashValue, channel2.hashValue)
     }
 
     func testHandlerComparison() {
@@ -180,8 +180,8 @@ class LoggerTests: XCTestCase {
     
     func testFatalError() {
         let logged = XCTAssertFatalError() {
-            let l = Logger("test")
-            l.fatal("Oh bugger")
+            let channel = Channel("test")
+            channel.fatal("Oh bugger")
         } as? String
         
         XCTAssertEqual(logged, "Oh bugger")

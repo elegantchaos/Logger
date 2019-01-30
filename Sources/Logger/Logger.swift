@@ -170,7 +170,7 @@ public class Channel {
 }
 
 extension Channel : Hashable {
-    // For now, we treat loggers with the same name as equal,
+    // For now, we treat channels with the same name as equal,
     // as long as they belong to the same manager.
     
     public var hashValue: Int {

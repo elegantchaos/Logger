@@ -14,8 +14,8 @@ Just import the module and make one or more channels.
 
 import Logger
 
-let logger = Logger("com.acme.example.main")
-let detailLogger = Logger("com.acme.example.detail")
+let logger = Channel("com.acme.example.main")
+let detailLogger = Channel("com.acme.example.detail")
 ````
 
 To log output, just write it to a channel. Different kinds or levels of info can go to different channels as required:

@@ -28,20 +28,20 @@ public class Manager {
      If no data is stored, the setter closure is called to provide it.
      */
     
-    public func associatedData<T>(handler: Handler, logger: Channel, setter: ()->T ) -> T {
+    public func associatedData<T>(handler: Handler, channel: Channel, setter: ()->T ) -> T {
         var handlerData = associatedData[handler]
         if handlerData == nil {
             handlerData = [:]
             associatedData[handler] = handlerData
         }
         
-        var loggerData = handlerData![logger] as? T
-        if loggerData == nil {
-            loggerData = setter()
-            handlerData![logger] = loggerData
+        var channelData = handlerData![channel] as? T
+        if channelData == nil {
+            channelData = setter()
+            handlerData![channel] = channelData
         }
         
-        return loggerData!
+        return channelData!
     }
     
     
@@ -79,8 +79,8 @@ extension Manager {
      Just calls the system's fatal error function and exits.
      */
     
-    static public func defaultFatalHandler(_ message: Any, logger: Channel, file: StaticString = #file, line: UInt = #line) -> Never {
-        fatalError("Channel \(logger.name) was sent fatal message.\n\(message)", file: file, line: line)
+    static public func defaultFatalHandler(_ message: Any, channel: Channel, file: StaticString = #file, line: UInt = #line) -> Never {
+        fatalError("Channel \(channel.name) was sent fatal message.\n\(message)", file: file, line: line)
     }
     
     /**
