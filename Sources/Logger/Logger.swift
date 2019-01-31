@@ -79,27 +79,10 @@ public class Channel {
     
     public let name : String
     public let subsystem : String
+    public var enabled: Bool
+
     let manager : Manager
     var handlers : [Handler] = []
-    let handlersSetup : () -> [Handler]
-    
-    private let _enabledLock = DispatchSemaphore(value: 1)
-    private var _enabled: Bool
-    
-    public var enabled: Bool {
-        get {
-            _enabledLock.wait()
-            let result = _enabled
-            _enabledLock.signal()
-            return result
-        }
-        
-        set (value) {
-            _enabledLock.wait()
-            _enabled = value
-            _enabledLock.signal()
-        }
-    }
     
     public init(_ name : String, handlers : @autoclosure @escaping () -> [Handler] = [defaultHandler], alwaysEnabled: Bool = false, manager : Manager = Logger.defaultManager) {
         let components = name.split(separator: ".")
@@ -111,11 +94,12 @@ public class Channel {
             self.name = name
             self.subsystem = Logger.defaultSubsystem
         }
-        self.handlersSetup = handlers
-        self.manager = manager
-        self._enabled = manager.channelsEnabledInSettings.contains("\(name)") || alwaysEnabled
 
-        manager.queue.async {
+        self.manager = manager
+        self.enabled = manager.channelsEnabledInSettings.contains("\(name)") || alwaysEnabled
+        self.handlers = handlers() // TODO: does this need to be a closure any more?
+        
+        manager.queue.sync {
             manager.register(channel: self)
         }
     }

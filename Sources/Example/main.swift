@@ -20,6 +20,6 @@ test.log("Unlike the Logger.stdout channel, this one also shows the channel name
 
 test2.log("This should always be logged to stdout, but will show the console name and the subsystem.\n")
 
-test.debug("This should only appear for debug builds.\n")
+stdout.debug("This should only appear for debug builds.\n")
 
 Logger.defaultManager.flush()

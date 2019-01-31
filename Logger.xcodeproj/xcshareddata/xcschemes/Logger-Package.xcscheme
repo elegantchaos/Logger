@@ -14,20 +14,6 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "Logger::LoggerKit"
-               BuildableName = "LoggerKit.framework"
-               BlueprintName = "LoggerKit"
-               ReferencedContainer = "container:Logger.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
                BlueprintIdentifier = "Logger::LoggerTestSupport"
                BuildableName = "LoggerTestSupport.framework"
                BlueprintName = "LoggerTestSupport"
@@ -62,13 +48,26 @@
                ReferencedContainer = "container:Logger.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "Logger::LoggerKit"
+               BuildableName = "LoggerKit.framework"
+               BlueprintName = "LoggerKit"
+               ReferencedContainer = "container:Logger.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      codeCoverageEnabled = "YES"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
          <TestableReference
@@ -98,9 +97,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "Logger::LoggerKit"
-            BuildableName = "LoggerKit.framework"
-            BlueprintName = "LoggerKit"
+            BlueprintIdentifier = "Logger::LoggerTestSupport"
+            BuildableName = "LoggerTestSupport.framework"
+            BlueprintName = "LoggerTestSupport"
             ReferencedContainer = "container:Logger.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
