@@ -84,7 +84,7 @@ public class Channel {
     let manager : Manager
     var handlers : [Handler] = []
     
-    public init(_ name : String, handlers : @autoclosure @escaping () -> [Handler] = [defaultHandler], alwaysEnabled: Bool = false, manager : Manager = Logger.defaultManager) {
+    public init(_ name : String, handlers : @autoclosure () -> [Handler] = [defaultHandler], alwaysEnabled: Bool = false, manager : Manager = Logger.defaultManager) {
         let components = name.split(separator: ".")
         let last = components.count - 1
         if last > 0 {
@@ -99,9 +99,7 @@ public class Channel {
         self.enabled = manager.channelsEnabledInSettings.contains("\(name)") || alwaysEnabled
         self.handlers = handlers() // TODO: does this need to be a closure any more?
         
-        manager.queue.sync {
-            manager.register(channel: self)
-        }
+        manager.register(channel: self)
     }
     
     /**
