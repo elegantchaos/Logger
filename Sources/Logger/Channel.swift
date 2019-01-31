@@ -75,18 +75,16 @@ public class Channel {
      Unlike most channels, we want this one to default to always being on.
      */
     
-    public static let stdout = Channel("stdout", handlers:[stdoutHandler], enabled: true)
+    public static let stdout = Channel("stdout", handlers:[stdoutHandler], alwaysEnabled: true)
     
     public let name : String
     public let subsystem : String
+    public var enabled: Bool
+
     let manager : Manager
     var handlers : [Handler] = []
-    let handlersSetup : () -> [Handler]
     
-    public var enabled : Bool
-    var setup = false
-    
-    public init(_ name : String, handlers : @autoclosure @escaping () -> [Handler] = [defaultHandler], enabled : Bool = false, manager : Manager = Logger.defaultManager) {
+    public init(_ name : String, handlers : @autoclosure () -> [Handler] = [defaultHandler], alwaysEnabled: Bool = false, manager : Manager = Logger.defaultManager) {
         let components = name.split(separator: ".")
         let last = components.count - 1
         if last > 0 {
@@ -96,28 +94,12 @@ public class Channel {
             self.name = name
             self.subsystem = Logger.defaultSubsystem
         }
-        self.handlersSetup = handlers
-        self.enabled = enabled
-        self.manager = manager
 
-        manager.queue.async {
-            manager.register(channel: self)
-        }
-    }
-    
-    internal func doSetup() {
-        if !setup {
-            readSettings()
-            handlers = handlersSetup()
-            setup = true
-        }
-    }
-    
-    internal func readSettings() {
-        if manager.channelsEnabledInSettings.contains("\(name)") {
-            enabled = true
-        }
+        self.manager = manager
+        self.enabled = manager.channelsEnabledInSettings.contains("\(name)") || alwaysEnabled
+        self.handlers = handlers() // TODO: does this need to be a closure any more?
         
+        manager.register(channel: self)
     }
     
     /**
@@ -128,27 +110,14 @@ public class Channel {
      If the channel is enabled, we capture the logged value in the calling thread, by evaluating the autoclosure.
      We then log the value asynchronously. The log manager serialises the logging, to avoid race conditions.
  
-     The first time a channel is used, it needs to be set up. We can't know at this point whether we are going
-     to actually log anything, the act of setting up the channel will read settings and potentially enable/disable it.
-     Therefore we capture the logged value anyway, then perform the setup asynchronously, and finally log the captured
-     value if required.
-     
-     Note that reading the `setup` and `enabled` flags is not serialised, to avoid taking unnecessary locks. Setup is
-     however guaranteed to only occur once.
+     Note that reading the `enabled` flag is not serialised, to avoid taking unnecessary locks. It's theoretically
+     possible for another thread to be writing to this flag whilst we're reading it, if the channel state is being
+     changed. Thread sanitizer might flag this up, but it's harmless, and should generally only happen in a debug
+     setting.
      */
     
     public func log(_ logged : @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,  column: UInt = #column, function: StaticString = #function) {
-        if (!setup) {
-            let value = logged()
-            manager.queue.async {
-                self.doSetup()
-                if self.enabled {
-                    let context = Context(file:file, line:line, column:column, function:function)
-                    self.handlers.forEach({ $0.log(channel:self, context:context, logged:value) })
-                }
-            }
-            
-        } else if (enabled) {
+        if (enabled) {
             let value = logged()
             manager.queue.async {
                 let context = Context(file:file, line:line, column:column, function:function)

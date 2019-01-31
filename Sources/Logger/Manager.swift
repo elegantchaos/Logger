@@ -119,8 +119,15 @@ extension Manager {
 // MARK: Channels
 
 extension Manager {
+    
+    /**
+     Add to our list of registered channels.
+    */
+    
     func register(channel: Channel) {
-        channels.append(channel)
+        queue.async {
+            self.channels.append(channel)
+        }
     }
     
     /**
@@ -132,12 +139,20 @@ extension Manager {
     
     public var registeredChannels: [Channel] {
         get {
-            return channels
+            var result = [Channel]()
+            queue.sync {
+                result.append(contentsOf: channels)
+            }
+            return result
         }
     }
     
     public var enabledChannels: [Channel] {
-        return channels.filter { $0.enabled }
+        var result: [Channel]?
+        queue.sync {
+            result = channels.filter { $0.enabled }
+        }
+        return result!
     }
     
 }
