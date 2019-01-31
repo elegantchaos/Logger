@@ -75,18 +75,40 @@ public class Channel {
      Unlike most channels, we want this one to default to always being on.
      */
     
-    public static let stdout = Channel("stdout", handlers:[stdoutHandler], enabled: true)
+    public static let stdout = Channel("stdout", handlers:[stdoutHandler])
     
     public let name : String
     public let subsystem : String
     let manager : Manager
     var handlers : [Handler] = []
     let handlersSetup : () -> [Handler]
+    let lock = DispatchSemaphore(value: 1)
     
-    public var enabled : Bool
-    var setup = false
+    public enum State {
+        case uninitialised
+        case disabled
+        case enabled
+    }
     
-    public init(_ name : String, handlers : @autoclosure @escaping () -> [Handler] = [defaultHandler], enabled : Bool = false, manager : Manager = Logger.defaultManager) {
+    public var state: State = .uninitialised
+    
+    public var enabled: Bool {
+        get {
+            lock.wait()
+            let result = state == .enabled
+            lock.signal()
+            return result
+        }
+        
+        set (value) {
+            lock.wait()
+            assert(state != .uninitialised)
+            state = value ? .enabled : .disabled
+            lock.signal()
+        }
+    }
+    
+    public init(_ name : String, handlers : @autoclosure @escaping () -> [Handler] = [defaultHandler], manager : Manager = Logger.defaultManager) {
         let components = name.split(separator: ".")
         let last = components.count - 1
         if last > 0 {
@@ -97,7 +119,6 @@ public class Channel {
             self.subsystem = Logger.defaultSubsystem
         }
         self.handlersSetup = handlers
-        self.enabled = enabled
         self.manager = manager
 
         manager.queue.async {
@@ -105,19 +126,13 @@ public class Channel {
         }
     }
     
-    internal func doSetup() {
-        if !setup {
-            readSettings()
-            handlers = handlersSetup()
-            setup = true
-        }
-    }
-    
-    internal func readSettings() {
-        if manager.channelsEnabledInSettings.contains("\(name)") {
-            enabled = true
-        }
+    internal func readSettings() -> State {
+        let newState: State = manager.channelsEnabledInSettings.contains("\(name)") ? .enabled : .disabled
+        lock.wait()
+        state = newState
+        lock.signal()
         
+        return newState
     }
     
     /**
@@ -138,21 +153,22 @@ public class Channel {
      */
     
     public func log(_ logged : @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,  column: UInt = #column, function: StaticString = #function) {
-        if (!setup) {
+        lock.wait()
+        var state = self.state
+        lock.signal()
+        
+        if (state != .disabled) {
             let value = logged()
             manager.queue.async {
-                self.doSetup()
-                if self.enabled {
+                if state == .uninitialised {
+                    state = self.readSettings()
+                    self.handlers = self.handlersSetup()
+                }
+                
+                if state == .enabled {
                     let context = Context(file:file, line:line, column:column, function:function)
                     self.handlers.forEach({ $0.log(channel:self, context:context, logged:value) })
                 }
-            }
-            
-        } else if (enabled) {
-            let value = logged()
-            manager.queue.async {
-                let context = Context(file:file, line:line, column:column, function:function)
-                self.handlers.forEach({ $0.log(channel:self, context:context, logged:value) })
             }
         }
     }
