@@ -75,40 +75,33 @@ public class Channel {
      Unlike most channels, we want this one to default to always being on.
      */
     
-    public static let stdout = Channel("stdout", handlers:[stdoutHandler])
+    public static let stdout = Channel("stdout", handlers:[stdoutHandler], alwaysEnabled: true)
     
     public let name : String
     public let subsystem : String
     let manager : Manager
     var handlers : [Handler] = []
     let handlersSetup : () -> [Handler]
-    let lock = DispatchSemaphore(value: 1)
     
-    public enum State {
-        case uninitialised
-        case disabled
-        case enabled
-    }
-    
-    public var state: State = .uninitialised
+    private let _enabledLock = DispatchSemaphore(value: 1)
+    private var _enabled: Bool
     
     public var enabled: Bool {
         get {
-            lock.wait()
-            let result = state == .enabled
-            lock.signal()
+            _enabledLock.wait()
+            let result = _enabled
+            _enabledLock.signal()
             return result
         }
         
         set (value) {
-            lock.wait()
-            assert(state != .uninitialised)
-            state = value ? .enabled : .disabled
-            lock.signal()
+            _enabledLock.wait()
+            _enabled = value
+            _enabledLock.signal()
         }
     }
     
-    public init(_ name : String, handlers : @autoclosure @escaping () -> [Handler] = [defaultHandler], manager : Manager = Logger.defaultManager) {
+    public init(_ name : String, handlers : @autoclosure @escaping () -> [Handler] = [defaultHandler], alwaysEnabled: Bool = false, manager : Manager = Logger.defaultManager) {
         let components = name.split(separator: ".")
         let last = components.count - 1
         if last > 0 {
@@ -120,19 +113,11 @@ public class Channel {
         }
         self.handlersSetup = handlers
         self.manager = manager
+        self._enabled = manager.channelsEnabledInSettings.contains("\(name)") || alwaysEnabled
 
         manager.queue.async {
             manager.register(channel: self)
         }
-    }
-    
-    internal func readSettings() -> State {
-        let newState: State = manager.channelsEnabledInSettings.contains("\(name)") ? .enabled : .disabled
-        lock.wait()
-        state = newState
-        lock.signal()
-        
-        return newState
     }
     
     /**
@@ -143,32 +128,18 @@ public class Channel {
      If the channel is enabled, we capture the logged value in the calling thread, by evaluating the autoclosure.
      We then log the value asynchronously. The log manager serialises the logging, to avoid race conditions.
  
-     The first time a channel is used, it needs to be set up. We can't know at this point whether we are going
-     to actually log anything, the act of setting up the channel will read settings and potentially enable/disable it.
-     Therefore we capture the logged value anyway, then perform the setup asynchronously, and finally log the captured
-     value if required.
-     
-     Note that reading the `setup` and `enabled` flags is not serialised, to avoid taking unnecessary locks. Setup is
-     however guaranteed to only occur once.
+     Note that reading the `enabled` flag is not serialised, to avoid taking unnecessary locks. It's theoretically
+     possible for another thread to be writing to this flag whilst we're reading it, if the channel state is being
+     changed. Thread sanitizer might flag this up, but it's harmless, and should generally only happen in a debug
+     setting.
      */
     
     public func log(_ logged : @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,  column: UInt = #column, function: StaticString = #function) {
-        lock.wait()
-        var state = self.state
-        lock.signal()
-        
-        if (state != .disabled) {
+        if (enabled) {
             let value = logged()
             manager.queue.async {
-                if state == .uninitialised {
-                    state = self.readSettings()
-                    self.handlers = self.handlersSetup()
-                }
-                
-                if state == .enabled {
-                    let context = Context(file:file, line:line, column:column, function:function)
-                    self.handlers.forEach({ $0.log(channel:self, context:context, logged:value) })
-                }
+                let context = Context(file:file, line:line, column:column, function:function)
+                self.handlers.forEach({ $0.log(channel:self, context:context, logged:value) })
             }
         }
     }
