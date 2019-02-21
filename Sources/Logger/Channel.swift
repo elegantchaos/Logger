@@ -141,9 +141,8 @@ public class Channel {
 extension Channel : Hashable {
     // For now, we treat channels with the same name as equal,
     // as long as they belong to the same manager.
-    
-    public var hashValue: Int {
-        return name.hashValue
+    public func hash(into hasher: inout Hasher) {
+        name.hash(into: &hasher)
     }
     
     public static func == (lhs: Channel, rhs: Channel) -> Bool {
