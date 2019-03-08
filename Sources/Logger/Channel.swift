@@ -77,26 +77,38 @@ public class Channel {
     
     public static let stdout = Channel("stdout", handlers:[stdoutHandler], alwaysEnabled: true)
     
-    public let name : String
-    public let subsystem : String
+    public let name: String
+    public let subsystem: String
     public var enabled: Bool
 
+    public var fullName: String {
+        return "\(subsystem).\(name)"
+    }
+    
     let manager : Manager
     var handlers : [Handler] = []
     
     public init(_ name : String, handlers : @autoclosure () -> [Handler] = [defaultHandler], alwaysEnabled: Bool = false, manager : Manager = Logger.defaultManager) {
         let components = name.split(separator: ".")
         let last = components.count - 1
+        let shortName: String
+        let subName: String
+        
         if last > 0 {
-            self.name = String(components[last])
-            self.subsystem = components[..<last].joined(separator: ".")
+            shortName = String(components[last])
+            subName = components[..<last].joined(separator: ".")
         } else {
-            self.name = name
-            self.subsystem = Logger.defaultSubsystem
+            shortName = name
+            subName = Logger.defaultSubsystem
         }
 
+        let fullName = "\(subName).\(shortName)"
+        let enabledList = manager.channelsEnabledInSettings
+        
+        self.name = shortName
+        self.subsystem = subName
         self.manager = manager
-        self.enabled = manager.channelsEnabledInSettings.contains("\(name)") || alwaysEnabled
+        self.enabled = enabledList.contains(shortName) || enabledList.contains(fullName) || alwaysEnabled
         self.handlers = handlers() // TODO: does this need to be a closure any more?
         
         manager.register(channel: self)
@@ -141,9 +153,8 @@ public class Channel {
 extension Channel : Hashable {
     // For now, we treat channels with the same name as equal,
     // as long as they belong to the same manager.
-    
-    public var hashValue: Int {
-        return name.hashValue
+    public func hash(into hasher: inout Hasher) {
+        name.hash(into: &hasher)
     }
     
     public static func == (lhs: Channel, rhs: Channel) -> Bool {

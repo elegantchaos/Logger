@@ -69,7 +69,9 @@ public class LoggerSettingsView: UITableViewController {
             popover.sourceView = sender
             popover.sourceRect = sender.bounds
             popover.permittedArrowDirections = UIPopoverArrowDirection.any
-            popover.canOverlapSourceViewRect = false
+            if #available(iOS 9.0, *) {
+                popover.canOverlapSourceViewRect = false
+            }
         }
         
         controller.present(nav, animated: true) {

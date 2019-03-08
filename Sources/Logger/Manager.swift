@@ -251,7 +251,7 @@ extension Manager {
     */
     
     func saveChannelSettings() {
-        let names = enabledChannels.map { $0.name }
+        let names = enabledChannels.map { $0.fullName }
         defaults.set(names.joined(separator: ","), forKey: Manager.persistentLogsKey)
     }
 

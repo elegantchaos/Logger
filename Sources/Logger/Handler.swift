@@ -56,8 +56,8 @@ public class Handler {
 
 extension Handler : Hashable {
     
-    public var hashValue: Int {
-        return name.hashValue
+    public func hash(into hasher: inout Hasher) {
+        name.hash(into: &hasher)
     }
     
     public static func == (lhs: Handler, rhs: Handler) -> Bool {
