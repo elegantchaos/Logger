@@ -14,7 +14,7 @@ extension XCTestCase {
      Assert that a fatal error has been reported via the Log Manager.
     */
     
-    public func XCTAssertFatalError(testcase: @escaping () -> Void) -> Any? {
+     @discardableResult public func XCTAssertFatalError(testcase: @escaping () -> Void) -> Any? {
         func unreachable() -> Never {
             repeat {
                 RunLoop.current.run()
