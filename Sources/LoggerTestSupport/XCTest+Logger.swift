@@ -20,24 +20,24 @@ extension XCTestCase {
     @discardableResult public func XCTAssertFatalError(timeout: TimeInterval = XCTestCase.DefaultFatalErrorTimeout, testcase: @escaping () -> Void) -> Any? {
         func unreachable() -> Never {
             repeat {
-                RunLoop.current.run()
+                RunLoop.current.run(until: Date(timeIntervalSinceNow: 1.0))
             } while (true)
         }
 
         let expectation = self.expectation(description: "expectingFatalError")
         var fatalLogged: Any? = nil
         
-        let previousErrorHandler = Logger.defaultManager.installFatalErrorHandler() { logged, channel, _, _ in
+        let _ = Logger.defaultManager.installFatalErrorHandler() { logged, channel, _, _ in
             fatalLogged = logged
             expectation.fulfill()
             unreachable()
         }
         
-        DispatchQueue.global(qos: .userInitiated).async(execute: testcase)
+        DispatchQueue.global(qos: .default).async(execute: testcase)
         
         wait(for: [expectation], timeout: timeout)
         
-        let _ = Logger.defaultManager.installFatalErrorHandler(previousErrorHandler)
+        Logger.defaultManager.resetFatalErrorHandler()
         return fatalLogged
     }
  
