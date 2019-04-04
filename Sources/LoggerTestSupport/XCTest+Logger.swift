@@ -10,11 +10,14 @@ import XCTest
 import Logger
 
 extension XCTestCase {
+    public static let DefaultFatalErrorTimeout = 2.0
+    
+
     /**
      Assert that a fatal error has been reported via the Log Manager.
     */
     
-     @discardableResult public func XCTAssertFatalError(testcase: @escaping () -> Void) -> Any? {
+    @discardableResult public func XCTAssertFatalError(timeout: TimeInterval = XCTestCase.DefaultFatalErrorTimeout, testcase: @escaping () -> Void) -> Any? {
         func unreachable() -> Never {
             repeat {
                 RunLoop.current.run()
@@ -32,7 +35,7 @@ extension XCTestCase {
         
         DispatchQueue.global(qos: .userInitiated).async(execute: testcase)
         
-        wait(for: [expectation], timeout: 1.0)
+        wait(for: [expectation], timeout: timeout)
         
         let _ = Logger.defaultManager.installFatalErrorHandler(previousErrorHandler)
         return fatalLogged
@@ -43,8 +46,8 @@ extension XCTestCase {
      that the message/object logged matches an expected value.
      */
 
-    public func XCTAssertFatalError<T: Equatable>(equals: T, testcase: @escaping () -> Void) {
-        let result = XCTAssertFatalError(testcase: testcase)
+    public func XCTAssertFatalError<T: Equatable>(equals: T, timeout: TimeInterval = XCTestCase.DefaultFatalErrorTimeout, testcase: @escaping () -> Void) {
+        let result = XCTAssertFatalError(timeout: timeout, testcase: testcase)
         guard let error = result as? T else {
             XCTFail("unexpected message type: \(String(describing: result))")
             return
@@ -58,8 +61,8 @@ extension XCTestCase {
      that a test passes.
      */
     
-    public func XCTAssertFatalError<T>(testing: (T) -> Bool, testcase: @escaping () -> Void) {
-        let result = XCTAssertFatalError(testcase: testcase)
+    public func XCTAssertFatalError<T>(testing: (T) -> Bool, timeout: TimeInterval = XCTestCase.DefaultFatalErrorTimeout, testcase: @escaping () -> Void) {
+        let result = XCTAssertFatalError(timeout: timeout, testcase: testcase)
         guard let error = result as? T else {
             XCTFail("unexpected message type: \(String(describing: result))")
             return
