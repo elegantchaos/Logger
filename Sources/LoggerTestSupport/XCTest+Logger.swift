@@ -10,8 +10,7 @@ import XCTest
 import Logger
 
 extension XCTestCase {
-    public static let DefaultFatalErrorTimeout = 2.0
-    
+    public static let DefaultFatalErrorTimeout = 1.0
 
     /**
      Assert that a fatal error has been reported via the Log Manager.
@@ -19,25 +18,26 @@ extension XCTestCase {
     
     @discardableResult public func XCTAssertFatalError(timeout: TimeInterval = XCTestCase.DefaultFatalErrorTimeout, testcase: @escaping () -> Void) -> Any? {
         func unreachable() -> Never {
+            // run forever, to simulate a function that never returns
             repeat {
-                RunLoop.current.run()
+                RunLoop.current.run(until: Date(timeIntervalSinceNow: timeout))
             } while (true)
         }
 
         let expectation = self.expectation(description: "expectingFatalError")
         var fatalLogged: Any? = nil
         
-        let previousErrorHandler = Logger.defaultManager.installFatalErrorHandler() { logged, channel, _, _ in
+        let _ = Logger.defaultManager.installFatalErrorHandler() { logged, channel, _, _ in
             fatalLogged = logged
             expectation.fulfill()
             unreachable()
         }
         
-        DispatchQueue.global(qos: .userInitiated).async(execute: testcase)
+        DispatchQueue.global(qos: .default).async(execute: testcase)
         
         wait(for: [expectation], timeout: timeout)
         
-        let _ = Logger.defaultManager.installFatalErrorHandler(previousErrorHandler)
+        Logger.defaultManager.resetFatalErrorHandler()
         return fatalLogged
     }
  
