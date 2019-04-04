@@ -20,6 +20,7 @@ extension XCTestCase {
         func unreachable() -> Never {
             // run forever, to simulate a function that never returns
             repeat {
+                print("Waiting for fatal error termination.")
                 RunLoop.current.run(until: Date(timeIntervalSinceNow: timeout))
             } while (true)
         }
