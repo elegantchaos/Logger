@@ -20,6 +20,7 @@ extension XCTestCase {
     @discardableResult public func XCTAssertFatalError(timeout: TimeInterval = XCTestCase.DefaultFatalErrorTimeout, testcase: @escaping () -> Void) -> Any? {
         func unreachable() -> Never {
             repeat {
+                print("unreachable...")
                 RunLoop.current.run(until: Date(timeIntervalSinceNow: 1.0))
             } while (true)
         }
