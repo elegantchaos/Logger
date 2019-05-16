@@ -64,7 +64,7 @@ public class LoggerSettingsView: UITableViewController {
         let nav = UINavigationController(rootViewController: self)
         nav.modalPresentationStyle = .popover
         tableView.reloadData()
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .revealed, target: self, action: #selector(doneModal(_:)))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneModal(_:)))
         if let popover = nav.popoverPresentationController {
             popover.sourceView = sender
             popover.sourceRect = sender.bounds
