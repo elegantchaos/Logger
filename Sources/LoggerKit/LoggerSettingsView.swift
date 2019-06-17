@@ -58,7 +58,7 @@ public class LoggerSettingsView: UITableViewController {
      By default we display as a popover, using the sender to pick the location.
     */
     
-    public func show(in controller: UIViewController, sender: UIView, done: DoneCallback? = nil) {
+    public func show(in controller: UIViewController, sender: UIView, revealed: DoneCallback? = nil) {
         title = "Log Settings"
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: LoggerSettingsView.cellIdentifier)
         let nav = UINavigationController(rootViewController: self)
@@ -75,7 +75,7 @@ public class LoggerSettingsView: UITableViewController {
         }
         
         controller.present(nav, animated: true) {
-            done?()
+            revealed?()
         }
     }
     
