@@ -1,7 +1,8 @@
 env:
   global:
-    - SWIFT_BRANCH=development
-    - SWIFT_VERSION=swift-DEVELOPMENT-SNAPSHOT-2018-12-10-a
+    - SWIFT_BRANCH=swift-5.0.1-release
+    - SWIFT_VERSION=swift-5.0.1-RELEASE
+
 matrix:
   include:
     - os: linux
@@ -17,13 +18,13 @@ matrix:
         - swift test
 
     - os: osx
-      osx_image: xcode10.1
+      osx_image: xcode10.2
       language: swift
       install:
         - sudo gem install xcpretty-travis-formatter
 
       script:
-        - swift test -Xswiftc -target -Xswiftc x86_64-apple-macosx10.12
+        - swift test
 
 notifications:
   email: false
