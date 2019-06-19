@@ -52,16 +52,18 @@ public class Manager {
      */
     
     func logStartup(enabledChannels: String) {
-        #if DEBUG
-        let mode = "debug"
-        #else
-        let mode = "release"
-        #endif
-        print("\nLogger running in \(mode) mode.")
-        if enabledChannels.isEmpty {
-            print("All channels currently disabled.\n")
-        } else {
-            print("Enabled log channels: \(enabledChannels)\n")
+        if let mode = ProcessInfo.processInfo.environment["LoggerDebug"], mode == "1" {
+            #if DEBUG
+            let mode = "debug"
+            #else
+            let mode = "release"
+            #endif
+            print("\nLogger running in \(mode) mode.")
+            if enabledChannels.isEmpty {
+                print("All channels currently disabled.\n")
+            } else {
+                print("Enabled log channels: \(enabledChannels)\n")
+            }
         }
     }
     
