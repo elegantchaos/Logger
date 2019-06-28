@@ -1,11 +1,11 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.0
 
 import PackageDescription
 
 let package = Package(
     name: "Logger",
     platforms: [
-        .macOS(.v10_13), .iOS(.v13),
+        .macOS(.v10_13), .iOS(.v12),
     ],
     products: [
         .library(
