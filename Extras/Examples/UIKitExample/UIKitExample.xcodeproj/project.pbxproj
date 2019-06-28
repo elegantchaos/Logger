@@ -18,7 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		8B5BD2E322C65F4E006C51DB /* Logger Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Logger Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8B5BD2E322C65F4E006C51DB /* UIKitExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UIKitExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B5BD2E622C65F4E006C51DB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		8B5BD2E822C65F4E006C51DB /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		8B5BD2EA22C65F4E006C51DB /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -26,7 +26,7 @@
 		8B5BD2EF22C65F4F006C51DB /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		8B5BD2F222C65F4F006C51DB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8B5BD2F422C65F4F006C51DB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		8B5BD2FA22C65F7A006C51DB /* Logger Example.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Logger Example.entitlements"; sourceTree = "<group>"; };
+		8B5BD2FA22C65F7A006C51DB /* UIKitExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = UIKitExample.entitlements; sourceTree = "<group>"; };
 		8B5BD30222C660C1006C51DB /* Logger */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Logger; path = Packages/Logger; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -46,7 +46,7 @@
 		8B5BD2DA22C65F4E006C51DB = {
 			isa = PBXGroup;
 			children = (
-				8B5BD2E522C65F4E006C51DB /* Logger Example */,
+				8B5BD2E522C65F4E006C51DB /* UIKitExample */,
 				8B5BD30222C660C1006C51DB /* Logger */,
 				8B5BD2E422C65F4E006C51DB /* Products */,
 				8B5BD30322C66135006C51DB /* Frameworks */,
@@ -56,15 +56,15 @@
 		8B5BD2E422C65F4E006C51DB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8B5BD2E322C65F4E006C51DB /* Logger Example.app */,
+				8B5BD2E322C65F4E006C51DB /* UIKitExample.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		8B5BD2E522C65F4E006C51DB /* Logger Example */ = {
+		8B5BD2E522C65F4E006C51DB /* UIKitExample */ = {
 			isa = PBXGroup;
 			children = (
-				8B5BD2FA22C65F7A006C51DB /* Logger Example.entitlements */,
+				8B5BD2FA22C65F7A006C51DB /* UIKitExample.entitlements */,
 				8B5BD2E622C65F4E006C51DB /* AppDelegate.swift */,
 				8B5BD2E822C65F4E006C51DB /* SceneDelegate.swift */,
 				8B5BD2EA22C65F4E006C51DB /* ContentView.swift */,
@@ -73,7 +73,7 @@
 				8B5BD2F422C65F4F006C51DB /* Info.plist */,
 				8B5BD2EE22C65F4F006C51DB /* Preview Content */,
 			);
-			path = "Logger Example";
+			path = UIKitExample;
 			sourceTree = "<group>";
 		};
 		8B5BD2EE22C65F4F006C51DB /* Preview Content */ = {
@@ -94,9 +94,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8B5BD2E222C65F4E006C51DB /* Logger Example */ = {
+		8B5BD2E222C65F4E006C51DB /* UIKitExample */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 8B5BD2F722C65F4F006C51DB /* Build configuration list for PBXNativeTarget "Logger Example" */;
+			buildConfigurationList = 8B5BD2F722C65F4F006C51DB /* Build configuration list for PBXNativeTarget "UIKitExample" */;
 			buildPhases = (
 				8B5BD2DF22C65F4E006C51DB /* Sources */,
 				8B5BD2E022C65F4E006C51DB /* Frameworks */,
@@ -106,13 +106,13 @@
 			);
 			dependencies = (
 			);
-			name = "Logger Example";
+			name = UIKitExample;
 			packageProductDependencies = (
 				8B5BD30422C66135006C51DB /* Logger */,
 				8B5BD30622C6614B006C51DB /* LoggerKit */,
 			);
 			productName = "Logger Example";
-			productReference = 8B5BD2E322C65F4E006C51DB /* Logger Example.app */;
+			productReference = 8B5BD2E322C65F4E006C51DB /* UIKitExample.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -130,7 +130,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 8B5BD2DE22C65F4E006C51DB /* Build configuration list for PBXProject "Logger Example" */;
+			buildConfigurationList = 8B5BD2DE22C65F4E006C51DB /* Build configuration list for PBXProject "UIKitExample" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -145,7 +145,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8B5BD2E222C65F4E006C51DB /* Logger Example */,
+				8B5BD2E222C65F4E006C51DB /* UIKitExample */,
 			);
 		};
 /* End PBXProject section */
@@ -306,18 +306,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "Logger Example/Logger Example.entitlements";
+				CODE_SIGN_ENTITLEMENTS = UIKitExample/UIKitExample.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DERIVE_UIKITFORMAC_PRODUCT_BUNDLE_IDENTIFIER = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"Logger Example\"/Preview\\ Content";
+				DEVELOPMENT_ASSET_PATHS = "UIKitExample/Preview\\ Content";
 				DEVELOPMENT_TEAM = 2H48644JM2;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = "Logger Example/Info.plist";
+				INFOPLIST_FILE = UIKitExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.elegantchaos.Logger-Example";
+				PRODUCT_BUNDLE_IDENTIFIER = com.elegantchaos.UIKitExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_UIKITFORMAC = YES;
 				SWIFT_VERSION = 5.0;
@@ -329,18 +329,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "Logger Example/Logger Example.entitlements";
+				CODE_SIGN_ENTITLEMENTS = UIKitExample/UIKitExample.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DERIVE_UIKITFORMAC_PRODUCT_BUNDLE_IDENTIFIER = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"Logger Example\"/Preview\\ Content";
+				DEVELOPMENT_ASSET_PATHS = "UIKitExample/Preview\\ Content";
 				DEVELOPMENT_TEAM = 2H48644JM2;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = "Logger Example/Info.plist";
+				INFOPLIST_FILE = UIKitExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.elegantchaos.Logger-Example";
+				PRODUCT_BUNDLE_IDENTIFIER = com.elegantchaos.UIKitExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_UIKITFORMAC = YES;
 				SWIFT_VERSION = 5.0;
@@ -351,7 +351,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		8B5BD2DE22C65F4E006C51DB /* Build configuration list for PBXProject "Logger Example" */ = {
+		8B5BD2DE22C65F4E006C51DB /* Build configuration list for PBXProject "UIKitExample" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8B5BD2F522C65F4F006C51DB /* Debug */,
@@ -360,7 +360,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8B5BD2F722C65F4F006C51DB /* Build configuration list for PBXNativeTarget "Logger Example" */ = {
+		8B5BD2F722C65F4F006C51DB /* Build configuration list for PBXNativeTarget "UIKitExample" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8B5BD2F822C65F4F006C51DB /* Debug */,
