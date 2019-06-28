@@ -10,6 +10,8 @@ public class Manager {
     typealias AssociatedChannelData = [Channel:Any]
     typealias AssociatedHandlerData = [Handler:AssociatedChannelData]
     
+    public static let channelsUpdatedNotification = NSNotification.Name("com.elegantchaos.logger.channels.updated")
+    
     let defaults: UserDefaults
     var channels: [Channel] = []
     var associatedData: AssociatedHandlerData = [:]
@@ -129,6 +131,9 @@ extension Manager {
     func register(channel: Channel) {
         queue.async {
             self.channels.append(channel)
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: Manager.channelsUpdatedNotification, object: self)
+            }
         }
     }
     

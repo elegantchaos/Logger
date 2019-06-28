@@ -3,6 +3,8 @@
 //  All code (c) 2019 - present day, Elegant Chaos Limited.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+#if canImport(UIKit)
+
 import UIKit
 import Logger
 
@@ -29,6 +31,12 @@ public class LoggerMenu: UIResponder {
         
         let debugMenu = buildDebugMenu(with: builder)
         addLoggerMenu(to: debugMenu, with: builder)
+        
+        NotificationCenter.default.addObserver(forName: Manager.channelsUpdatedNotification, object: Logger.defaultManager, queue: OperationQueue.main) {_ in
+            UIMenuSystem.main.setNeedsRebuild()
+        }
+        
+        
     }
     
     public override func validate(_ command: UIMutableCommand) {
@@ -109,3 +117,5 @@ public class LoggerMenu: UIResponder {
         manager.update(channels: manager.registeredChannels, state: false)
     }
 }
+
+#endif

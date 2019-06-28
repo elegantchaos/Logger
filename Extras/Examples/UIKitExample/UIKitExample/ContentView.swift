@@ -7,10 +7,27 @@
 //
 
 import SwiftUI
+import Logger
+
+let viewChannel = Logger("View")
 
 struct ContentView : View {
     var body: some View {
-        Text("Hello World")
+        VStack {
+            Button(action: {
+                applicationChannel.log("hello ma!")
+            }) {
+                Text("Log to application channel")
+            }
+
+            Button(action: {
+                viewChannel.log("hello ma!")
+            }) {
+                Text("Log to view channel")
+            }
+            
+        }
+
     }
 }
 
