@@ -157,6 +157,10 @@ extension Manager {
         return result!
     }
     
+    public func channel(named name: String) -> Channel? {
+        return registeredChannels.first(where: { $0.name == name })
+    }
+
 }
 
 // MARK: Settings
