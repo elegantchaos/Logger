@@ -18,7 +18,7 @@ matrix:
         - swift test
 
     - os: osx
-      osx_image: xcode10.2
+      osx_image: xcode11
       language: swift
       install:
         - sudo gem install xcpretty-travis-formatter
