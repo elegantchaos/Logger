@@ -31,13 +31,27 @@ struct ContentView : View {
     
     var popoverContent: some View {
         List {
-            ForEach(Logger.defaultManager.enabledChannels, id: \Channel.name) { channel in
+            Button(action: {
+                Logger.defaultManager.update(channels: Logger.defaultManager.registeredChannels, state: true)
+            }) {
+                Text("Enable All")
+            }
+            
+            Button(action: {
+                Logger.defaultManager.update(channels: Logger.defaultManager.registeredChannels, state: false)
+            }) {
+                Text("Disable All")
+            }
+            
+            ForEach(Logger.defaultManager.registeredChannels, id: \Channel.name) { channel in
                 Button(action: {
                     Logger.defaultManager.update(channels: [channel], state: !channel.enabled)
                 }) {
                     HStack {
                         Text(channel.name)
-                        Image(systemName: channel.enabled ? "checkmark" : "checkmark.circle")
+                        if channel.enabled {
+                            Image(systemName: "checkmark")
+                        }
                     }
                 }
             }
@@ -58,13 +72,9 @@ struct ContentView : View {
                 Text("Log to view channel")
             }
             
-            Button(action: {
+            Button("Show Log Settings") {
                 self.showPopup = true
-            }) {
-                Text("Show Log Settings")
-            }.presentation(showPopup ? Popover(content: popoverContent, dismissHandler: { self.showPopup = false }) : nil)
-
-
+            }.popover(isPresented: self.$showPopup) { self.popoverContent }
         }
 
     }
