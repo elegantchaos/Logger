@@ -39,7 +39,7 @@ public class LoggerMenu: UIResponder {
         
     }
     
-    public override func validate(_ command: UIMutableCommand) {
+    public override func validate(_ command: UICommand) {
         if command.action == #selector(toggleChannel) {
             if let channel = channel(for: command) {
                 command.state = channel.enabled ? .on : .off
@@ -66,9 +66,12 @@ public class LoggerMenu: UIResponder {
     
     func addLoggerMenu(to debugMenu: UIMenu, with builder: UIMenuBuilder) {
         
-        let enableAllItem = UIKeyCommand(__title: "Enable All", action: #selector(enableAllChannels(_:)), input: "E", modifierFlags: [.command, .control], propertyList: nil, alternates: [])
-        let disableAllItem = UIKeyCommand(__title: "Disable All", action: #selector(disableAllChannels(_:)), input: "D", modifierFlags: [.command, .control], propertyList: nil, alternates: [])
+        let enableAllItem = UIKeyCommand(input: "E", modifierFlags: [.command, .control], action: #selector(enableAllChannels))
+        enableAllItem.title = "Enable All"
         
+        let disableAllItem = UIKeyCommand(input: "D", modifierFlags: [.command, .control], action: #selector(disableAllChannels(_:)))
+        disableAllItem.title = "Disable All"
+
         let loggerMenu = UIMenu(__title: "Logger",
                                 image: nil,
                                 identifier: LoggerMenu.loggerMenuIdentifier,
@@ -82,7 +85,8 @@ public class LoggerMenu: UIResponder {
         
         var channelItems = [UIMenuElement]()
         for channel in Logger.defaultManager.registeredChannels {
-            let item = UICommand(__title: channel.name, action: #selector(toggleChannel), propertyList: channel.name, alternates: [])
+            let item = UICommand(title: channel.name, image: nil, action: #selector(toggleChannel), propertyList: channel.name, alternates: [], discoverabilityTitle: channel.name, attributes: [], state: .on)
+            item.title = channel.name
             channelItems.append(item)
         }
         
