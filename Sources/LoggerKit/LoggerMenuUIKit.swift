@@ -8,7 +8,7 @@
 import UIKit
 import Logger
 
-public class LoggerMenu: UIResponder {
+@available(iOS 13.0, *) public class LoggerMenu: UIResponder {
     static let debugMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.debug.menu")
     static let loggerMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.logger.menu")
     static let channelsMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.channels.menu")
