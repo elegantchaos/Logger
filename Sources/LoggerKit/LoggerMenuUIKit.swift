@@ -13,8 +13,14 @@ import Logger
     static let loggerMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.logger.menu")
     static let channelsMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.channels.menu")
 
+    let manager: Manager
     var _next: UIResponder? = nil
     var channelMenu: UIMenu? = nil
+    
+    public init(manager: Manager, next: UIResponder? = nil) {
+        self.manager = manager
+        self._next = next
+    }
     
     public override var next: UIResponder? {
         get {
@@ -32,7 +38,7 @@ import Logger
         let debugMenu = buildDebugMenu(with: builder)
         addLoggerMenu(to: debugMenu, with: builder)
         
-        NotificationCenter.default.addObserver(forName: Manager.channelsUpdatedNotification, object: Logger.defaultManager, queue: OperationQueue.main) {_ in
+        NotificationCenter.default.addObserver(forName: Manager.channelsUpdatedNotification, object: manager, queue: OperationQueue.main) {_ in
             UIMenuSystem.main.setNeedsRebuild()
         }
         
@@ -84,7 +90,7 @@ import Logger
         builder.insertChild(loggerMenu, atStartOfMenu: debugMenu.identifier)
         
         var channelItems = [UIMenuElement]()
-        for channel in Logger.defaultManager.registeredChannels {
+        for channel in manager.registeredChannels {
             let item = UICommand(title: channel.name, image: nil, action: #selector(toggleChannel), propertyList: channel.name, alternates: [], discoverabilityTitle: channel.name, attributes: [], state: .on)
             item.title = channel.name
             channelItems.append(item)
@@ -102,22 +108,20 @@ import Logger
     
     func channel(for command: UICommand) -> Channel? {
         guard let name = command.propertyList as? String else { return nil }
-        return Logger.defaultManager.channel(named: name)
+        return manager.channel(named: name)
     }
     
     @IBAction func toggleChannel(_ sender: Any) {
         if let command = sender as? UICommand, let channel = channel(for: command) {
-            Logger.defaultManager.update(channels: [channel], state: !channel.enabled)
+            manager.update(channels: [channel], state: !channel.enabled)
         }
     }
     
     @IBAction func enableAllChannels(_ sender: Any) {
-        let manager = Logger.defaultManager
         manager.update(channels: manager.registeredChannels, state: true)
     }
     
     @IBAction func disableAllChannels(_ sender: Any) {
-        let manager = Logger.defaultManager
         manager.update(channels: manager.registeredChannels, state: false)
     }
 }
