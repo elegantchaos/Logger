@@ -10,9 +10,11 @@ let package = Package(
     products: [
         .library(
             name: "Logger",
+            type: .dynamic,
             targets: ["Logger"]),
         .library(
             name: "LoggerKit",
+            type: .dynamic,
             targets: ["LoggerKit"]),
         .library(
             name: "LoggerTestSupport",
