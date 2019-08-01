@@ -91,9 +91,9 @@ import Logger
         
         var channelItems = [UIMenuElement]()
         for channel in manager.registeredChannels {
-            let item = UICommand(title: channel.name, image: nil, action: #selector(toggleChannel), propertyList: channel.name, alternates: [], discoverabilityTitle: channel.name, attributes: [], state: .on)
-            item.title = channel.name
-            channelItems.append(item)
+//            let item = UICommand(title: channel.name, image: nil, action: #selector(toggleChannel), propertyList: channel.name, alternates: [], discoverabilityTitle: channel.name, attributes: [], state: .on)
+//            item.title = channel.name
+//            channelItems.append(item)
         }
         
         let channelMenu = UIMenu(__title: "Channels",
