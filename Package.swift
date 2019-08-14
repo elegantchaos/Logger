@@ -9,16 +9,8 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "LoggerShared",
-            type: .dynamic,
-            targets: ["Logger"]),
-        .library(
             name: "Logger",
             targets: ["Logger"]),
-        .library(
-            name: "LoggerKitShared",
-            type: .dynamic,
-            targets: ["LoggerKit"]),
         .library(
             name: "LoggerKit",
             targets: ["LoggerKit"]),
