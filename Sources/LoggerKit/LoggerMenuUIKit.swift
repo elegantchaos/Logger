@@ -89,7 +89,7 @@ import Logger
         )
         builder.insertChild(loggerMenu, atStartOfMenu: debugMenu.identifier)
         
-        var channelItems = [UIMenuElement]()
+        let channelItems = [UIMenuElement]()
         for channel in manager.registeredChannels {
 //            let item = UICommand(title: channel.name, image: nil, action: #selector(toggleChannel), propertyList: channel.name, alternates: [], discoverabilityTitle: channel.name, attributes: [], state: .on)
 //            item.title = channel.name
