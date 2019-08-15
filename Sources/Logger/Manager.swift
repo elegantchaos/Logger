@@ -10,7 +10,7 @@ public class Manager {
     typealias AssociatedChannelData = [Channel:Any]
     typealias AssociatedHandlerData = [Handler:AssociatedChannelData]
     
-    public static let channelsUpdatedNotification = NSNotification.Name("com.elegantchaos.logger.channels.updated")
+    public static let channelsUpdatedNotification = NSNotification.Name(rawValue: "com.elegantchaos.logger.channels.updated")
     
     let defaults: UserDefaults
     var channels: [Channel] = []
