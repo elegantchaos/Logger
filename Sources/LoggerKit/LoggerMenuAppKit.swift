@@ -3,7 +3,8 @@
 //  All code (c) 2018 - present day, Elegant Chaos Limited.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-#if canImport(AppKit) && !targetEnvironment(macCatalyst)
+
+#if os(macOS)
 import AppKit
 import Logger
 
