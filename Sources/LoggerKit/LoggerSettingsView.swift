@@ -45,7 +45,7 @@ public class LoggerSettingsView: UITableViewController {
      The manager we're showing settings for.
     */
     
-    let manager = Logger.defaultManager
+    let manager: Manager
     
     /**
      Font to use for the table.
@@ -53,6 +53,16 @@ public class LoggerSettingsView: UITableViewController {
     
     let font = UIFont.systemFont(ofSize: UIFont.labelFontSize)
 
+    public init(manager: Manager) {
+        self.manager = manager
+        super.init(style: .plain)
+    }
+    
+    required init?(coder: NSCoder) {
+        self.manager = Logger.defaultManager
+        super.init(coder: coder)
+    }
+    
     /**
      Display the view in another controller.
      By default we display as a popover, using the sender to pick the location.
@@ -70,7 +80,7 @@ public class LoggerSettingsView: UITableViewController {
             popover.sourceRect = sender.bounds
             popover.permittedArrowDirections = UIPopoverArrowDirection.any
             if #available(iOS 9.0, *) {
-                popover.canOverlapSourceViewRect = false
+                popover.canOverlapSourceViewRect = true
             }
         }
         
