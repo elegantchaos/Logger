@@ -21,6 +21,8 @@ open class LoggerApplication: UIResponder {
     }
 }
 
+// MARK: UIApplication Lifecycle
+
 extension LoggerApplication: UIApplicationDelegate {
     open func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
@@ -59,7 +61,12 @@ extension LoggerApplication: UIApplicationDelegate {
         return false
     }
 
-    // MARK: UISceneSession Lifecycle
+}
+
+
+// MARK: UISceneSession Lifecycle
+
+@available(iOS 13.0, *) extension LoggerApplication {
 
     open func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         // Called when a new scene session is being created.
@@ -73,4 +80,5 @@ extension LoggerApplication: UIApplicationDelegate {
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
 }
+
 #endif
