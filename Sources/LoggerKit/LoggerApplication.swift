@@ -66,7 +66,7 @@ extension LoggerApplication: UIApplicationDelegate {
 
 // MARK: UISceneSession Lifecycle
 
-extension LoggerApplication {
+@available(iOS 13.0, *) extension LoggerApplication {
 
     open func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         // Called when a new scene session is being created.
