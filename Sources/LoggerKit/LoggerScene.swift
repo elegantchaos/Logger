@@ -14,7 +14,7 @@ open class LoggerScene: UIResponder {
     public var window: UIWindow?
 }
 
-extension LoggerScene: UIWindowSceneDelegate {
+@available(iOS 13.0, *) extension LoggerScene: UIWindowSceneDelegate {
     public func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
