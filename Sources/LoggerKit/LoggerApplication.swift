@@ -12,7 +12,7 @@ let applicationChannel = Channel("Application", handlers: [OSLogHandler()])
 /// Standardise AppDelegate which:
 /// - logs the main application events
 /// - installs a Debug/Logger menu in the responder chain
-open class LoggerApplication: UIResponder {
+@available(iOS 13.0, *) open class LoggerApplication: UIResponder {
     let loggerMenu = LoggerMenu(manager: Logger.defaultManager)
     public var window: UIWindow?
     
@@ -66,7 +66,7 @@ extension LoggerApplication: UIApplicationDelegate {
 
 // MARK: UISceneSession Lifecycle
 
-@available(iOS 13.0, *) extension LoggerApplication {
+extension LoggerApplication {
 
     open func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         // Called when a new scene session is being created.
