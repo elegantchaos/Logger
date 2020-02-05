@@ -22,16 +22,22 @@ jobs:
     - name: Test
       run: swift test -v
     - name: Slack Notification
-      uses: homoluctus/slatify@master
+      uses: elegantchaos/slatify@master
       with:
         type: ${{ job.status }}
-        job_name: 'Linux Tests ${{ matrix.image }}'
+        job_name: 'Linux Tests (Swift ${{ matrix.swift }})'
         mention_if: 'failure'
         url: ${{ secrets.SLACK_WEBHOOK }}
 
   macos-debug:
     name: MacOS (Debug)
     runs-on: macOS-latest
+    strategy:
+      matrix:
+        config: [debug, release]
+        include:
+        - config: debug
+          args: -c release -Xswiftc -enable-testing
     steps:
     - name: Checkout
       uses: actions/checkout@v1
@@ -40,29 +46,9 @@ jobs:
     - name: Build
       run: swift build -v
     - name: Test
-      run: swift test -v
+      run: swift test -v {{ $matrix.args }}
     - name: Slack Notification
-      uses: homoluctus/slatify@master
-      with:
-          type: ${{ job.status }}
-          job_name: 'macOS Tests'
-          mention_if: 'failure'
-          url: ${{ secrets.SLACK_WEBHOOK }}
-
-  macos-release:
-    name: MacOS (Release)
-    runs-on: macOS-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v1
-    - name: Swift Version
-      run: swift --version
-    - name: Build
-      run: swift build -v
-    - name: Test
-      run: swift test -v -c release -Xswiftc -enable-testing
-    - name: Slack Notification
-      uses: homoluctus/slatify@master
+      uses: elegantchaos/slatify@master
       with:
           type: ${{ job.status }}
           job_name: 'macOS Tests'
