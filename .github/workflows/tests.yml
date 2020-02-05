@@ -29,8 +29,8 @@ jobs:
         mention_if: 'failure'
         url: ${{ secrets.SLACK_WEBHOOK }}
 
-  macos-debug:
-    name: MacOS
+  macos:
+    name: Mac
     runs-on: macOS-latest
     strategy:
       matrix:
@@ -51,6 +51,6 @@ jobs:
       uses: elegantchaos/slatify@master
       with:
           type: ${{ job.status }}
-          job_name: 'macOS Tests'
+          job_name: 'Mac Tests (${{ matrix.config }})'
           mention_if: 'failure'
           url: ${{ secrets.SLACK_WEBHOOK }}
