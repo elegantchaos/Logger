@@ -23,7 +23,7 @@ import os
         }
 
         let message = "\(logged)"
-        os_log("%@", dso: context.dso, log: log, type: .default, message)
+        os_log("%{public}@", dso: context.dso, log: log, type: .default, message)
     }
 }
 
