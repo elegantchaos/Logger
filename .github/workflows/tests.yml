@@ -18,7 +18,17 @@ jobs:
       run: swift build -v
     - name: Test
       run: swift test -v -c release -Xswiftc -enable-testing
-
+    - name: Slack Notification
+      uses: homoluctus/slatify@master
+      if: always()
+      with:
+        type: ${{ job.status }}
+        job_name: '*Lint Check*'
+        mention: 'here'
+        mention_if: 'failure'
+        channel: '#random'
+        url: ${{ secrets.SLACK_WEBHOOK }}
+    
   linux-5_1:
     name: Linux (Swift 5.1)
     runs-on: ubuntu-latest
