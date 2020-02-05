@@ -49,8 +49,28 @@ jobs:
           job_name: 'Swift 5.1 Linux Tests'
           url: ${{ secrets.SLACK_WEBHOOK }}
 
-  macos:
-    name: MacOS
+  macos-debug:
+    name: MacOS (Debug)
+    runs-on: macOS-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Swift Version
+      run: swift --version
+    - name: Build
+      run: swift build -v
+    - name: Test
+      run: swift test -v
+    - name: Slack Notification
+      uses: homoluctus/slatify@master
+      if: failure()
+      with:
+          type: ${{ job.status }}
+          job_name: 'macOS Tests'
+          url: ${{ secrets.SLACK_WEBHOOK }}
+
+  macos-release:
+    name: MacOS (Release)
     runs-on: macOS-latest
     steps:
     - name: Checkout
@@ -72,7 +92,7 @@ jobs:
   success:
     
     name: Post Success Notification
-    needs: [linux-5_0, linux-5_1, macos]
+    needs: [linux-5_0, linux-5_1, macos-debug, macos-release]
     runs-on: macOS-latest
     steps:
     - name: Slack Notification
