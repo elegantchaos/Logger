@@ -30,7 +30,7 @@ jobs:
         url: ${{ secrets.SLACK_WEBHOOK }}
 
   macos-debug:
-    name: MacOS (Debug)
+    name: MacOS
     runs-on: macOS-latest
     strategy:
       matrix:
@@ -46,7 +46,7 @@ jobs:
     - name: Build
       run: swift build -v
     - name: Test
-      run: swift test -v {{ $matrix.args }}
+      run: swift test -v ${{ matrix.args }}
     - name: Slack Notification
       uses: elegantchaos/slatify@master
       with:
