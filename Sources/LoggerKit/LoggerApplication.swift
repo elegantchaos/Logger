@@ -23,7 +23,7 @@ let applicationChannel = Channel("Application", handlers: [OSLogHandler()])
 
 // MARK: UIApplication Lifecycle
 
-extension LoggerApplication: UIApplicationDelegate {
+@available(iOS 13.0, *) extension LoggerApplication: UIApplicationDelegate {
     open func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         applicationChannel.enabled = true
