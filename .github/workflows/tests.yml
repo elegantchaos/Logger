@@ -23,10 +23,8 @@ jobs:
       if: always()
       with:
         type: ${{ job.status }}
-        job_name: '*Lint Check*'
-        mention: 'here'
+        job_name: 'Swift 5.0 Linux Tests'
         mention_if: 'failure'
-        channel: '#random'
         url: ${{ secrets.SLACK_WEBHOOK }}
     
   linux-5_1:
@@ -43,6 +41,13 @@ jobs:
       run: swift build -v
     - name: Test
       run: swift test -v -c release -Xswiftc -enable-testing
+    - name: Slack Notification
+      uses: homoluctus/slatify@master
+      with:
+          type: ${{ job.status }}
+          job_name: 'Swift 5.1 Linux Tests'
+          mention_if: 'failure'
+          url: ${{ secrets.SLACK_WEBHOOK }}
 
   macos:
     name: MacOS
@@ -56,3 +61,10 @@ jobs:
       run: swift build -v
     - name: Test
       run: swift test -v -c release -Xswiftc -enable-testing
+    - name: Slack Notification
+      uses: homoluctus/slatify@master
+      with:
+          type: ${{ job.status }}
+          job_name: 'macOS Tests'
+          mention_if: 'failure'
+          url: ${{ secrets.SLACK_WEBHOOK }}
