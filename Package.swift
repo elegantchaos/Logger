@@ -12,6 +12,10 @@ let package = Package(
             name: "Logger",
             targets: ["Logger"]),
         .library(
+            name: "sharedLogger",
+            type: .dynamic,
+            targets: ["Logger"]),
+        .library(
             name: "LoggerKit",
             targets: ["LoggerKit"]),
         .library(
