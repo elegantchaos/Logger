@@ -25,8 +25,11 @@ struct TestItem: CustomStringConvertible {
     }
     
     var description: String {
-        expectation.fulfill()
         return message
+    }
+    
+    func logged() {
+        expectation.fulfill()
     }
     
     func wait() {
@@ -43,6 +46,9 @@ class TestHandler : Handler {
     
     override func log(channel: Channel, context: Context, logged: Any) {
         self.logged.append("\(logged)")
+        if let item = logged as? TestItem {
+            item.logged()
+        }
     }
 }
 
@@ -133,7 +139,8 @@ class LoggerTests: XCTestCase {
     func testEnabledViaSettings() {
         let defaults = blankDefaults()
         defaults.set("test", forKey:"logs")
-        let channel = Channel("test", manager: Manager(defaults: defaults))
+        let handler = TestHandler("test")
+        let channel = Channel("test", handlers: [handler], manager: Manager(defaults: defaults))
         let item = makeItem("blah")
         channel.log(item) // log something so that the channel is setup
         item.wait()
