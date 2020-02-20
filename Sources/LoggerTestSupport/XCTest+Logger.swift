@@ -4,7 +4,7 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-#if !os(iOS) || targetEnvironment(simulator)
+#if !os(watchOS) && (!os(iOS) || targetEnvironment(simulator))
 
 import XCTest
 import Logger

@@ -4,6 +4,7 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+#if !os(watchOS)
 import XCTest
 import Foundation
 import LoggerTestSupport
@@ -194,3 +195,4 @@ class LoggerTests: XCTestCase {
         XCTAssertEqual(logged, "Oh bugger")
     }
 }
+#endif

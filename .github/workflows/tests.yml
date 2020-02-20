@@ -171,30 +171,6 @@ jobs:
           run: set -o pipefail; xcodebuild clean build -workspace . -scheme Logger -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-build-debug.log | xcpretty
         - name: Build (watchOS/Release)
           run: set -o pipefail; xcodebuild clean build -workspace . -scheme Logger -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-build-release.log | xcpretty
-        - name: Test (watchOS/Debug)
-          run: |
-            GOTPACKAGE=$(xcodebuild -workspace . -list | grep Logger-Package)
-            echo "*$GOTPACKAGE*"
-            if [[ $GOTPACKAGE != "" ]]
-            then
-                SCHEME="Logger-Package"
-            else
-                SCHEME="Logger"
-            fi
-            set -o pipefail
-            xcodebuild test -workspace . -scheme $SCHEME -destination "name=Apple Watch Series 5 - 44mm" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-watchOS-test-debug.log | xcpretty
-        - name: Test (watchOS/Release)
-          run: |
-            GOTPACKAGE=$(xcodebuild -workspace . -list | grep Logger-Package)
-            echo "*$GOTPACKAGE*"
-            if [[ $GOTPACKAGE != "" ]]
-            then
-                SCHEME="Logger-Package"
-            else
-                SCHEME="Logger"
-            fi
-            set -o pipefail
-            xcodebuild test -workspace . -scheme $SCHEME -destination "name=Apple Watch Series 5 - 44mm" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-watchOS-test-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v1
           with:
