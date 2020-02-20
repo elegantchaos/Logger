@@ -8,7 +8,7 @@
 import UIKit
 import Logger
 
-@available(iOS 13.0, *) public class LoggerMenu: UIResponder {
+@available(iOS 13.0, tvOS 13.0, *) public class LoggerMenu: UIResponder {
     static let debugMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.debug.menu")
     static let loggerMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.logger.menu")
     static let channelsMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.channels.menu")
@@ -76,7 +76,7 @@ import Logger
         let disableAllItem = UIKeyCommand(input: "D", modifierFlags: [.command, .control], action: #selector(disableAllChannels(_:)))
         disableAllItem.title = "Disable All"
 
-        let loggerMenu = UIMenu(__title: "Logger",
+        let loggerMenu = UIMenu(title: "Logger",
                                 image: nil,
                                 identifier: LoggerMenu.loggerMenuIdentifier,
                                 options: [],
@@ -94,7 +94,7 @@ import Logger
             channelItems.append(item)
         }
         
-        let channelMenu = UIMenu(__title: "Channels",
+        let channelMenu = UIMenu(title: "Channels",
                                  image: nil,
                                  identifier: LoggerMenu.channelsMenuIdentifier,
                                  options: [.displayInline],
