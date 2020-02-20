@@ -98,7 +98,7 @@ jobs:
                 SCHEME="Logger"
             fi
             set -o pipefail
-            xcodebuild test -workspace . -scheme $SCHEME  -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-macOS-test-debug.log | xcpretty
+            xcodebuild test -workspace . -scheme $SCHEME  -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-macOS-test-debug.log | xcpretty
         - name: Test (macOS/Release)
           run: |
             GOTPACKAGE=$(xcodebuild -workspace . -list | grep Logger-Package)
@@ -110,7 +110,7 @@ jobs:
                 SCHEME="Logger"
             fi
             set -o pipefail
-            xcodebuild test -workspace . -scheme $SCHEME  -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-macOS-test-release.log | xcpretty
+            xcodebuild test -workspace . -scheme $SCHEME  -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-macOS-test-release.log | xcpretty
         - name: Build (iOS/Debug)
           run: set -o pipefail; xcodebuild clean build -workspace . -scheme Logger -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-build-debug.log | xcpretty
         - name: Build (iOS/Release)
@@ -126,7 +126,7 @@ jobs:
                 SCHEME="Logger"
             fi
             set -o pipefail
-            xcodebuild test -workspace . -scheme $SCHEME -destination "name=iPhone 11" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-test-debug.log | xcpretty
+            xcodebuild test -workspace . -scheme $SCHEME -destination "name=iPhone 11" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-iOS-test-debug.log | xcpretty
         - name: Test (iOS/Release)
           run: |
             GOTPACKAGE=$(xcodebuild -workspace . -list | grep Logger-Package)
@@ -138,7 +138,7 @@ jobs:
                 SCHEME="Logger"
             fi
             set -o pipefail
-            xcodebuild test -workspace . -scheme $SCHEME -destination "name=iPhone 11" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-test-release.log | xcpretty
+            xcodebuild test -workspace . -scheme $SCHEME -destination "name=iPhone 11" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-iOS-test-release.log | xcpretty
         - name: Build (tvOS/Debug)
           run: set -o pipefail; xcodebuild clean build -workspace . -scheme Logger -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-build-debug.log | xcpretty
         - name: Build (tvOS/Release)
@@ -154,7 +154,7 @@ jobs:
                 SCHEME="Logger"
             fi
             set -o pipefail
-            xcodebuild test -workspace . -scheme $SCHEME -destination "name=Apple TV" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-test-debug.log | xcpretty
+            xcodebuild test -workspace . -scheme $SCHEME -destination "name=Apple TV" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-tvOS-test-debug.log | xcpretty
         - name: Test (tvOS/Release)
           run: |
             GOTPACKAGE=$(xcodebuild -workspace . -list | grep Logger-Package)
@@ -166,7 +166,7 @@ jobs:
                 SCHEME="Logger"
             fi
             set -o pipefail
-            xcodebuild test -workspace . -scheme $SCHEME -destination "name=Apple TV" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-test-release.log | xcpretty
+            xcodebuild test -workspace . -scheme $SCHEME -destination "name=Apple TV" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-tvOS-test-release.log | xcpretty
         - name: Build (watchOS/Debug)
           run: set -o pipefail; xcodebuild clean build -workspace . -scheme Logger -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-build-debug.log | xcpretty
         - name: Build (watchOS/Release)
@@ -182,7 +182,7 @@ jobs:
                 SCHEME="Logger"
             fi
             set -o pipefail
-            xcodebuild test -workspace . -scheme $SCHEME -destination "name=Apple Watch Series 5 - 44mm" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-test-debug.log | xcpretty
+            xcodebuild test -workspace . -scheme $SCHEME -destination "name=Apple Watch Series 5 - 44mm" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-watchOS-test-debug.log | xcpretty
         - name: Test (watchOS/Release)
           run: |
             GOTPACKAGE=$(xcodebuild -workspace . -list | grep Logger-Package)
@@ -194,7 +194,7 @@ jobs:
                 SCHEME="Logger"
             fi
             set -o pipefail
-            xcodebuild test -workspace . -scheme $SCHEME -destination "name=Apple Watch Series 5 - 44mm" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-test-release.log | xcpretty
+            xcodebuild test -workspace . -scheme $SCHEME -destination "name=Apple Watch Series 5 - 44mm" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-watchOS-test-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v1
           with:
