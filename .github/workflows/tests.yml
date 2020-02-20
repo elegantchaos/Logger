@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
     linux-50:
         name: Linux (Swift 5.0)
-        runs-on: ubunu-latest
+        runs-on: ubuntu-latest
         container: swift:5.0
         steps:
         - name: Checkout
@@ -42,7 +42,7 @@ jobs:
 
     linux-51:
         name: Linux (Swift 5.1)
-        runs-on: ubunu-latest
+        runs-on: ubuntu-latest
         container: swift:5.1
         steps:
         - name: Checkout
