@@ -8,7 +8,7 @@
 import UIKit
 import Logger
 
-@available(iOS 13.0, tvOS 13.0, *) public class LoggerMenu: UIResponder {
+@available(iOS 13.0, tvOS 13.0, *)  public class LoggerMenu: UIResponder {
     static let debugMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.debug.menu")
     static let loggerMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.logger.menu")
     static let channelsMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.channels.menu")
@@ -35,8 +35,10 @@ import Logger
     public override func buildMenu(with builder: UIMenuBuilder) {
         guard builder.system == .main else { return }
         
+        #if !os(tvOS) // TODO: re-enable tvOS when UIMenu works properly
         let debugMenu = buildDebugMenu(with: builder)
         addLoggerMenu(to: debugMenu, with: builder)
+        #endif
         
         NotificationCenter.default.addObserver(forName: Manager.channelsUpdatedNotification, object: manager, queue: OperationQueue.main) {_ in
             UIMenuSystem.main.setNeedsRebuild()
@@ -51,6 +53,7 @@ import Logger
         }
     }
     
+    #if !os(tvOS)
     func buildDebugMenu(with builder: UIMenuBuilder, identifier: UIMenu.Identifier = LoggerMenu.debugMenuIdentifier) -> UIMenu {
         // if the menu already exists, just return it
         if let menu = builder.menu(for: identifier) {
@@ -58,7 +61,7 @@ import Logger
         }
         
         // if not, insert one before the Help menu
-        let debugMenu = UIMenu(__title: "Debug",
+        let debugMenu = UIMenu(title: "Debug",
                                image: nil,
                                identifier: identifier,
                                options: [],
@@ -67,7 +70,7 @@ import Logger
         builder.insertSibling(debugMenu, beforeMenu: .help)
         return debugMenu
     }
-    
+
     func addLoggerMenu(to debugMenu: UIMenu, with builder: UIMenuBuilder) {
         
         let enableAllItem = UIKeyCommand(input: "E", modifierFlags: [.command, .control], action: #selector(enableAllChannels))
@@ -103,7 +106,8 @@ import Logger
         builder.insertChild(channelMenu, atEndOfMenu: loggerMenu.identifier)
         self.channelMenu = channelMenu
     }
-    
+    #endif
+
     func channel(for command: UICommand) -> Channel? {
         guard let name = command.propertyList as? String else { return nil }
         return manager.channel(named: name)
