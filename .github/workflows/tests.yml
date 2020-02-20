@@ -2,57 +2,137 @@ name: tests
 
 on: [push, pull_request]
 
-jobs:
-
-  linux:
-    name: Linux
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        swift: ["5.0", "5.1"]
-    container:
-      image: swift:${{ matrix.swift }}
+jobs:linux-50:
+    name: Linux (Swift 5.0)
+    runs-on: ubunu-latest
+    container: swift:5.0
     steps:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Swift Version
       run: swift --version
-    - name: Build
-      run: swift build -v
-    - name: Test
-      run: swift test -v
+    - name: Xcode Version
+      run: xcodebuild -version
+    - name: XC Pretty
+      run: sudo gem install xcpretty-travis-formatter
+    - name: Make Logs Directory
+      run: mkdir logs    - name: Build (Debug)
+      run: swift build -v -c debug
+    - name: Build (Release)
+      run: swift build -v -c release
+    - name: Test (Debug)
+      run: swift test -v -c debug 
+    - name: Test (Release)
+      run: swift test -v -c release -Xswiftc -enable-testing
+    - name: Upload Logs
+      uses: actions/upload-artifact@v1
+      with:
+        name: logs
+        path: logs
     - name: Slack Notification
       uses: elegantchaos/slatify@master
+      if: always()
       with:
         type: ${{ job.status }}
-        job_name: 'Linux Tests (Swift ${{ matrix.swift }})'
+        job_name: 'Linux (Swift 5.0)'
         mention_if: 'failure'
         url: ${{ secrets.SLACK_WEBHOOK }}
 
-  macos:
-    name: Mac
-    runs-on: macOS-latest
-    strategy:
-      matrix:
-        config: [debug, release]
-        include:
-        - config: release
-          args:  -Xswiftc -enable-testing
+
+linux-51:
+    name: Linux (Swift 5.1)
+    runs-on: ubunu-latest
+    container: swift:5.1
     steps:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Swift Version
       run: swift --version
-    - name: Build
-      run: swift build -v -c ${{ matrix.config }}
-    - name: Test (macOS)
-      run: swift test -v -c ${{ matrix.config }} ${{ matrix.args }}
-    - name: Test (iOS)
-      run: xcodebuild clean test -workspace . -scheme Logger-Package -destination "name=iPad Pro (11-inch)"
+    - name: Xcode Version
+      run: xcodebuild -version
+    - name: XC Pretty
+      run: sudo gem install xcpretty-travis-formatter
+    - name: Make Logs Directory
+      run: mkdir logs    - name: Build (Debug)
+      run: swift build -v -c debug
+    - name: Build (Release)
+      run: swift build -v -c release
+    - name: Test (Debug)
+      run: swift test -v -c debug 
+    - name: Test (Release)
+      run: swift test -v -c release -Xswiftc -enable-testing
+    - name: Upload Logs
+      uses: actions/upload-artifact@v1
+      with:
+        name: logs
+        path: logs
     - name: Slack Notification
       uses: elegantchaos/slatify@master
+      if: always()
       with:
-          type: ${{ job.status }}
-          job_name: 'Mac Tests (${{ matrix.config }})'
-          mention_if: 'failure'
-          url: ${{ secrets.SLACK_WEBHOOK }}
+        type: ${{ job.status }}
+        job_name: 'Linux (Swift 5.1)'
+        mention_if: 'failure'
+        url: ${{ secrets.SLACK_WEBHOOK }}
+
+
+macOS-iOS-tvOS:
+    name: macOS/iOS/tvOS
+    runs-on: macOS-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Swift Version
+      run: swift --version
+    - name: Xcode Version
+      run: xcodebuild -version
+    - name: XC Pretty
+      run: sudo gem install xcpretty-travis-formatter
+    - name: Make Logs Directory
+      run: mkdir logs    - name: Build (Debug)
+      run: swift build -v -c debug
+    - name: Build (Release)
+      run: swift build -v -c release
+    - name: Test (Debug)
+      run: swift test -v -c debug 
+    - name: Test (Release)
+      run: swift test -v -c release -Xswiftc -enable-testing
+    - name: Build (macOS/Debug)
+      run: xcodebuild clean build -workspace . -scheme Logger  -configuration Debug" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-macOS-build-debug.log | xcpretty
+    - name: Build (macOS/Release)
+      run: xcodebuild clean build -workspace . -scheme Logger  -configuration Release" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-macOS-build-release.log | xcpretty
+    - name: Test (iOS/Debug)
+      run: xcodebuild test -workspace . -scheme Logger  -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-macOS-test-debug.log | xcpretty
+    - name: Test (iOS/Release)
+      run: xcodebuild test -workspace . -scheme Logger  -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-macOS-test-release.log | xcpretty
+    - name: Build (iOS/Debug)
+      run: xcodebuild clean build -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Debug" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-build-debug.log | xcpretty
+    - name: Build (iOS/Release)
+      run: xcodebuild clean build -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Release" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-build-release.log | xcpretty
+    - name: Test (iOS/Debug)
+      run: xcodebuild test -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-test-debug.log | xcpretty
+    - name: Test (iOS/Release)
+      run: xcodebuild test -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-test-release.log | xcpretty
+    - name: Build (tvOS/Debug)
+      run: xcodebuild clean build -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Debug" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-build-debug.log | xcpretty
+    - name: Build (tvOS/Release)
+      run: xcodebuild clean build -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Release" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-build-release.log | xcpretty
+    - name: Test (iOS/Debug)
+      run: xcodebuild test -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-test-debug.log | xcpretty
+    - name: Test (iOS/Release)
+      run: xcodebuild test -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-test-release.log | xcpretty
+    - name: Upload Logs
+      uses: actions/upload-artifact@v1
+      with:
+        name: logs
+        path: logs
+    - name: Slack Notification
+      uses: elegantchaos/slatify@master
+      if: always()
+      with:
+        type: ${{ job.status }}
+        job_name: 'macOS/iOS/tvOS'
+        mention_if: 'failure'
+        url: ${{ secrets.SLACK_WEBHOOK }}
+
+
