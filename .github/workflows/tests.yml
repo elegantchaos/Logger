@@ -16,7 +16,8 @@ jobs:linux-50:
     - name: XC Pretty
       run: sudo gem install xcpretty-travis-formatter
     - name: Make Logs Directory
-      run: mkdir logs    - name: Build (Debug)
+      run: mkdir logs
+    - name: Build (Debug)
       run: swift build -v -c debug
     - name: Build (Release)
       run: swift build -v -c release
@@ -53,7 +54,8 @@ linux-51:
     - name: XC Pretty
       run: sudo gem install xcpretty-travis-formatter
     - name: Make Logs Directory
-      run: mkdir logs    - name: Build (Debug)
+      run: mkdir logs
+    - name: Build (Debug)
       run: swift build -v -c debug
     - name: Build (Release)
       run: swift build -v -c release
@@ -76,8 +78,8 @@ linux-51:
         url: ${{ secrets.SLACK_WEBHOOK }}
 
 
-macOS-iOS-tvOS:
-    name: macOS/iOS/tvOS
+macOS-iOS-tvOS-watchOS:
+    name: macOS/iOS/tvOS/watchOS
     runs-on: macOS-latest
     steps:
     - name: Checkout
@@ -89,7 +91,8 @@ macOS-iOS-tvOS:
     - name: XC Pretty
       run: sudo gem install xcpretty-travis-formatter
     - name: Make Logs Directory
-      run: mkdir logs    - name: Build (Debug)
+      run: mkdir logs
+    - name: Build (Debug)
       run: swift build -v -c debug
     - name: Build (Release)
       run: swift build -v -c release
@@ -106,21 +109,29 @@ macOS-iOS-tvOS:
     - name: Test (iOS/Release)
       run: xcodebuild test -workspace . -scheme Logger  -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-macOS-test-release.log | xcpretty
     - name: Build (iOS/Debug)
-      run: xcodebuild clean build -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Debug" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-build-debug.log | xcpretty
+      run: xcodebuild clean build -workspace . -scheme Logger -destination "name=iPhone 11" -configuration Debug" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-build-debug.log | xcpretty
     - name: Build (iOS/Release)
-      run: xcodebuild clean build -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Release" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-build-release.log | xcpretty
+      run: xcodebuild clean build -workspace . -scheme Logger -destination "name=iPhone 11" -configuration Release" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-build-release.log | xcpretty
     - name: Test (iOS/Debug)
-      run: xcodebuild test -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-test-debug.log | xcpretty
+      run: xcodebuild test -workspace . -scheme Logger -destination "name=iPhone 11" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-test-debug.log | xcpretty
     - name: Test (iOS/Release)
-      run: xcodebuild test -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-test-release.log | xcpretty
+      run: xcodebuild test -workspace . -scheme Logger -destination "name=iPhone 11" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-test-release.log | xcpretty
     - name: Build (tvOS/Debug)
-      run: xcodebuild clean build -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Debug" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-build-debug.log | xcpretty
+      run: xcodebuild clean build -workspace . -scheme Logger -destination "name=Apple TV" -configuration Debug" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-build-debug.log | xcpretty
     - name: Build (tvOS/Release)
-      run: xcodebuild clean build -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Release" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-build-release.log | xcpretty
+      run: xcodebuild clean build -workspace . -scheme Logger -destination "name=Apple TV" -configuration Release" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-build-release.log | xcpretty
     - name: Test (iOS/Debug)
-      run: xcodebuild test -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-test-debug.log | xcpretty
+      run: xcodebuild test -workspace . -scheme Logger -destination "name=Apple TV" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-test-debug.log | xcpretty
     - name: Test (iOS/Release)
-      run: xcodebuild test -workspace . -scheme Logger -destination "name=iPad Pro (11-inch)" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-test-release.log | xcpretty
+      run: xcodebuild test -workspace . -scheme Logger -destination "name=Apple TV" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-test-release.log | xcpretty
+    - name: Build (watchOS/Debug)
+      run: xcodebuild clean build -workspace . -scheme Logger -destination "name=Apple Watch Series 5 - 44mm" -configuration Debug" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-build-debug.log | xcpretty
+    - name: Build (watchOS/Release)
+      run: xcodebuild clean build -workspace . -scheme Logger -destination "name=Apple Watch Series 5 - 44mm" -configuration Release" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-build-release.log | xcpretty
+    - name: Test (iOS/Debug)
+      run: xcodebuild test -workspace . -scheme Logger -destination "name=Apple Watch Series 5 - 44mm" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-test-debug.log | xcpretty
+    - name: Test (iOS/Release)
+      run: xcodebuild test -workspace . -scheme Logger -destination "name=Apple Watch Series 5 - 44mm" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-test-release.log | xcpretty
     - name: Upload Logs
       uses: actions/upload-artifact@v1
       with:
@@ -131,7 +142,7 @@ macOS-iOS-tvOS:
       if: always()
       with:
         type: ${{ job.status }}
-        job_name: 'macOS/iOS/tvOS'
+        job_name: 'macOS/iOS/tvOS/watchOS'
         mention_if: 'failure'
         url: ${{ secrets.SLACK_WEBHOOK }}
 
