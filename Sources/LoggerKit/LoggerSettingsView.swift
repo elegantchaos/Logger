@@ -3,7 +3,7 @@
 //  All code (c) 2019 - present day, Elegant Chaos Limited.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-#if canImport(UIKit)
+#if canImport(UIKit) && !os(watchOS)
 import UIKit
 import Logger
 
@@ -51,7 +51,11 @@ public class LoggerSettingsView: UITableViewController {
      Font to use for the table.
     */
     
+    #if os(tvOS)
+    let font = UIFont.preferredFont(forTextStyle: .body)
+    #else
     let font = UIFont.systemFont(ofSize: UIFont.labelFontSize)
+    #endif
 
     public init(manager: Manager) {
         self.manager = manager
@@ -72,7 +76,12 @@ public class LoggerSettingsView: UITableViewController {
         title = "Log Settings"
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: LoggerSettingsView.cellIdentifier)
         let nav = UINavigationController(rootViewController: self)
+        #if os(tvOS)
+        nav.modalPresentationStyle = .fullScreen
+        #else
         nav.modalPresentationStyle = .popover
+        #endif
+        
         tableView.reloadData()
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneModal(_:)))
         if let popover = nav.popoverPresentationController {

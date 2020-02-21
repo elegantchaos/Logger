@@ -3,7 +3,7 @@
 //  All code (c) 2020 - present day, Elegant Chaos Limited.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-#if canImport(UIKit)
+#if canImport(UIKit) && !os(watchOS)
 import UIKit
 import Logger
 
@@ -14,7 +14,7 @@ let applicationChannel = Channel("Application", handlers: [OSLogHandler()])
 /// - installs a Debug/Logger menu in the responder chain
 ///
 /// Intended to be used as a base class.
-@available(iOS 13.0, *) open class LoggerApplication: UIResponder {
+@available(iOS 13.0, tvOS 13.0, *) open class LoggerApplication: UIResponder {
     let loggerMenu = LoggerMenu(manager: Logger.defaultManager)
     public var window: UIWindow?
     
@@ -25,7 +25,7 @@ let applicationChannel = Channel("Application", handlers: [OSLogHandler()])
 
 // MARK: UIApplication Lifecycle
 
-@available(iOS 13.0, *) extension LoggerApplication: UIApplicationDelegate {
+@available(iOS 13.0, tvOS 13.0, *) extension LoggerApplication: UIApplicationDelegate {
     open func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         applicationChannel.debug("didFinishLaunching")
         if let options = launchOptions {
@@ -61,7 +61,7 @@ let applicationChannel = Channel("Application", handlers: [OSLogHandler()])
 
 // MARK: UISceneSession Lifecycle
 
-@available(iOS 13.0, *) extension LoggerApplication {
+@available(iOS 13.0, tvOS 13.0, *) extension LoggerApplication {
 
     open func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         applicationChannel.debug("configurationForConnecting \(connectingSceneSession) \(options)")

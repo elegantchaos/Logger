@@ -4,7 +4,7 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-#if os(macOS) || os(iOS)
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 
 import os
 
@@ -12,7 +12,7 @@ import os
  Outputs log messages using os_log().
  */
 
-@available(macOS 10.12, iOS 10.0, *) public class OSLogHandler : Handler {
+@available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 5.0, *) public class OSLogHandler : Handler {
     public convenience init() {
       self.init("oslog")
     }
