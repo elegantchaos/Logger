@@ -56,6 +56,9 @@ let applicationChannel = Channel("Application", handlers: [OSLogHandler()])
         return false
     }
 
+    open func applicationWillTerminate(_ application: UIApplication) {
+        applicationChannel.debug("willTerminate")
+    }
 }
 
 
