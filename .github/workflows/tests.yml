@@ -3,8 +3,31 @@ name: tests
 on: [push, pull_request]
 
 jobs:
+
+    update-linuxmain:
+        name: Update Linux Main
+        runs-on: macOS-latest
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v1
+        - name: Update
+          run: swift test --generate-linuxmain
+        - name: Commit Changes
+          continue-on-error: true
+          run: |
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git commit -m "Updated Linux Main" -a
+        - name: Push changes
+          continue-on-error: true
+          uses: ad-m/github-push-action@master
+          with:
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    
     linux-50:
         name: Linux (Swift 5.0)
+        needs: update-linuxmain
         runs-on: ubuntu-latest
         container: swift:5.0
         steps:
@@ -36,8 +59,10 @@ jobs:
             mention_if: 'failure'
             url: ${{ secrets.SLACK_WEBHOOK }}
 
+    
     linux-51:
         name: Linux (Swift 5.1)
+        needs: update-linuxmain
         runs-on: ubuntu-latest
         container: swift:5.1
         steps:
@@ -69,10 +94,12 @@ jobs:
             mention_if: 'failure'
             url: ${{ secrets.SLACK_WEBHOOK }}
 
+    
     linux-52:
         name: Linux (Swift 5.2 Nightly)
+        needs: update-linuxmain
         runs-on: ubuntu-latest
-        container: swift:nightly-5.2
+        container: swiftlang/swift:nightly-5.2
         steps:
         - name: Checkout
           uses: actions/checkout@v1
@@ -102,10 +129,12 @@ jobs:
             mention_if: 'failure'
             url: ${{ secrets.SLACK_WEBHOOK }}
 
+    
     linux-n:
         name: Linux (Swift Nightly)
+        needs: update-linuxmain
         runs-on: ubuntu-latest
-        container: swift:nightly
+        container: swiftlang/swift:nightly
         steps:
         - name: Checkout
           uses: actions/checkout@v1
@@ -135,6 +164,7 @@ jobs:
             mention_if: 'failure'
             url: ${{ secrets.SLACK_WEBHOOK }}
 
+    
     macOS-iOS-tvOS-watchOS:
         name: macOS/iOS/tvOS/watchOS
         runs-on: macOS-latest
