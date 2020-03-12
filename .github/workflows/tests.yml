@@ -145,8 +145,8 @@ jobs:
             url: ${{ secrets.SLACK_WEBHOOK }}
 
     
-    macOS-iOS-tvOS-watchOS:
-        name: macOS/iOS/tvOS/watchOS
+    macOS_iOS_tvOS_watchOS:
+        name: macOS, iOS, tvOS, watchOS
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -266,7 +266,7 @@ jobs:
           if: always()
           with:
             type: ${{ job.status }}
-            job_name: 'macOS/iOS/tvOS/watchOS'
+            job_name: 'macOS, iOS, tvOS, watchOS'
             mention_if: 'failure'
             url: ${{ secrets.SLACK_WEBHOOK }}
 
