@@ -10,7 +10,7 @@ on: [push, pull_request]
 jobs:
 
     macOS-xcode-swift-50:
-        name: macOS
+        name: macOS (Swift 5.0)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -90,7 +90,7 @@ jobs:
 
 
     macOS-xcode-swift-51:
-        name: macOS
+        name: macOS (Swift 5.1)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -170,7 +170,7 @@ jobs:
 
 
     macOS-xcode-swift-52:
-        name: macOS
+        name: macOS (Swift 5.2 Nightly)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -264,7 +264,7 @@ jobs:
 
 
     macOS-xcode-swift-nightly:
-        name: macOS
+        name: macOS (Swift Development Nightly)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -358,7 +358,7 @@ jobs:
 
 
     iOS-swift-50:
-        name: iOS
+        name: iOS (Swift 5.0)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -438,7 +438,7 @@ jobs:
 
 
     iOS-swift-51:
-        name: iOS
+        name: iOS (Swift 5.1)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -518,7 +518,7 @@ jobs:
 
 
     iOS-swift-52:
-        name: iOS
+        name: iOS (Swift 5.2 Nightly)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -612,7 +612,7 @@ jobs:
 
 
     iOS-swift-nightly:
-        name: iOS
+        name: iOS (Swift Development Nightly)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -706,7 +706,7 @@ jobs:
 
 
     tvOS-swift-50:
-        name: tvOS
+        name: tvOS (Swift 5.0)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -786,7 +786,7 @@ jobs:
 
 
     tvOS-swift-51:
-        name: tvOS
+        name: tvOS (Swift 5.1)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -866,7 +866,7 @@ jobs:
 
 
     tvOS-swift-52:
-        name: tvOS
+        name: tvOS (Swift 5.2 Nightly)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -960,7 +960,7 @@ jobs:
 
 
     tvOS-swift-nightly:
-        name: tvOS
+        name: tvOS (Swift Development Nightly)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -1054,7 +1054,7 @@ jobs:
 
 
     watchOS-swift-50:
-        name: watchOS
+        name: watchOS (Swift 5.0)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -1122,7 +1122,7 @@ jobs:
 
 
     watchOS-swift-51:
-        name: watchOS
+        name: watchOS (Swift 5.1)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -1190,7 +1190,7 @@ jobs:
 
 
     watchOS-swift-52:
-        name: watchOS
+        name: watchOS (Swift 5.2 Nightly)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -1272,7 +1272,7 @@ jobs:
 
 
     watchOS-swift-nightly:
-        name: watchOS
+        name: watchOS (Swift Development Nightly)
         runs-on: macOS-latest
         steps:
         - name: Checkout
@@ -1354,7 +1354,7 @@ jobs:
 
 
     linux-swift-50:
-        name: Linux
+        name: Linux (Swift 5.0)
         runs-on: ubuntu-latest
         container: swift:5.0
         steps:
@@ -1388,7 +1388,7 @@ jobs:
 
 
     linux-swift-51:
-        name: Linux
+        name: Linux (Swift 5.1)
         runs-on: ubuntu-latest
         container: swift:5.1
         steps:
@@ -1422,7 +1422,7 @@ jobs:
 
 
     linux-swift-52:
-        name: Linux
+        name: Linux (Swift 5.2 Nightly)
         runs-on: ubuntu-latest
         container: swiftlang/swift:nightly-5.2
         steps:
@@ -1456,7 +1456,7 @@ jobs:
 
 
     linux-swift-nightly:
-        name: Linux
+        name: Linux (Swift Development Nightly)
         runs-on: ubuntu-latest
         container: swiftlang/swift:nightly
         steps:
