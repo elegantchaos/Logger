@@ -36,43 +36,29 @@ jobs:
             else
             SCHEME="Logger"
             fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
             else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
+            SCHEME="Logger-macOS"
             fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
+            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
         - name: Build (Debug)
           run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-macOS-xcode-build-debug.log | xcpretty
         - name: Build (Release)
           run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-macOS-xcode-build-release.log | xcpretty
         - name: Test (Debug)
           run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME"  -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-macOS-xcode-test-debug.log | xcpretty
         - name: Test (Release)
           run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME"  -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-macOS-xcode-test-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v1
@@ -85,86 +71,6 @@ jobs:
           with:
             type: ${{ job.status }}
             job_name: 'macOS (Swift 5.0)'
-            mention_if: 'failure'
-            url: ${{ secrets.SLACK_WEBHOOK }}
-
-
-    macOS-xcode-swift-51:
-        name: macOS (Swift 5.1)
-        runs-on: macOS-latest
-        steps:
-        - name: Checkout
-          uses: actions/checkout@v1
-        - name: Swift Version
-          run: swift --version
-        - name: Make Logs Directory
-          run: mkdir logs
-        - name: Xcode Version
-          run: xcodebuild -version
-        - name: XC Pretty
-          run: sudo gem install xcpretty-travis-formatter
-        - name: Detect Workspace & Scheme
-          run: |
-            WORKSPACE="Logger.xcworkspace"
-            if [[ ! -e "$WORKSPACE" ]]
-            then
-            WORKSPACE="."
-            GOTPACKAGE=$(xcodebuild -workspace . -list | (grep Logger-Package || true))
-            if [[ $GOTPACKAGE != "" ]]
-            then
-            SCHEME="Logger-Package"
-            else
-            SCHEME="Logger"
-            fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
-            else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
-            fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
-        - name: Build (Debug)
-          run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
-            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-macOS-xcode-build-debug.log | xcpretty
-        - name: Build (Release)
-          run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
-            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-macOS-xcode-build-release.log | xcpretty
-        - name: Test (Debug)
-          run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
-            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME"  -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-macOS-xcode-test-debug.log | xcpretty
-        - name: Test (Release)
-          run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
-            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME"  -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-macOS-xcode-test-release.log | xcpretty
-        - name: Upload Logs
-          uses: actions/upload-artifact@v1
-          with:
-            name: logs
-            path: logs
-        - name: Slack Notification
-          uses: elegantchaos/slatify@master
-          if: always()
-          with:
-            type: ${{ job.status }}
-            job_name: 'macOS (Swift 5.1)'
             mention_if: 'failure'
             url: ${{ secrets.SLACK_WEBHOOK }}
 
@@ -210,43 +116,29 @@ jobs:
             else
             SCHEME="Logger"
             fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
             else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
+            SCHEME="Logger-macOS"
             fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
+            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
         - name: Build (Debug)
           run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-macOS-xcode-build-debug.log | xcpretty
         - name: Build (Release)
           run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-macOS-xcode-build-release.log | xcpretty
         - name: Test (Debug)
           run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME"  -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-macOS-xcode-test-debug.log | xcpretty
         - name: Test (Release)
           run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME"  -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-macOS-xcode-test-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v1
@@ -304,43 +196,29 @@ jobs:
             else
             SCHEME="Logger"
             fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
             else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
+            SCHEME="Logger-macOS"
             fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
+            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
         - name: Build (Debug)
           run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-macOS-xcode-build-debug.log | xcpretty
         - name: Build (Release)
           run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-macOS-xcode-build-release.log | xcpretty
         - name: Test (Debug)
           run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME"  -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-macOS-xcode-test-debug.log | xcpretty
         - name: Test (Release)
           run: |
-            set -o pipefail
-            source "names-macOS-xcode.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME"  -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-macOS-xcode-test-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v1
@@ -384,43 +262,29 @@ jobs:
             else
             SCHEME="Logger"
             fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
             else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
+            SCHEME="Logger-iOS"
             fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
+            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
         - name: Build (Debug)
           run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-build-debug.log | xcpretty
         - name: Build (Release)
           run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-build-release.log | xcpretty
         - name: Test (Debug)
           run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=iPhone 11" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-iOS-test-debug.log | xcpretty
         - name: Test (Release)
           run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=iPhone 11" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-iOS-test-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v1
@@ -433,86 +297,6 @@ jobs:
           with:
             type: ${{ job.status }}
             job_name: 'iOS (Swift 5.0)'
-            mention_if: 'failure'
-            url: ${{ secrets.SLACK_WEBHOOK }}
-
-
-    iOS-swift-51:
-        name: iOS (Swift 5.1)
-        runs-on: macOS-latest
-        steps:
-        - name: Checkout
-          uses: actions/checkout@v1
-        - name: Swift Version
-          run: swift --version
-        - name: Make Logs Directory
-          run: mkdir logs
-        - name: Xcode Version
-          run: xcodebuild -version
-        - name: XC Pretty
-          run: sudo gem install xcpretty-travis-formatter
-        - name: Detect Workspace & Scheme
-          run: |
-            WORKSPACE="Logger.xcworkspace"
-            if [[ ! -e "$WORKSPACE" ]]
-            then
-            WORKSPACE="."
-            GOTPACKAGE=$(xcodebuild -workspace . -list | (grep Logger-Package || true))
-            if [[ $GOTPACKAGE != "" ]]
-            then
-            SCHEME="Logger-Package"
-            else
-            SCHEME="Logger"
-            fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
-            else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
-            fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
-        - name: Build (Debug)
-          run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
-            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-build-debug.log | xcpretty
-        - name: Build (Release)
-          run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
-            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-build-release.log | xcpretty
-        - name: Test (Debug)
-          run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
-            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=iPhone 11" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-iOS-test-debug.log | xcpretty
-        - name: Test (Release)
-          run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
-            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=iPhone 11" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-iOS-test-release.log | xcpretty
-        - name: Upload Logs
-          uses: actions/upload-artifact@v1
-          with:
-            name: logs
-            path: logs
-        - name: Slack Notification
-          uses: elegantchaos/slatify@master
-          if: always()
-          with:
-            type: ${{ job.status }}
-            job_name: 'iOS (Swift 5.1)'
             mention_if: 'failure'
             url: ${{ secrets.SLACK_WEBHOOK }}
 
@@ -558,43 +342,29 @@ jobs:
             else
             SCHEME="Logger"
             fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
             else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
+            SCHEME="Logger-iOS"
             fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
+            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
         - name: Build (Debug)
           run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-build-debug.log | xcpretty
         - name: Build (Release)
           run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-build-release.log | xcpretty
         - name: Test (Debug)
           run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=iPhone 11" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-iOS-test-debug.log | xcpretty
         - name: Test (Release)
           run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=iPhone 11" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-iOS-test-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v1
@@ -652,43 +422,29 @@ jobs:
             else
             SCHEME="Logger"
             fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
             else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
+            SCHEME="Logger-iOS"
             fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
+            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
         - name: Build (Debug)
           run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-build-debug.log | xcpretty
         - name: Build (Release)
           run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-iOS-build-release.log | xcpretty
         - name: Test (Debug)
           run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=iPhone 11" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-iOS-test-debug.log | xcpretty
         - name: Test (Release)
           run: |
-            set -o pipefail
-            source "names-iOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=iPhone 11" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-iOS-test-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v1
@@ -732,43 +488,29 @@ jobs:
             else
             SCHEME="Logger"
             fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
             else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
+            SCHEME="Logger-tvOS"
             fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
+            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
         - name: Build (Debug)
           run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-build-debug.log | xcpretty
         - name: Build (Release)
           run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-build-release.log | xcpretty
         - name: Test (Debug)
           run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple TV" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-tvOS-test-debug.log | xcpretty
         - name: Test (Release)
           run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple TV" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-tvOS-test-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v1
@@ -781,86 +523,6 @@ jobs:
           with:
             type: ${{ job.status }}
             job_name: 'tvOS (Swift 5.0)'
-            mention_if: 'failure'
-            url: ${{ secrets.SLACK_WEBHOOK }}
-
-
-    tvOS-swift-51:
-        name: tvOS (Swift 5.1)
-        runs-on: macOS-latest
-        steps:
-        - name: Checkout
-          uses: actions/checkout@v1
-        - name: Swift Version
-          run: swift --version
-        - name: Make Logs Directory
-          run: mkdir logs
-        - name: Xcode Version
-          run: xcodebuild -version
-        - name: XC Pretty
-          run: sudo gem install xcpretty-travis-formatter
-        - name: Detect Workspace & Scheme
-          run: |
-            WORKSPACE="Logger.xcworkspace"
-            if [[ ! -e "$WORKSPACE" ]]
-            then
-            WORKSPACE="."
-            GOTPACKAGE=$(xcodebuild -workspace . -list | (grep Logger-Package || true))
-            if [[ $GOTPACKAGE != "" ]]
-            then
-            SCHEME="Logger-Package"
-            else
-            SCHEME="Logger"
-            fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
-            else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
-            fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
-        - name: Build (Debug)
-          run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
-            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-build-debug.log | xcpretty
-        - name: Build (Release)
-          run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
-            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-build-release.log | xcpretty
-        - name: Test (Debug)
-          run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
-            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple TV" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-tvOS-test-debug.log | xcpretty
-        - name: Test (Release)
-          run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
-            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple TV" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-tvOS-test-release.log | xcpretty
-        - name: Upload Logs
-          uses: actions/upload-artifact@v1
-          with:
-            name: logs
-            path: logs
-        - name: Slack Notification
-          uses: elegantchaos/slatify@master
-          if: always()
-          with:
-            type: ${{ job.status }}
-            job_name: 'tvOS (Swift 5.1)'
             mention_if: 'failure'
             url: ${{ secrets.SLACK_WEBHOOK }}
 
@@ -906,43 +568,29 @@ jobs:
             else
             SCHEME="Logger"
             fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
             else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
+            SCHEME="Logger-tvOS"
             fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
+            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
         - name: Build (Debug)
           run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-build-debug.log | xcpretty
         - name: Build (Release)
           run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-build-release.log | xcpretty
         - name: Test (Debug)
           run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple TV" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-tvOS-test-debug.log | xcpretty
         - name: Test (Release)
           run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple TV" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-tvOS-test-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v1
@@ -1000,43 +648,29 @@ jobs:
             else
             SCHEME="Logger"
             fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
             else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
+            SCHEME="Logger-tvOS"
             fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
+            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
         - name: Build (Debug)
           run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-build-debug.log | xcpretty
         - name: Build (Release)
           run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-tvOS-build-release.log | xcpretty
         - name: Test (Debug)
           run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple TV" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO  | tee logs/xcodebuild-tvOS-test-debug.log | xcpretty
         - name: Test (Release)
           run: |
-            set -o pipefail
-            source "names-tvOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple TV" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-tvOS-test-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v1
@@ -1080,31 +714,19 @@ jobs:
             else
             SCHEME="Logger"
             fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
             else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
+            SCHEME="Logger-watchOS"
             fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
+            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
         - name: Build (Debug)
           run: |
-            set -o pipefail
-            source "names-watchOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-build-debug.log | xcpretty
         - name: Build (Release)
           run: |
-            set -o pipefail
-            source "names-watchOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-build-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v1
@@ -1117,74 +739,6 @@ jobs:
           with:
             type: ${{ job.status }}
             job_name: 'watchOS (Swift 5.0)'
-            mention_if: 'failure'
-            url: ${{ secrets.SLACK_WEBHOOK }}
-
-
-    watchOS-swift-51:
-        name: watchOS (Swift 5.1)
-        runs-on: macOS-latest
-        steps:
-        - name: Checkout
-          uses: actions/checkout@v1
-        - name: Swift Version
-          run: swift --version
-        - name: Make Logs Directory
-          run: mkdir logs
-        - name: Xcode Version
-          run: xcodebuild -version
-        - name: XC Pretty
-          run: sudo gem install xcpretty-travis-formatter
-        - name: Detect Workspace & Scheme
-          run: |
-            WORKSPACE="Logger.xcworkspace"
-            if [[ ! -e "$WORKSPACE" ]]
-            then
-            WORKSPACE="."
-            GOTPACKAGE=$(xcodebuild -workspace . -list | (grep Logger-Package || true))
-            if [[ $GOTPACKAGE != "" ]]
-            then
-            SCHEME="Logger-Package"
-            else
-            SCHEME="Logger"
-            fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
-            else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
-            fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
-        - name: Build (Debug)
-          run: |
-            set -o pipefail
-            source "names-watchOS.sh"
-            export PATH="swift-latest:$PATH"
-            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-build-debug.log | xcpretty
-        - name: Build (Release)
-          run: |
-            set -o pipefail
-            source "names-watchOS.sh"
-            export PATH="swift-latest:$PATH"
-            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-build-release.log | xcpretty
-        - name: Upload Logs
-          uses: actions/upload-artifact@v1
-          with:
-            name: logs
-            path: logs
-        - name: Slack Notification
-          uses: elegantchaos/slatify@master
-          if: always()
-          with:
-            type: ${{ job.status }}
-            job_name: 'watchOS (Swift 5.1)'
             mention_if: 'failure'
             url: ${{ secrets.SLACK_WEBHOOK }}
 
@@ -1230,31 +784,19 @@ jobs:
             else
             SCHEME="Logger"
             fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
             else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
+            SCHEME="Logger-watchOS"
             fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
+            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
         - name: Build (Debug)
           run: |
-            set -o pipefail
-            source "names-watchOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-build-debug.log | xcpretty
         - name: Build (Release)
           run: |
-            set -o pipefail
-            source "names-watchOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-build-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v1
@@ -1312,31 +854,19 @@ jobs:
             else
             SCHEME="Logger"
             fi
-            MACOS_SCHEME="$SCHEME"
-            IOS_SCHEME="$SCHEME"
-            TVOS_SCHEME="$SCHEME"
-            WATCHOS_SCHEME="$SCHEME"
             else
-            MACOS_SCHEME="Logger-macOS"
-            IOS_SCHEME="Logger-iOS"
-            TVOS_SCHEME="Logger-tvOS"
-            WATCHOS_SCHEME="Logger-watchOS"
+            SCHEME="Logger-watchOS"
             fi
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$MACOS_SCHEME'" > names-macOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$IOS_SCHEME'" > names-iOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$TVOS_SCHEME'" > names-tvOS.sh
-            echo "WORKSPACE='$WORKSPACE'; SCHEME='$WATCHOS_SCHEME'" > names-watchOS.sh
+            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
         - name: Build (Debug)
           run: |
-            set -o pipefail
-            source "names-watchOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Debug CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-build-debug.log | xcpretty
         - name: Build (Release)
           run: |
-            set -o pipefail
-            source "names-watchOS.sh"
-            export PATH="swift-latest:$PATH"
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | tee logs/xcodebuild-watchOS-build-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v1
@@ -1383,40 +913,6 @@ jobs:
           with:
             type: ${{ job.status }}
             job_name: 'Linux (Swift 5.0)'
-            mention_if: 'failure'
-            url: ${{ secrets.SLACK_WEBHOOK }}
-
-
-    linux-swift-51:
-        name: Linux (Swift 5.1)
-        runs-on: ubuntu-latest
-        container: swift:5.1
-        steps:
-        - name: Checkout
-          uses: actions/checkout@v1
-        - name: Swift Version
-          run: swift --version
-        - name: Make Logs Directory
-          run: mkdir logs
-        - name: Build (Debug)
-          run: swift build -c debug
-        - name: Build (Release)
-          run: swift build -c release
-        - name: Test (Debug)
-          run: swift test --configuration debug  --enable-test-discovery
-        - name: Test (Release)
-          run: swift test --configuration release -Xswiftc -enable-testing 
-        - name: Upload Logs
-          uses: actions/upload-artifact@v1
-          with:
-            name: logs
-            path: logs
-        - name: Slack Notification
-          uses: elegantchaos/slatify@master
-          if: always()
-          with:
-            type: ${{ job.status }}
-            job_name: 'Linux (Swift 5.1)'
             mention_if: 'failure'
             url: ${{ secrets.SLACK_WEBHOOK }}
 
