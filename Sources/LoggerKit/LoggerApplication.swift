@@ -14,9 +14,8 @@ let applicationChannel = Channel("Application", handlers: [OSLogHandler()])
 /// - installs a Debug/Logger menu in the responder chain
 ///
 /// Intended to be used as a base class.
-@available(iOS 13.0, tvOS 13.0, *) open class LoggerApplication: UIResponder {
+@available(iOS 13.0, tvOS 13.0, *) open class LoggerApplication: ChainableResponder {
     let loggerMenu = LoggerMenu(manager: Logger.defaultManager)
-    lazy var loggerMenuEnabled = LoggerApplication.shouldInstallLoggerMenu()
     
     public var window: UIWindow?
 
@@ -37,15 +36,16 @@ let applicationChannel = Channel("Application", handlers: [OSLogHandler()])
         return UserDefaults.standard.bool(forKey: "ShowDebugMenu")
     }
         
-    open override var next: UIResponder? {
-        return  loggerMenuEnabled ? loggerMenu : super.next
-    }
+//    open override var next: UIResponder? {
+//        return  loggerMenuEnabled ? loggerMenu : super.next
+//    }
 }
 
 // MARK: UIApplication Lifecycle
 
 @available(iOS 13.0, tvOS 13.0, *) extension LoggerApplication: UIApplicationDelegate {
     open func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        install(responder: loggerMenu)
         applicationChannel.debug("didFinishLaunching")
         if let options = launchOptions {
             applicationChannel.debug("launch options: \(options)")

@@ -18,8 +18,8 @@ let package = Package(
             name: "LoggerTestSupport",
             targets: ["LoggerTestSupport"]),
         .executable(
-            name: "Example",
-            targets: ["Example"]
+            name: "LoggerExample",
+            targets: ["LoggerExample"]
         )
     ],
     dependencies: [
@@ -32,7 +32,7 @@ let package = Package(
             name: "LoggerKit",
             dependencies: ["Logger"]),
         .target(
-              name: "Example",
+              name: "LoggerExample",
               dependencies: ["Logger"]),
         .target(
             name: "LoggerTestSupport",

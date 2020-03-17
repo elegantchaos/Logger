@@ -8,40 +8,32 @@
 import UIKit
 import Logger
 
-@available(iOS 13.0, tvOS 13.0, *)  public class LoggerMenu: UIResponder {
+@available(iOS 13.0, tvOS 13.0, *)  public class LoggerMenu: ChainableResponder {
     static let debugMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.debug.menu")
     static let loggerMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.logger.menu")
     static let channelsMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.channels.menu")
 
     let manager: Manager
-    var _next: UIResponder? = nil
     var channelMenu: UIMenu? = nil
-    
+    lazy var loggerMenuEnabled = LoggerApplication.shouldInstallLoggerMenu()
+
     public init(manager: Manager, next: UIResponder? = nil) {
         self.manager = manager
-        self._next = next
     }
     
-    public override var next: UIResponder? {
-        get {
-            return _next
-        }
-        
-        set (value) {
-            _next = value
-        }
-    }
     
     public override func buildMenu(with builder: UIMenuBuilder) {
         guard builder.system == .main else { return }
         
-        #if !os(tvOS) // TODO: re-enable tvOS when UIMenu works properly
-        let debugMenu = buildDebugMenu(with: builder)
-        addLoggerMenu(to: debugMenu, with: builder)
-        #endif
-        
-        NotificationCenter.default.addObserver(forName: Manager.channelsUpdatedNotification, object: manager, queue: OperationQueue.main) {_ in
-            UIMenuSystem.main.setNeedsRebuild()
+        if loggerMenuEnabled {
+            #if !os(tvOS) // TODO: re-enable tvOS when UIMenu works properly
+            let debugMenu = buildDebugMenu(with: builder)
+            addLoggerMenu(to: debugMenu, with: builder)
+            #endif
+            
+            NotificationCenter.default.addObserver(forName: Manager.channelsUpdatedNotification, object: manager, queue: OperationQueue.main) {_ in
+                UIMenuSystem.main.setNeedsRebuild()
+            }
         }
     }
     
