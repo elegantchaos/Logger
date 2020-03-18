@@ -40,6 +40,9 @@ let package = Package(
         .testTarget(
             name: "LoggerTests",
             dependencies: ["Logger", "LoggerTestSupport"]),
+        .testTarget(
+            name: "LoggerKitTests",
+            dependencies: ["LoggerKit", "LoggerTestSupport"]),
     ],
     swiftLanguageVersions: [.v4_2]
   )
