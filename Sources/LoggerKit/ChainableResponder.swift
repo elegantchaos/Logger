@@ -32,7 +32,7 @@ open class ChainableResponder: UIResponder {
         return getNext?()
     }
     
-    /// Returns the responder chain from this object onwards
+    /// Returns the responder chain from this object onwards.
     open var chain: [ChainableResponder] {
         var result: [ChainableResponder] = []
         var responder: ChainableResponder = self
