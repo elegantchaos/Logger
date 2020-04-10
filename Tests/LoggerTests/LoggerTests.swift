@@ -186,6 +186,7 @@ class LoggerTests: XCTestCase {
         XCTAssertEqual(stripped[1], "waffle")
     }
     
+    #if !os(iOS)
     func testFatalError() {
         let logged = XCTAssertFatalError() {
             let channel = Channel("test")
@@ -194,5 +195,6 @@ class LoggerTests: XCTestCase {
         
         XCTAssertEqual(logged, "Oh bugger")
     }
+    #endif
 }
 #endif

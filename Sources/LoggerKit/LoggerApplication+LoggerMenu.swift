@@ -3,6 +3,7 @@
 //  All code (c) 2020 - present day, Elegant Chaos Limited.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+#if !os(Linux)
 import Foundation
 
 extension LoggerApplication {
@@ -23,3 +24,4 @@ extension LoggerApplication {
         return UserDefaults.standard.bool(forKey: "ShowDebugMenu")
     }
 }
+#endif
