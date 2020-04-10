@@ -3,7 +3,7 @@
 //  All code (c) 2020 - present day, Elegant Chaos Limited.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-#if !os(Linux)
+#if !os(Linux) && !os(watchOS)
 import Foundation
 
 @available(iOS 13.0, tvOS 13.0, *) extension LoggerApplication {
