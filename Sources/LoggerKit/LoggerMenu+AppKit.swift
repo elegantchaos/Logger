@@ -9,6 +9,11 @@ import AppKit
 import Logger
 
 public class LoggerMenu: NSMenu, NSMenuDelegate, NSMenuItemValidation {
+    init() {
+        super.init(title: "Logger")
+        self.delegate = self
+    }
+    
     required init(coder decoder: NSCoder) {
         super.init(coder: decoder)
         self.delegate = self
