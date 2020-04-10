@@ -8,7 +8,7 @@
 import UIKit
 import Logger
 
-@available(iOS 13.0, tvOS 13.0, *)  public class LoggerMenu: ChainableResponder {
+@available(iOS 13.0, tvOS 13.0, *) public class LoggerMenu: ChainableResponder {
     static let debugMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.debug.menu")
     static let loggerMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.logger.menu")
     static let channelsMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.channels.menu")

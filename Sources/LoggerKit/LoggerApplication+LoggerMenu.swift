@@ -6,7 +6,7 @@
 #if !os(Linux)
 import Foundation
 
-extension LoggerApplication {
+@available(iOS 13.0, tvOS 13.0, *) extension LoggerApplication {
     /// Whether to initialise the logger menu is determined by a preference.
     /// In a debug build, if the preference is missing, we set it to true,
     /// so the menu will show by default.
