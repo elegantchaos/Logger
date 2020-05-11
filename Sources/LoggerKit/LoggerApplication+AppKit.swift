@@ -3,7 +3,7 @@
 //  All code (c) 2020 - present day, Elegant Chaos Limited.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-#if canImport(AppKit)
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
 import AppKit
 import Logger
 
@@ -13,14 +13,7 @@ import Logger
 ///
 /// Intended to be used as a base class.
 
-class AppDelegate: NSObject, NSApplicationDelegate {
-
-
-
-
-
-}
-open class LoggerApplication: NSObject  {
+open class LoggerApplication: NSResponder  {
 }
 
 // MARK: Application Lifecycle
