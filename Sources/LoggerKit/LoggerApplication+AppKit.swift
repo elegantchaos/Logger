@@ -14,12 +14,18 @@ import Logger
 /// Intended to be used as a base class.
 
 open class LoggerApplication: NSResponder  {
+    /// The very first thing that's called, at the beginning of didFinishLaunching
+    /// Use this for quick setup only - for example to force log channels on/off.
+    /// Proper setup should be deferred until later.
+    open func prelaunch() {
+    }
 }
 
 // MARK: Application Lifecycle
 
 extension LoggerApplication: NSApplicationDelegate {
-    public func applicationDidFinishLaunching(_ notification: Notification) {
+    open func applicationDidFinishLaunching(_ notification: Notification) {
+        prelaunch()
         applicationChannel.debug("didFinishLaunching")
         
         if LoggerApplication.shouldInstallLoggerMenu() {
@@ -40,39 +46,39 @@ extension LoggerApplication: NSApplicationDelegate {
         }
     }
 
-    public func applicationWillTerminate(_ aNotification: Notification) {
+    open func applicationWillTerminate(_ aNotification: Notification) {
         applicationChannel.debug("willTerminate")
     }
 
-    public func applicationDidHide(_ notification: Notification) {
+    open func applicationDidHide(_ notification: Notification) {
         applicationChannel.debug("didHide")
     }
     
-    public func applicationWillHide(_ notification: Notification) {
+    open func applicationWillHide(_ notification: Notification) {
         applicationChannel.debug("willHide")
     }
 
-    public func applicationWillUnhide(_ notification: Notification) {
+    open func applicationWillUnhide(_ notification: Notification) {
         applicationChannel.debug("willUnihde")
     }
     
-    public func applicationDidUnhide(_ notification: Notification) {
+    open func applicationDidUnhide(_ notification: Notification) {
         applicationChannel.debug("didUnhide")
     }
 
-    public func applicationWillResignActive(_ notification: Notification) {
+    open func applicationWillResignActive(_ notification: Notification) {
         applicationChannel.debug("willResignActive")
     }
 
-    public func applicationDidBecomeActive(_ notification: Notification) {
+    open func applicationDidBecomeActive(_ notification: Notification) {
         applicationChannel.debug("didBecomeActive")
     }
 
-    public func applicationDidResignActive(_ notification: Notification) {
+    open func applicationDidResignActive(_ notification: Notification) {
         applicationChannel.debug("didResignActive")
     }
 
-    public func application(_ application: NSApplication, open urls: [URL]) {
+    open func application(_ application: NSApplication, open urls: [URL]) {
         applicationChannel.debug("open \(urls)")
     }
 }

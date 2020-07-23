@@ -16,12 +16,19 @@ import Logger
     let loggerMenu = LoggerMenu(manager: Logger.defaultManager)
     
     public var window: UIWindow?
+    
+    /// The very first thing that's called, at the beginning of didFinishLaunching
+    /// Use this for quick setup only - for example to force log channels on/off.
+    /// Proper setup should be deferred until later.
+    open func prelaunch() {
+    }
 }
 
 // MARK: UIApplication Lifecycle
 
 @available(iOS 13.0, tvOS 13.0, *) extension LoggerApplication: UIApplicationDelegate {
     open func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        prelaunch()
         install(responder: loggerMenu)
         applicationChannel.debug("didFinishLaunching")
         if let options = launchOptions {
