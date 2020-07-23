@@ -6,5 +6,5 @@
 #if !os(Linux)
 import Logger
 
-let applicationChannel = Channel("Application", handlers: [OSLogHandler()])
+public let applicationChannel = Channel("Application", handlers: [OSLogHandler()])
 #endif
