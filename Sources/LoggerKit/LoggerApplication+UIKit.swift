@@ -27,10 +27,10 @@ import Logger
 // MARK: UIApplication Lifecycle
 
 @available(iOS 13.0, tvOS 13.0, *) extension LoggerApplication: UIApplicationDelegate {
-    open func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    open func application(_ application: UIApplication, willFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         prelaunch()
         install(responder: loggerMenu)
-        applicationChannel.debug("didFinishLaunching")
+        applicationChannel.debug("willFinishLaunching")
         if let options = launchOptions {
             applicationChannel.debug("launch options: \(options)")
         }
@@ -38,6 +38,11 @@ import Logger
         return true
     }
 
+    public func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        applicationChannel.debug("didFinishLaunching")
+        return true
+    }
+    
     open func applicationWillResignActive(_ application: UIApplication) {
         applicationChannel.debug("willResignActive")
     }
