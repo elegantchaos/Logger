@@ -21,6 +21,7 @@ import Logger
     /// Use this for quick setup only - for example to force log channels on/off.
     /// Proper setup should be deferred until later.
     open func prelaunch() {
+        applicationChannel.debug("prelaunch")
     }
 }
 
