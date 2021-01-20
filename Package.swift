@@ -12,6 +12,9 @@ let package = Package(
             name: "Logger",
             targets: ["Logger"]),
         .library(
+            name: "LoggerUI",
+            targets: ["LoggerUI"]),
+        .library(
             name: "LoggerKit",
             targets: ["LoggerKit"]),
         .library(
@@ -30,6 +33,9 @@ let package = Package(
             dependencies: []),
         .target(
             name: "LoggerKit",
+            dependencies: ["Logger"]),
+        .target(
+            name: "LoggerUI",
             dependencies: ["Logger"]),
         .target(
               name: "LoggerExample",
