@@ -34,8 +34,8 @@ extension LoggerApplication: NSApplicationDelegate {
             if debug == nil {
                 debug = NSMenuItem(title: "Debug", action: nil, keyEquivalent: "")
                 debug?.submenu = NSMenu(title: "Debug")
-                if let label = menubar?.indexOfItem(withTitle: "Help") {
-                    menubar?.insertItem(debug!, at: label)
+                if let labelView = menubar?.indexOfItem(withTitle: "Help") {
+                    menubar?.insertItem(debug!, at: labelView)
                 }
             }
             

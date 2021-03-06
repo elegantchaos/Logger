@@ -31,7 +31,7 @@ import Logger
             addLoggerMenu(to: debugMenu, with: builder)
             #endif
             
-            NotificationCenter.default.addObserver(forName: Manager.channelsUpdatedNotification, object: manager, queue: OperationQueue.main) {_ in
+            NotificationCenter.default.addObserver(forName: Manager.channelsUpdatedNotification, object: manager, workQueue: OperationQueue.main) {_ in
                 UIMenuSystem.main.setNeedsRebuild()
             }
         }
