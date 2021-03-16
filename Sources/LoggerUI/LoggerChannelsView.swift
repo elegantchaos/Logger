@@ -3,10 +3,12 @@
 //  All code (c) 2021 - present day, Elegant Chaos Limited.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+#if canImport(SwiftUI)
+
 import SwiftUI
 import Logger
 
-@available(iOS 13.0, *) public struct LoggerChannelsView: View {
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) public struct LoggerChannelsView: View {
     @State var allEnabled = false
     @State var allDisabled = false
     
@@ -56,3 +58,4 @@ import Logger
     }
 }
 
+#endif
