@@ -5,6 +5,7 @@
 
 #if canImport(UIKit) && !os(watchOS)
 
+import Combine
 import UIKit
 import Logger
 
@@ -14,7 +15,8 @@ import Logger
     static let channelsMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.channels.menu")
 
     let manager: Manager
-    var channelMenu: UIMenu? = nil
+    var channelMenu: UIMenu?
+    var channelWatcher: AnyCancellable?
     lazy var loggerMenuEnabled = LoggerApplication.shouldInstallLoggerMenu()
 
     public init(manager: Manager, next: UIResponder? = nil) {
@@ -31,9 +33,11 @@ import Logger
             addLoggerMenu(to: debugMenu, with: builder)
             #endif
             
-            NotificationCenter.default.addObserver(forName: Manager.channelsUpdatedNotification, object: manager, workQueue: OperationQueue.main) {_ in
-                UIMenuSystem.main.setNeedsRebuild()
-            }
+            channelWatcher = NotificationCenter.default
+                .publisher(for: Manager.channelsUpdatedNotification, object: manager)
+                .sink {_ in
+                    UIMenuSystem.main.setNeedsRebuild()
+                }
         }
     }
     
