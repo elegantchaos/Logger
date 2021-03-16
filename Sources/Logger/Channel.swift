@@ -159,13 +159,16 @@ public class Channel {
     
     public func debug(_ logged : @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,  column: UInt = #column, function: StaticString = #function) {
         #if DEBUG
-        log(logged, file: file, line: line, column: column, function: function)
+        if (enabled) {
+            log(logged(), file: file, line: line, column: column, function: function)
+        }
         #endif
     }
 
     public func fatal(_ logged : @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,  column: UInt = #column, function: StaticString = #function) -> Never {
-        log(logged, file: file, line: line, column: column, function: function)
-        manager.fatalHandler(logged(), self, file, line)
+        let value = logged()
+        log(value, file: file, line: line, column: column, function: function)
+        manager.fatalHandler(value, self, file, line)
     }
 }
 
