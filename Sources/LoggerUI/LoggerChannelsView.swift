@@ -19,7 +19,7 @@ import Logger
         List {
             Button(action: {
                 Logger.defaultManager.update(channels: Logger.defaultManager.registeredChannels, state: true)
-                updateState()
+                self.updateState()
             }) {
                 Text("Enable All")
             }
@@ -27,7 +27,7 @@ import Logger
             
             Button(action: {
                 Logger.defaultManager.update(channels: Logger.defaultManager.registeredChannels, state: false)
-                updateState()
+                self.updateState()
             }) {
                 Text("Disable All")
             }
@@ -40,7 +40,7 @@ import Logger
                     get: { channel.enabled },
                     set: { (value) in
                         Logger.defaultManager.update(channels: [channel], state: value)
-                        updateState()
+                        self.updateState()
                     }
                 ))
             }
