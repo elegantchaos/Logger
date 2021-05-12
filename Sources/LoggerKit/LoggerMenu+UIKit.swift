@@ -13,7 +13,7 @@ internal extension String {
     static let showDebugMenuKey = "ShowDebugMenu"
 }
 
-extension UIMenu.Identifier {
+@available(iOS 13.0, tvOS 13.0, *) extension UIMenu.Identifier {
     static let debugMenu = Self("com.elegantchaos.logger.debug.menu")
     static let loggerMenu = Self("com.elegantchaos.logger.logger.menu")
     static let optionsMenu = Self("com.elegantchaos.logger.options.menu")
