@@ -7,21 +7,16 @@
 import Foundation
 
 @available(iOS 13.0, tvOS 13.0, *) extension LoggerApplication {
-    /// Whether to initialise the logger menu is determined by a preference.
-    /// In a debug build, if the preference is missing, we set it to true,
-    /// so the menu will show by default.
-    /// In a release build, the menu is hidden by default, unless someone has
-    /// explicitly set the preference (or previously run a debug build).
+    /// In a debug build, the menu is always shown.
+    /// In a release build, visibility is determined by a preference.
     ///
     /// Subclasses can override this method to provide different logic.
     open class func shouldInstallLoggerMenu() -> Bool {
         #if DEBUG
-        if UserDefaults.standard.object(forKey: "ShowDebugMenu") == nil {
-            UserDefaults.standard.set(true, forKey: "ShowDebugMenu")
-        }
+        return true
+        #else
+        return UserDefaults.standard.bool(forKey: .showDebugMenuKey)
         #endif
-        
-        return UserDefaults.standard.bool(forKey: "ShowDebugMenu")
     }
 }
 #endif

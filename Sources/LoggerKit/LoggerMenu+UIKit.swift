@@ -9,9 +9,14 @@ import Combine
 import UIKit
 import Logger
 
+internal extension String {
+    static let showDebugMenuKey = "ShowDebugMenu"
+}
+
 @available(iOS 13.0, tvOS 13.0, *) public class LoggerMenu: ChainableResponder {
     static let debugMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.debug.menu")
     static let loggerMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.logger.menu")
+    static let optionsMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.options.menu")
     static let channelsMenuIdentifier = UIMenu.Identifier("com.elegantchaos.logger.channels.menu")
 
     let manager: Manager
@@ -30,6 +35,7 @@ import Logger
         if loggerMenuEnabled {
             #if !os(tvOS) // TODO: re-enable tvOS when UIMenu works properly
             let debugMenu = buildDebugMenu(with: builder)
+            addOptionsMenu(to: debugMenu, with: builder)
             addLoggerMenu(to: debugMenu, with: builder)
             #endif
             
@@ -42,10 +48,17 @@ import Logger
     }
     
     public override func validate(_ command: UICommand) {
-        if command.action == #selector(toggleChannel) {
-            if let channel = channel(for: command) {
-                command.state = channel.enabled ? .on : .off
-            }
+        switch command.action {
+            case #selector(toggleChannel):
+                if let channel = channel(for: command) {
+                    command.state = channel.enabled ? .on : .off
+                }
+
+            case #selector(toggleMenuVisibility):
+                command.state = UserDefaults.standard.bool(forKey: .showDebugMenuKey) ? .on : .off
+                
+            default:
+                break
         }
     }
     
@@ -61,9 +74,26 @@ import Logger
                                image: nil,
                                identifier: identifier,
                                options: [],
-                               children: []
+                               children: [
+                               ]
         )
+
         builder.insertSibling(debugMenu, beforeMenu: .help)
+        return debugMenu
+    }
+
+    func addOptionsMenu(to debugMenu: UIMenu, with builder: UIMenuBuilder) -> UIMenu {
+        let showInReleaseItem = UICommand(title: "Show Debug Menu In Release Builds", action: #selector(toggleMenuVisibility))
+        let optionsMenu = UIMenu(title: "Options",
+                               image: nil,
+                               identifier: LoggerMenu.optionsMenuIdentifier,
+                               options: [],
+                               children: [
+                                showInReleaseItem
+                               ]
+        )
+
+        builder.insertChild(optionsMenu, atEndOfMenu: debugMenu.identifier)
         return debugMenu
     }
 
@@ -121,6 +151,12 @@ import Logger
     
     @IBAction func disableAllChannels(_ sender: Any) {
         manager.update(channels: manager.registeredChannels, state: false)
+    }
+    
+    @IBAction func toggleMenuVisibility(_ sender: Any) {
+        let defaults = UserDefaults.standard
+        let current = defaults.bool(forKey: .showDebugMenuKey)
+        defaults.set(!current, forKey: .showDebugMenuKey)
     }
 }
 
