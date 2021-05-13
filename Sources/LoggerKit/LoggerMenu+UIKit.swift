@@ -9,10 +9,6 @@ import Combine
 import UIKit
 import Logger
 
-internal extension String {
-    static let showDebugMenuKey = "ShowDebugMenu"
-}
-
 @available(iOS 13.0, tvOS 13.0, *) extension UIMenu.Identifier {
     static let debugMenu = Self("com.elegantchaos.logger.debug.menu")
     static let loggerMenu = Self("com.elegantchaos.logger.logger.menu")
