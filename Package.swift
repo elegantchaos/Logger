@@ -30,7 +30,7 @@ let package = Package(
     
     dependencies: [
         .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
-        .package(url: "https://github.com/nicklockwood/SwiftFormat", from: "0.41.2")
+        .package(url: "https://github.com/nicklockwood/SwiftFormat", from: "0.49.9")
     ],
     
     targets: [
