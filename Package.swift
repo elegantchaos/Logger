@@ -21,7 +21,10 @@ let package = Package(
             name: "LoggerTestSupport",
             targets: ["LoggerTestSupport"])
     ],
-    dependencies: [],
+    
+    dependencies: [
+    ],
+
     targets: [
         .target(
             name: "Logger",
@@ -43,3 +46,14 @@ let package = Package(
             dependencies: ["LoggerKit", "LoggerTestSupport"])
     ]
   )
+
+#if swift(>=5.6)
+  // Add the documentation compiler plugin if possible
+  package.dependencies.append(
+    .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0")
+  )
+
+package.dependencies.append(
+    .package(url: "https://github.com/nicklockwood/SwiftFormat", from: "0.41.2")
+  )
+#endif
