@@ -21,8 +21,8 @@ struct FormatterPlugin: CommandPlugin {
             process.executableURL = swiftFormatExec
             process.arguments = [
 //                "--configuration", "\(configFile)",
-                "--in-place",
-                "--recursive",
+//                "--in-place",
+//                "--recursive",
                 "\(target.directory)",
             ]
             try process.run()
