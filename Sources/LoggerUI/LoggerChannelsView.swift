@@ -18,7 +18,7 @@ import Logger
     public var body: some View {
         List {
             Button(action: {
-                Logger.defaultManager.update(channels: Logger.defaultManager.registeredChannels, state: true)
+                Manager.shared.update(channels: Manager.shared.registeredChannels, state: true)
                 self.updateState()
             }) {
                 Text("Enable All")
@@ -26,7 +26,7 @@ import Logger
             .disabled(allEnabled)
             
             Button(action: {
-                Logger.defaultManager.update(channels: Logger.defaultManager.registeredChannels, state: false)
+                Manager.shared.update(channels: Manager.shared.registeredChannels, state: false)
                 self.updateState()
             }) {
                 Text("Disable All")
@@ -35,11 +35,11 @@ import Logger
             
             Divider()
             
-            ForEach(Logger.defaultManager.registeredChannels, id: \Channel.name) { channel in
+            ForEach(Manager.shared.registeredChannels, id: \Channel.name) { channel in
                 Toggle(channel.name, isOn: Binding<Bool>(
                     get: { channel.enabled },
                     set: { (value) in
-                        Logger.defaultManager.update(channels: [channel], state: value)
+                        Manager.shared.update(channels: [channel], state: value)
                         self.updateState()
                     }
                 ))
@@ -53,8 +53,8 @@ import Logger
     }
     
     func updateState() {
-        allEnabled = Logger.defaultManager.registeredChannels.allSatisfy({ $0.enabled == true })
-        allDisabled = Logger.defaultManager.registeredChannels.allSatisfy({ $0.enabled == false })
+        allEnabled = Manager.shared.registeredChannels.allSatisfy({ $0.enabled == true })
+        allDisabled = Manager.shared.registeredChannels.allSatisfy({ $0.enabled == false })
     }
 }
 
