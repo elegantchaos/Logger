@@ -6,25 +6,25 @@
 
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 
-import os
+    import os
 
-/**
- Outputs log messages using os_log().
- */
+    /**
+     Outputs log messages using os_log().
+     */
 
-@available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 5.0, *) public class OSLogHandler : Handler {
-    public convenience init() {
-      self.init("oslog")
-    }
-
-    override public func log(channel: Channel, context : Context, logged : Any) {
-        let log = channel.manager.associatedData(handler: self, channel: channel) {
-            return OSLog(subsystem: channel.subsystem, category:channel.name)
+    @available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 5.0, *) public class OSLogHandler: Handler {
+        public convenience init() {
+            self.init("oslog")
         }
 
-        let message = "\(logged)"
-        os_log("%{public}@", dso: context.dso, log: log, type: .default, message)
+        override public func log(channel: Channel, context: Context, logged: Any) {
+            let log = channel.manager.associatedData(handler: self, channel: channel) {
+                OSLog(subsystem: channel.subsystem, category: channel.name)
+            }
+
+            let message = "\(logged)"
+            os_log("%{public}@", dso: context.dso, log: log, type: .default, message)
+        }
     }
-}
 
 #endif

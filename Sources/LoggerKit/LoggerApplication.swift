@@ -4,7 +4,7 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 #if !os(Linux)
-import Logger
+    import Logger
 
-public let applicationChannel = Channel("Application", handlers: [OSLogHandler()])
+    public let applicationChannel = Channel("Application", handlers: [OSLogHandler()])
 #endif
