@@ -23,14 +23,19 @@ let package = Package(
             name: "LoggerTestSupport",
             targets: ["LoggerTestSupport"]),
         .plugin(
-            name: "Formatter",
+            name: "format",
             targets: ["FormatterPlugin"]
+        ),
+        .plugin(
+            name: "lint",
+            targets: ["LinterPlugin"]
         ),
     ],
     
     dependencies: [
         .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
-        .package(url: "https://github.com/nicklockwood/SwiftFormat", from: "0.49.9")
+        .package(url: "https://github.com/nicklockwood/SwiftFormat", from: "0.49.9"),
+        .package(url: "https://github.com/realm/SwiftLint", branch: "master"),
     ],
     
     targets: [
@@ -73,7 +78,20 @@ let package = Package(
                     dependencies: [
                         .product(name: "swiftformat", package: "SwiftFormat"),
                     ]
+                   ),
+        
+            .plugin(name: "LinterPlugin",
+                    capability: .command(
+                        intent: .custom(verb: "lint", description: "Format with swift-lint"),
+                        permissions: [
+                            .writeToPackageDirectory(reason: "This command lints source files")
+                        ]
+                    ),
+                    dependencies: [
+                        .product(name: "swiftlint", package: "SwiftLint"),
+                    ]
                    )
+
         
     ]
 )
