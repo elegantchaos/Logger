@@ -20,8 +20,8 @@ struct MyCommandPlugin: CommandPlugin {
             process.executableURL = toolUrl
             process.arguments = [
                 "\(target.directory)",
-                "--fix",
-               // "--in-process-sourcekit" // this line will fix the issues...
+//                "--fix",
+                "--in-process-sourcekit" // this line will fix the issues...
             ]
 
             try process.run()
@@ -32,7 +32,7 @@ struct MyCommandPlugin: CommandPlugin {
             }
             else {
                 let problem = "\(process.terminationReason):\(process.terminationStatus)"
-                Diagnostics.error("swift-format invocation failed: \(problem)")
+                Diagnostics.error("swift-lint invocation failed: \(problem)")
             }
         }
     }
