@@ -27,7 +27,7 @@ extension XCTestCase {
         let expectation = self.expectation(description: "expectingFatalError")
         var fatalLogged: Any? = nil
         
-        let _ = Logger.defaultManager.installFatalErrorHandler() { logged, channel, _, _ in
+        let _ = Manager.shared.installFatalErrorHandler() { logged, channel, _, _ in
             fatalLogged = logged
             expectation.fulfill()
             unreachable()
@@ -37,7 +37,7 @@ extension XCTestCase {
         
         wait(for: [expectation], timeout: timeout)
         
-        Logger.defaultManager.resetFatalErrorHandler()
+        Manager.shared.resetFatalErrorHandler()
         return fatalLogged
     }
  
