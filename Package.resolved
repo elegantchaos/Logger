@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/elegantchaos/SwiftFormatterPlugin.git",
       "state" : {
-        "revision" : "a24574a2d75b6bea446fc398c93685fa890eca59",
-        "version" : "0.0.1"
+        "revision" : "71e7d8bbe8c856e46584d52cef284429f418618c",
+        "version" : "1.0.0"
       }
     }
   ],
