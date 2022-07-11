@@ -11,27 +11,26 @@ import UIKit
 /// A responder which can accept other responders to install into the chain.
 
 open class ChainableResponder: UIResponder {
-
     typealias ResponderFinder = () -> UIResponder?
 
     /// A block which obtains the next responder.
-    var getNext: ResponderFinder? = nil
-    
+    var getNext: ResponderFinder?
+
     /// Install another responder into the chain.
     /// The new responder will become our next responder.
     /// Any previous next responder will become the next responder of the new responder.
     /// The responder we're passed should not have already been installed into a chain.
     public func install(responder: ChainableResponder) {
         assert(responder.getNext == nil)
-        responder.getNext = self.getNext
-        self.getNext = { return responder }
+        responder.getNext = getNext
+        getNext = { responder }
     }
 
     /// Returns the next responder.
-    open override var next: UIResponder? {
-        return getNext?()
+    override open var next: UIResponder? {
+        getNext?()
     }
-    
+
     /// Returns the responder chain from this object onwards.
     open var chain: [ChainableResponder] {
         var result: [ChainableResponder] = []

@@ -13,21 +13,20 @@ import Logger
 ///
 /// Intended to be used as a base class.
 
-open class LoggerApplication: NSResponder  {
+open class LoggerApplication: NSResponder {
     /// The very first thing that's called, at the beginning of didFinishLaunching
     /// Use this for quick setup only - for example to force log channels on/off.
     /// Proper setup should be deferred until later.
-    open func prelaunch() {
-    }
+    open func prelaunch() {}
 }
 
 // MARK: Application Lifecycle
 
 extension LoggerApplication: NSApplicationDelegate {
-    open func applicationDidFinishLaunching(_ notification: Notification) {
+    open func applicationDidFinishLaunching(_: Notification) {
         prelaunch()
         applicationChannel.debug("didFinishLaunching")
-        
+
         if LoggerApplication.shouldInstallLoggerMenu() {
             let menubar = NSApp.mainMenu
             var debug = menubar?.item(withTitle: "Debug")
@@ -38,7 +37,7 @@ extension LoggerApplication: NSApplicationDelegate {
                     menubar?.insertItem(debug!, at: labelView)
                 }
             }
-            
+
             if let menu = debug?.submenu {
                 let item = menu.addItem(withTitle: "Logger", action: nil, keyEquivalent: "")
                 item.submenu = LoggerMenu()
@@ -46,39 +45,39 @@ extension LoggerApplication: NSApplicationDelegate {
         }
     }
 
-    open func applicationWillTerminate(_ aNotification: Notification) {
+    open func applicationWillTerminate(_: Notification) {
         applicationChannel.debug("willTerminate")
     }
 
-    open func applicationDidHide(_ notification: Notification) {
+    open func applicationDidHide(_: Notification) {
         applicationChannel.debug("didHide")
     }
-    
-    open func applicationWillHide(_ notification: Notification) {
+
+    open func applicationWillHide(_: Notification) {
         applicationChannel.debug("willHide")
     }
 
-    open func applicationWillUnhide(_ notification: Notification) {
+    open func applicationWillUnhide(_: Notification) {
         applicationChannel.debug("willUnihde")
     }
-    
-    open func applicationDidUnhide(_ notification: Notification) {
+
+    open func applicationDidUnhide(_: Notification) {
         applicationChannel.debug("didUnhide")
     }
 
-    open func applicationWillResignActive(_ notification: Notification) {
+    open func applicationWillResignActive(_: Notification) {
         applicationChannel.debug("willResignActive")
     }
 
-    open func applicationDidBecomeActive(_ notification: Notification) {
+    open func applicationDidBecomeActive(_: Notification) {
         applicationChannel.debug("didBecomeActive")
     }
 
-    open func applicationDidResignActive(_ notification: Notification) {
+    open func applicationDidResignActive(_: Notification) {
         applicationChannel.debug("didResignActive")
     }
 
-    open func application(_ application: NSApplication, open urls: [URL]) {
+    open func application(_: NSApplication, open urls: [URL]) {
         applicationChannel.debug("open \(urls)")
     }
 }

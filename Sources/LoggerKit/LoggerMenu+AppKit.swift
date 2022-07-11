@@ -3,7 +3,6 @@
 //  All code (c) 2018 - present day, Elegant Chaos Limited.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-
 #if os(macOS) && !targetEnvironment(macCatalyst)
 import AppKit
 import Logger
@@ -11,25 +10,25 @@ import Logger
 public class LoggerMenu: NSMenu, NSMenuDelegate, NSMenuItemValidation {
     init() {
         super.init(title: "Logger")
-        self.delegate = self
+        delegate = self
     }
-    
+
     required init(coder decoder: NSCoder) {
         super.init(coder: decoder)
-        self.delegate = self
+        delegate = self
     }
-    
-    public func menuNeedsUpdate(_ menu: NSMenu) {
+
+    public func menuNeedsUpdate(_: NSMenu) {
         removeAllItems()
-        
+
         let enableAllItem = NSMenuItem(title: "Enable all", action: #selector(enableAllChannels(_:)), keyEquivalent: "")
         enableAllItem.target = self
         addItem(enableAllItem)
-        
+
         let disableAllItem = NSMenuItem(title: "Disable all", action: #selector(disableAllChannels(_:)), keyEquivalent: "")
         disableAllItem.target = self
         addItem(disableAllItem)
-        
+
         addItem(NSMenuItem.separator())
 
         for channel in Manager.shared.registeredChannels {
@@ -46,25 +45,24 @@ public class LoggerMenu: NSMenu, NSMenuDelegate, NSMenuItemValidation {
                 menuItem.state = channel.enabled ? .on : .off
             }
         }
-            
+
         return true
     }
-    
+
     @IBAction func toggleChannel(_ sender: Any) {
         if let item = sender as? NSMenuItem, let channel = item.representedObject as? Channel {
             Manager.shared.update(channels: [channel], state: !channel.enabled)
         }
     }
 
-    @IBAction func enableAllChannels(_ sender: Any) {
+    @IBAction func enableAllChannels(_: Any) {
         let manager = Manager.shared
         manager.update(channels: manager.registeredChannels, state: true)
     }
 
-    @IBAction func disableAllChannels(_ sender: Any) {
+    @IBAction func disableAllChannels(_: Any) {
         let manager = Manager.shared
         manager.update(channels: manager.registeredChannels, state: false)
     }
-
 }
 #endif

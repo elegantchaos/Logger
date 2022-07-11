@@ -12,14 +12,14 @@ import os
  Outputs log messages using os_log().
  */
 
-@available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 5.0, *) public class OSLogHandler : Handler {
+@available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 5.0, *) public class OSLogHandler: Handler {
     public convenience init() {
-      self.init("oslog")
+        self.init("oslog")
     }
 
-    override public func log(channel: Channel, context : Context, logged : Any) {
+    override public func log(channel: Channel, context: Context, logged: Any) {
         let log = channel.manager.associatedData(handler: self, channel: channel) {
-            return OSLog(subsystem: channel.subsystem, category:channel.name)
+            OSLog(subsystem: channel.subsystem, category: channel.name)
         }
 
         let message = "\(logged)"

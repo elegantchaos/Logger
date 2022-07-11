@@ -22,7 +22,7 @@ extension LoggerTests {
 }
 
 public func __allTests() -> [XCTestCaseEntry] {
-    return [
+    [
         testCase(LoggerTests.__allTests__LoggerTests),
     ]
 }

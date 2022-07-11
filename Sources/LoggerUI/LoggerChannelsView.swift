@@ -10,9 +10,8 @@ import Logger
 import SwiftUI
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) public struct LoggerChannelsView: View {
-    public init() {
-    }
-    
+    public init() {}
+
     public var body: some View {
         List {
             LoggerChannelsHeaderView()
@@ -23,16 +22,14 @@ import SwiftUI
 }
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) public struct LoggerChannelsStackView: View {
-    public init() {
-        
-    }
+    public init() {}
 
     public var body: some View {
         VStack {
             ForEach(Manager.shared.registeredChannels, id: \Channel.name) { channel in
                 Toggle(channel.name, isOn: Binding<Bool>(
                     get: { channel.enabled },
-                    set: { (value) in
+                    set: { value in
                         Manager.shared.update(channels: [channel], state: value)
                     }
                 ))
@@ -47,9 +44,7 @@ import SwiftUI
     @State var allEnabled = false
     @State var allDisabled = false
 
-    public init() {
-        
-    }
+    public init() {}
 
     public var body: some View {
         VStack {
@@ -57,7 +52,7 @@ import SwiftUI
                 Text("Enable All")
             }
             .disabled(allEnabled)
-            
+
             Button(action: handleDisableAll) {
                 Text("Disable All")
             }
@@ -66,13 +61,12 @@ import SwiftUI
         .onReceive(channelsChanged, perform: handleChannelsChanged)
         .onAppear(perform: handleAppear)
     }
-    
-    
+
     func handleAppear() {
         updateState()
     }
-    
-    func handleChannelsChanged(_ notification: Notification) {
+
+    func handleChannelsChanged(_: Notification) {
         updateState()
     }
 
@@ -81,7 +75,7 @@ import SwiftUI
         allEnabled = true
         allDisabled = false
     }
-    
+
     func handleDisableAll() {
         Manager.shared.update(channels: Manager.shared.registeredChannels, state: false)
         allEnabled = false
@@ -89,10 +83,9 @@ import SwiftUI
     }
 
     func updateState() {
-        allEnabled = Manager.shared.registeredChannels.allSatisfy({ $0.enabled == true })
-        allDisabled = Manager.shared.registeredChannels.allSatisfy({ $0.enabled == false })
+        allEnabled = Manager.shared.registeredChannels.allSatisfy { $0.enabled == true }
+        allDisabled = Manager.shared.registeredChannels.allSatisfy { $0.enabled == false }
     }
-
 }
 
 #endif

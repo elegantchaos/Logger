@@ -11,15 +11,15 @@ import Foundation
  Outputs log messages using NSLog()
  */
 
-public class NSLogHandler : Handler {
-  public convenience init() {
-    self.init("nslog")
-  }
+public class NSLogHandler: Handler {
+    public convenience init() {
+        self.init("nslog")
+    }
 
-  override public func log(channel: Channel, context : Context, logged : Any) {
-    let tag = self.tag(channel: channel)
-    NSLog("\(tag)\(logged)")
-  }
+    override public func log(channel: Channel, context _: Context, logged: Any) {
+        let tag = tag(channel: channel)
+        NSLog("\(tag)\(logged)")
+    }
 }
 
 #endif

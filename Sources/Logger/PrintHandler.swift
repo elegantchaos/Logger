@@ -8,13 +8,13 @@
  Outputs log messages using swift's print() function.
  */
 
-public class PrintHandler : Handler {
+public class PrintHandler: Handler {
     public convenience init() {
-      self.init("print")
+        self.init("print")
     }
 
-    override public func log(channel: Channel, context : Context, logged : Any) {
-        let tag = self.tag(channel: channel)
+    override public func log(channel: Channel, context _: Context, logged: Any) {
+        let tag = tag(channel: channel)
         print("\(tag)\(logged)")
     }
 }

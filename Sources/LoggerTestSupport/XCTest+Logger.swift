@@ -6,47 +6,47 @@
 
 #if !os(watchOS) && (!os(iOS) || targetEnvironment(simulator))
 
-import XCTest
 import Logger
+import XCTest
 
-extension XCTestCase {
-    public static let DefaultFatalErrorTimeout = 1.0
+public extension XCTestCase {
+    static let DefaultFatalErrorTimeout = 1.0
 
     /**
-     Assert that a fatal error has been reported via the Log Manager.
-    */
-    
-    @discardableResult public func XCTAssertFatalError(timeout: TimeInterval = XCTestCase.DefaultFatalErrorTimeout, testcase: @escaping () -> Void) -> Any? {
+      Assert that a fatal error has been reported via the Log Manager.
+     */
+
+    @discardableResult func XCTAssertFatalError(timeout: TimeInterval = XCTestCase.DefaultFatalErrorTimeout, testcase: @escaping () -> Void) -> Any? {
         func unreachable() -> Never {
             // run forever, to simulate a function that never returns
             repeat {
                 RunLoop.current.run()
-            } while (true)
+            } while true
         }
 
-        let expectation = self.expectation(description: "expectingFatalError")
-        var fatalLogged: Any? = nil
-        
-        let _ = Manager.shared.installFatalErrorHandler() { logged, channel, _, _ in
+        let expectation = expectation(description: "expectingFatalError")
+        var fatalLogged: Any?
+
+        let _ = Manager.shared.installFatalErrorHandler { logged, _, _, _ in
             fatalLogged = logged
             expectation.fulfill()
             unreachable()
         }
-        
+
         DispatchQueue.global(qos: .default).async(execute: testcase)
-        
+
         wait(for: [expectation], timeout: timeout)
-        
+
         Manager.shared.resetFatalErrorHandler()
         return fatalLogged
     }
- 
+
     /**
      Assert that a fatal error has been reported via the Log Manager, and check
      that the message/object logged matches an expected value.
      */
 
-    public func XCTAssertFatalError<T: Equatable>(equals: T, timeout: TimeInterval = XCTestCase.DefaultFatalErrorTimeout, testcase: @escaping () -> Void) {
+    func XCTAssertFatalError<T: Equatable>(equals: T, timeout: TimeInterval = XCTestCase.DefaultFatalErrorTimeout, testcase: @escaping () -> Void) {
         let result = XCTAssertFatalError(timeout: timeout, testcase: testcase)
         guard let error = result as? T else {
             XCTFail("unexpected message type: \(String(describing: result))")
@@ -60,8 +60,8 @@ extension XCTestCase {
      Assert that a fatal error has been reported via the Log Manager, and check
      that a test passes.
      */
-    
-    public func XCTAssertFatalError<T>(testing: (T) -> Bool, timeout: TimeInterval = XCTestCase.DefaultFatalErrorTimeout, testcase: @escaping () -> Void) {
+
+    func XCTAssertFatalError<T>(testing: (T) -> Bool, timeout: TimeInterval = XCTestCase.DefaultFatalErrorTimeout, testcase: @escaping () -> Void) {
         let result = XCTAssertFatalError(timeout: timeout, testcase: testcase)
         guard let error = result as? T else {
             XCTFail("unexpected message type: \(String(describing: result))")
