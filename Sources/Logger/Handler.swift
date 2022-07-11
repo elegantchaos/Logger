@@ -27,7 +27,7 @@ public class Handler {
      Log something.
      */
     
-    public func log(channel: Logger, context : Context, logged : Any) {
+    public func log(channel: Channel, context : Context, logged : Any) {
     }
     
     /**
@@ -35,7 +35,7 @@ public class Handler {
      Provided as a utility for subclasses to use if they need.
      */
     
-    internal func tag(channel : Logger) -> String {
+    internal func tag(channel : Channel) -> String {
         if showName && showSubsystem {
             return "[\(channel.subsystem).\(channel.name)] "
         } else if showName {

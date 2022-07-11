@@ -42,36 +42,6 @@ public class Channel {
     
     public static let defaultHandler = initDefaultHandler()
     
-    /**
-     Default log manager to use for channels if nothing else is specified.
-     
-     Under normal circumstances it makes sense for everything to share the same manager,
-     which is why this exists.
-     
-     There are times (particularly testing) when we might want to use a different manager
-     though, which is why it's not a true singleton.
-     */
-    
-    public static let defaultManager = initDefaultManager()
-    
-    /// Initialise the default log manager.
-    static func initDefaultManager() -> Manager {
-        #if ensureUniqueManager
-        /// We really do want there to only be a single instance of this, even if the logger library has mistakenly been
-        /// linked multiple times, so we store it in the thread dictionary for the main thread, and retrieve it from there if necessary
-        let dictionary = Thread.main.threadDictionary
-        if let manager = dictionary["Logger.Manager"] {
-            return unsafeBitCast(manager as AnyObject, to: Manager.self) // a normal cast might fail here if the code has been linked multiple times, since the class could be different (but identical)
-        }
-        
-        let manager = Manager()
-        dictionary["Logger.Manager"] = manager
-        return manager
-
-        #else
-        return Manager()
-        #endif        
-    }
     
     /**
      Default subsystem if nothing else is specified.
@@ -107,7 +77,7 @@ public class Channel {
     let manager : Manager
     var handlers : [Handler] = []
     
-    public init(_ name : String, handlers : @autoclosure () -> [Handler] = [defaultHandler], alwaysEnabled: Bool = false, manager : Manager = Logger.defaultManager) {
+    public init(_ name : String, handlers : @autoclosure () -> [Handler] = [defaultHandler], alwaysEnabled: Bool = false, manager : Manager = Manager.shared) {
         let components = name.split(separator: ".")
         let last = components.count - 1
         let shortName: String
@@ -118,7 +88,7 @@ public class Channel {
             subName = components[..<last].joined(separator: ".")
         } else {
             shortName = name
-            subName = Logger.defaultSubsystem
+            subName = Channel.defaultSubsystem
         }
 
         let fullName = "\(subName).\(shortName)"
@@ -185,8 +155,12 @@ extension Channel : Hashable {
     
 }
 
-/**
- Externally, channels are declared with Logger(...)
- */
+// MARK: Deprecated API
 
+extension Channel {
+    @available(*, deprecated, message: "Use Manager.shared instead")
+    public static var defaultManager: Manager { Manager.shared }
+}
+
+@available(*, deprecated, message: "Use ``Channel`` instead.")
 public typealias Logger = Channel

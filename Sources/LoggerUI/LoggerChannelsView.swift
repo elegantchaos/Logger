@@ -29,11 +29,11 @@ import SwiftUI
 
     public var body: some View {
         VStack {
-            ForEach(Logger.defaultManager.registeredChannels, id: \Channel.name) { channel in
+            ForEach(Manager.shared.registeredChannels, id: \Channel.name) { channel in
                 Toggle(channel.name, isOn: Binding<Bool>(
                     get: { channel.enabled },
                     set: { (value) in
-                        Logger.defaultManager.update(channels: [channel], state: value)
+                        Manager.shared.update(channels: [channel], state: value)
                     }
                 ))
             }
@@ -42,7 +42,7 @@ import SwiftUI
 }
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) public struct LoggerChannelsHeaderView: View {
-    let channelsChanged = NotificationCenter.default.publisher(for: Manager.channelsUpdatedNotification, object: Logger.defaultManager)
+    let channelsChanged = NotificationCenter.default.publisher(for: Manager.channelsUpdatedNotification, object: Manager.shared)
 
     @State var allEnabled = false
     @State var allDisabled = false
@@ -77,20 +77,20 @@ import SwiftUI
     }
 
     func handleEnableAll() {
-        Logger.defaultManager.update(channels: Logger.defaultManager.registeredChannels, state: true)
+        Manager.shared.update(channels: Manager.shared.registeredChannels, state: true)
         allEnabled = true
         allDisabled = false
     }
     
     func handleDisableAll() {
-        Logger.defaultManager.update(channels: Logger.defaultManager.registeredChannels, state: false)
+        Manager.shared.update(channels: Manager.shared.registeredChannels, state: false)
         allEnabled = false
         allDisabled = true
     }
 
     func updateState() {
-        allEnabled = Logger.defaultManager.registeredChannels.allSatisfy({ $0.enabled == true })
-        allDisabled = Logger.defaultManager.registeredChannels.allSatisfy({ $0.enabled == false })
+        allEnabled = Manager.shared.registeredChannels.allSatisfy({ $0.enabled == true })
+        allDisabled = Manager.shared.registeredChannels.allSatisfy({ $0.enabled == false })
     }
 
 }

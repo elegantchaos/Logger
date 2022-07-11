@@ -6,6 +6,18 @@
 
 import Foundation
 
+/// The main controller in charge of the logging system.
+/// This is typically a singleton, and in most cases should not need
+/// to be accessed at all from client code.
+///
+/// If you do need to the default instance - for example to
+/// dynamically configure it, or introspect the list of channels,
+/// you can access it with ``Manager.shared``.
+///
+/// Other instances can be created explicitly if necessary. This should be
+/// avoided as they will share the same UserDefaults settings,
+/// but may be useful for testing purposes.
+
 public class Manager {
     typealias AssociatedChannelData = [Channel:Any]
     typealias AssociatedHandlerData = [Handler:AssociatedChannelData]
@@ -19,10 +31,43 @@ public class Manager {
     var queue: DispatchQueue = DispatchQueue(label: "com.elegantchaos.logger", qos: .utility, attributes: [], autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency.inherit)
     lazy var channelsEnabledInSettings: [String] = loadChannelSettings()
 
-    init(defaults: UserDefaults = UserDefaults.standard) {
+    required init(defaults: UserDefaults = UserDefaults.standard) {
         self.defaults = defaults
     }
 
+    /**
+     Default log manager to use for channels if nothing else is specified.
+     
+     Under normal circumstances it makes sense for everything to share the same manager,
+     which is why this exists.
+     
+     There are times (particularly testing) when we might want to use a different manager
+     though, which is why it's not a true singleton.
+     */
+    
+    public static let shared = initDefaultManager()
+    
+    /// Initialise the default log manager.
+    static func initDefaultManager() -> Self {
+#if ensureUniqueManager
+        /// We really do want there to only be a single instance of this, even if the logger library has mistakenly been
+        /// linked multiple times, so we store it in the thread dictionary for the main thread, and retrieve it from there if necessary
+        let dictionary = Thread.main.threadDictionary
+        if let manager = dictionary["Logger.Manager"] {
+            return unsafeBitCast(manager as AnyObject, to: Manager.self) // a normal cast might fail here if the code has been linked multiple times, since the class could be different (but identical)
+        }
+        
+        let manager = Manager()
+        dictionary["Logger.Manager"] = manager
+        return manager
+        
+#else
+        return Self()
+#endif
+    }
+    
+    
+    
     /**
      Return arbitrary data associated with a channel/handler pair.
      This provides handlers with a mechanism to use to store per-channel state.
