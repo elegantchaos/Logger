@@ -32,7 +32,7 @@ public class LoggerMenu: NSMenu, NSMenuDelegate, NSMenuItemValidation {
         
         addItem(NSMenuItem.separator())
 
-        for channel in Logger.defaultManager.registeredChannels {
+        for channel in Manager.shared.registeredChannels {
             let item = NSMenuItem(title: channel.name, action: #selector(toggleChannel(_:)), keyEquivalent: "")
             item.target = self
             item.representedObject = channel
@@ -42,7 +42,7 @@ public class LoggerMenu: NSMenu, NSMenuDelegate, NSMenuItemValidation {
 
     public func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         if menuItem.action == #selector(toggleChannel(_:)) {
-            if let channel = menuItem.representedObject as? Logger {
+            if let channel = menuItem.representedObject as? Channel {
                 menuItem.state = channel.enabled ? .on : .off
             }
         }
@@ -51,18 +51,18 @@ public class LoggerMenu: NSMenu, NSMenuDelegate, NSMenuItemValidation {
     }
     
     @IBAction func toggleChannel(_ sender: Any) {
-        if let item = sender as? NSMenuItem, let channel = item.representedObject as? Logger {
-            Logger.defaultManager.update(channels: [channel], state: !channel.enabled)
+        if let item = sender as? NSMenuItem, let channel = item.representedObject as? Channel {
+            Manager.shared.update(channels: [channel], state: !channel.enabled)
         }
     }
 
     @IBAction func enableAllChannels(_ sender: Any) {
-        let manager = Logger.defaultManager
+        let manager = Manager.shared
         manager.update(channels: manager.registeredChannels, state: true)
     }
 
     @IBAction func disableAllChannels(_ sender: Any) {
-        let manager = Logger.defaultManager
+        let manager = Manager.shared
         manager.update(channels: manager.registeredChannels, state: false)
     }
 
