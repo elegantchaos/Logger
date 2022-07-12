@@ -1,11 +1,20 @@
 {
   "pins" : [
     {
+      "identity" : "actionbuildercore",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/elegantchaos/ActionBuilderCore",
+      "state" : {
+        "revision" : "28d012a8cbb174309e2a7ae59311d356b219757f",
+        "version" : "1.0.6"
+      }
+    },
+    {
       "identity" : "actionbuilderplugin",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/elegantchaos/ActionBuilderPlugin.git",
       "state" : {
-        "revision" : "5012c06ecaa241ecc171da7320ec1b2fd886e181",
+        "revision" : "e0cfeeeb0c951329c4eabf65ea967384b16dd695",
         "version" : "1.0.3"
       }
     },
