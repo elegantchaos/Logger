@@ -1,6 +1,51 @@
 {
   "pins" : [
     {
+      "identity" : "actionbuildercore",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/elegantchaos/ActionBuilderCore",
+      "state" : {
+        "revision" : "e0099e46bb9de130cf75a4c94cd0c285615cd36b",
+        "version" : "1.5.0"
+      }
+    },
+    {
+      "identity" : "actionbuilderplugin",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/elegantchaos/ActionBuilderPlugin.git",
+      "state" : {
+        "revision" : "5012c06ecaa241ecc171da7320ec1b2fd886e181",
+        "version" : "1.0.3"
+      }
+    },
+    {
+      "identity" : "matchable",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/elegantchaos/Matchable.git",
+      "state" : {
+        "revision" : "d53e807009960aafbd54f6229c2542f906628b38",
+        "version" : "1.0.7"
+      }
+    },
+    {
+      "identity" : "runner",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/elegantchaos/Runner",
+      "state" : {
+        "revision" : "65420eb4e534a58c8fb1bf18e344bc86edb42c65",
+        "version" : "1.3.2"
+      }
+    },
+    {
+      "identity" : "semanticversion",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/elegantchaos/SemanticVersion",
+      "state" : {
+        "revision" : "6bda5a45a2f687a82a0fbb002bee8ad31e44f478",
+        "version" : "1.1.0"
+      }
+    },
+    {
       "identity" : "swiftformat",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nicklockwood/SwiftFormat",
@@ -14,8 +59,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/elegantchaos/SwiftFormatterPlugin.git",
       "state" : {
-        "revision" : "71e7d8bbe8c856e46584d52cef284429f418618c",
-        "version" : "1.0.0"
+        "revision" : "afd0ad9a9af34ef1d1641a71ccf1baed555a1a72",
+        "version" : "1.0.1"
+      }
+    },
+    {
+      "identity" : "xctestextensions",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/elegantchaos/XCTestExtensions.git",
+      "state" : {
+        "revision" : "c1cec43d4ca0b657323080b90a840b675e8af638",
+        "version" : "1.4.9"
       }
     }
   ],
