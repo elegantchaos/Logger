@@ -13,13 +13,12 @@ import Foundation
 public protocol ManagerSettings {
     /// The identifiers of the channels that should be enabled.
     var enabledChannelIDs: Set<Channel.ID> { get }
-    
+
     /// Store the identifiers of the channels that should be enabled.
     func saveEnabledChannelIDs(_ ids: Set<Channel.ID>)
 
     /// Strip any settings-related command line arguments.
     func removeLoggingOptions(fromCommandLineArguments arguments: [String]) -> [String]
-
 }
 
 public extension ManagerSettings {
@@ -28,4 +27,3 @@ public extension ManagerSettings {
         saveEnabledChannelIDs(Set(channels.map(\.id)))
     }
 }
-

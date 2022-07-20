@@ -46,16 +46,16 @@ import UIKit
 
     override public func validate(_ command: UICommand) {
         switch command.action {
-        case #selector(toggleChannel):
-            if let channel = channel(for: command) {
-                command.state = channel.enabled ? .on : .off
-            }
+            case #selector(toggleChannel):
+                if let channel = channel(for: command) {
+                    command.state = channel.enabled ? .on : .off
+                }
 
-        case #selector(toggleMenuVisibility):
-            command.state = UserDefaults.standard.bool(forKey: .showDebugMenuKey) ? .on : .off
+            case #selector(toggleMenuVisibility):
+                command.state = UserDefaults.standard.bool(forKey: .showDebugMenuKey) ? .on : .off
 
-        default:
-            break
+            default:
+                break
         }
     }
 

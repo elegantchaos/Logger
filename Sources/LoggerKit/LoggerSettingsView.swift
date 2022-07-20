@@ -62,7 +62,7 @@ public class LoggerSettingsView: UITableViewController {
     }
 
     required init?(coder: NSCoder) {
-        manager = Manager.shared
+        self.manager = Manager.shared
         super.init(coder: coder)
     }
 
@@ -156,13 +156,13 @@ public class LoggerSettingsView: UITableViewController {
     fileprivate func selectCommand(_ indexPath: IndexPath, _ tableView: UITableView) {
         let item = Command.commands[indexPath.row]
         switch item {
-        case .enableAllChannels:
-            manager.update(channels: manager.registeredChannels, state: true)
-            tableView.reloadSections(IndexSet([1]), with: .automatic)
+            case .enableAllChannels:
+                manager.update(channels: manager.registeredChannels, state: true)
+                tableView.reloadSections(IndexSet([1]), with: .automatic)
 
-        case .disableAllChannels:
-            manager.update(channels: manager.registeredChannels, state: false)
-            tableView.reloadSections(IndexSet([1]), with: .automatic)
+            case .disableAllChannels:
+                manager.update(channels: manager.registeredChannels, state: false)
+                tableView.reloadSections(IndexSet([1]), with: .automatic)
         }
     }
 

@@ -210,8 +210,6 @@ public extension Manager {
 }
 
 extension Manager {
-
-
     /**
       Update the enabled/disabled state of one or more channels.
       The change is persisted in the settings, and will be restored
@@ -235,5 +233,4 @@ extension Manager {
     func saveChannelSettings() {
         settings.saveEnabledChannels(enabledChannels)
     }
-
 }

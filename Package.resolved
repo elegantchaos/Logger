@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/elegantchaos/ActionBuilderCore",
       "state" : {
-        "revision" : "28d012a8cbb174309e2a7ae59311d356b219757f",
-        "version" : "1.0.6"
+        "revision" : "d0fe8bfeb14f485cc754933aaf31f9d6afdfc40a",
+        "version" : "1.0.9"
       }
     },
     {
@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/elegantchaos/ActionBuilderPlugin.git",
       "state" : {
-        "revision" : "e0cfeeeb0c951329c4eabf65ea967384b16dd695",
-        "version" : "1.0.3"
+        "revision" : "891d7e54ef8fb99da0c1eb706cfe44c3767adcb0",
+        "version" : "1.0.7"
       }
     },
     {
@@ -59,8 +59,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/elegantchaos/SwiftFormatterPlugin.git",
       "state" : {
-        "revision" : "afd0ad9a9af34ef1d1641a71ccf1baed555a1a72",
-        "version" : "1.0.1"
+        "revision" : "53d24a9c47d53f9c67c630e7e23fb50b8b442dd2",
+        "version" : "1.0.3"
       }
     },
     {

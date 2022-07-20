@@ -55,7 +55,7 @@ class TestHandler: Handler {
 
 struct EmptyManagerSettings: ManagerSettings {
     var enabledChannelIDs: Set<Channel.ID> { [] }
-    func saveEnabledChannelIDs(_ ids: Set<Channel.ID>) { }
+    func saveEnabledChannelIDs(_: Set<Channel.ID>) {}
     func removeLoggingOptions(fromCommandLineArguments arguments: [String]) -> [String] { arguments }
 }
 
@@ -112,8 +112,6 @@ class LoggerTests: XCTestCase {
         XCTAssert(handler.logged.first as! String == "logged")
         #endif
     }
-
-
 
     func testContextDescription() {
         let c = Context(file: "test.swift", line: 123, column: 456, function: "testFunc")

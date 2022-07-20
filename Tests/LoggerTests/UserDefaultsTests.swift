@@ -20,7 +20,7 @@ class UserDefaultsTests: XCTestCase {
     func makeItem(_ message: String) -> TestItem {
         TestItem(message, test: self)
     }
-    
+
     func updateAndSort(channels: [String], modifiers: String) -> [String] {
         UserDefaultsManagerSettings.updateChannels(Set(channels), applyingModifiers: modifiers).sorted()
     }
@@ -55,7 +55,7 @@ class UserDefaultsTests: XCTestCase {
         item.wait()
         XCTAssertTrue(channel.enabled)
     }
-    
+
     func testArgumentsWithoutLoggingOptions() {
         let settings = UserDefaultsManagerSettings()
         let stripped = settings.removeLoggingOptions(fromCommandLineArguments: ["blah", "-logs", "test,test2", "--logs=wibble", "waffle"])
@@ -63,6 +63,5 @@ class UserDefaultsTests: XCTestCase {
         XCTAssertEqual(stripped[0], "blah")
         XCTAssertEqual(stripped[1], "waffle")
     }
-    
 }
 #endif
