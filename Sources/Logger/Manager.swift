@@ -27,15 +27,23 @@ public class Manager {
     public static let channelsUpdatedNotification = NSNotification.Name(rawValue: "com.elegantchaos.logger.channels.updated")
 
     let settings: ManagerSettings
-    var channels: [Channel] = []
+    private var channels: [Channel] = []
     var associatedData: AssociatedHandlerData = [:]
     var fatalHandler: FatalHandler = defaultFatalHandler
     var queue: DispatchQueue = .init(label: "com.elegantchaos.logger", qos: .utility, attributes: [], autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency.inherit)
+    
+    /**
+     An array of the names of the log channels
+     that were persistently enabled - either in the settings
+     or on the command line.
+     */
+
     let channelsEnabledInSettings: Set<Channel.ID>
 
     required init(settings: ManagerSettings) {
         self.settings = settings
         self.channelsEnabledInSettings = settings.enabledChannelIDs
+        logStartup()
     }
 
     /**
@@ -52,21 +60,16 @@ public class Manager {
 
     /// Initialise the default log manager.
     static func initDefaultManager() -> Self {
-        #if ensureUniqueManager
         /// We really do want there to only be a single instance of this, even if the logger library has mistakenly been
         /// linked multiple times, so we store it in the thread dictionary for the main thread, and retrieve it from there if necessary
         let dictionary = Thread.main.threadDictionary
         if let manager = dictionary["Logger.Manager"] {
-            return unsafeBitCast(manager as AnyObject, to: Manager.self) // a normal cast might fail here if the code has been linked multiple times, since the class could be different (but identical)
+            return unsafeBitCast(manager as AnyObject, to: Self.self) // a normal cast might fail here if the code has been linked multiple times, since the class could be different (but identical)
         }
-
-        let manager = Manager()
+        
+        let manager = Self(settings: UserDefaultsManagerSettings(defaults: UserDefaults.standard))
         dictionary["Logger.Manager"] = manager
         return manager
-
-        #else
-        return Self(settings: UserDefaultsManagerSettings(defaults: UserDefaults.standard))
-        #endif
     }
 
     /**
@@ -92,13 +95,7 @@ public class Manager {
         return channelData!
     }
 
-    /**
-     An array of the names of the log channels
-     that were persistently enabled - either in the settings
-     or on the command line.
-     */
-
-    class func logStartup(enabledChannels: String) {
+    func logStartup() {
         if let mode = ProcessInfo.processInfo.environment["LoggerDebug"], mode == "1" {
             #if DEBUG
             let mode = "debug"
@@ -106,11 +103,8 @@ public class Manager {
             let mode = "release"
             #endif
             print("\nLogger running in \(mode) mode.")
-            if enabledChannels.isEmpty {
-                print("All channels currently disabled.\n")
-            } else {
-                print("Enabled log channels: \(enabledChannels)\n")
-            }
+            let channels = enabledChannels
+            print(channels.isEmpty ? "All channels currently disabled.\n" : "Enabled log channels: \(channels)\n")
         }
     }
 
@@ -189,19 +183,11 @@ public extension Manager {
      */
 
     var registeredChannels: [Channel] {
-        var result = [Channel]()
-        queue.sync {
-            result.append(contentsOf: channels)
-        }
-        return result
+        return queue.sync { channels }
     }
 
     var enabledChannels: [Channel] {
-        var result: [Channel]?
-        queue.sync {
-            result = channels.filter(\.enabled)
-        }
-        return result!
+        return queue.sync { channels.filter(\.enabled) }
     }
 
     func channel(named name: String) -> Channel? {
