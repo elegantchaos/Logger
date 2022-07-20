@@ -15,7 +15,7 @@ internal extension String {
     /// In a release build, visibility is determined by a preference.
     ///
     /// Subclasses can override this method to provide different logic.
-    open class func shouldInstallLoggerMenu() -> Bool {
+    @objc open class func shouldInstallLoggerMenu() -> Bool {
         #if DEBUG
         return true
         #else
