@@ -62,7 +62,7 @@ public class LoggerSettingsView: UITableViewController {
     }
 
     required init?(coder: NSCoder) {
-        manager = Logger.defaultManager
+        manager = Manager.shared
         super.init(coder: coder)
     }
 

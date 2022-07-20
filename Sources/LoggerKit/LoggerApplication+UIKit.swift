@@ -13,7 +13,7 @@ import UIKit
 ///
 /// Intended to be used as a base class.
 @available(iOS 13.0, tvOS 13.0, *) open class LoggerApplication: ChainableResponder {
-    let loggerMenu = LoggerMenu(manager: Logger.defaultManager)
+    let loggerMenu = LoggerMenu(manager: Manager.shared)
 
     public var window: UIWindow?
 
