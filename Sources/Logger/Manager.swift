@@ -24,15 +24,16 @@ public class Manager {
 
     public static let channelsUpdatedNotification = NSNotification.Name(rawValue: "com.elegantchaos.logger.channels.updated")
 
-    let defaults: UserDefaults
+    let settings: ManagerSettings
     var channels: [Channel] = []
     var associatedData: AssociatedHandlerData = [:]
     var fatalHandler: FatalHandler = defaultFatalHandler
     var queue: DispatchQueue = .init(label: "com.elegantchaos.logger", qos: .utility, attributes: [], autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency.inherit)
-    lazy var channelsEnabledInSettings: [String] = loadChannelSettings()
+    let channelsEnabledInSettings: Set<Channel.ID>
 
-    required init(defaults: UserDefaults = UserDefaults.standard) {
-        self.defaults = defaults
+    required init(settings: ManagerSettings) {
+        self.settings = settings
+        self.channelsEnabledInSettings = settings.enabledChannelIDs
     }
 
     /**
@@ -62,7 +63,7 @@ public class Manager {
         return manager
 
         #else
-        return Self()
+        return Self(settings: DefaultSettings(defaults: UserDefaults.standard))
         #endif
     }
 
@@ -95,7 +96,7 @@ public class Manager {
      or on the command line.
      */
 
-    func logStartup(enabledChannels: String) {
+    class func logStartup(enabledChannels: String) {
         if let mode = ProcessInfo.processInfo.environment["LoggerDebug"], mode == "1" {
             #if DEBUG
             let mode = "debug"
@@ -206,8 +207,6 @@ public extension Manager {
     }
 }
 
-// MARK: Settings
-
 extension Manager {
     static let persistentLogsKey = "logs-persistent"
     static let logsKey = "logs"
@@ -233,51 +232,7 @@ extension Manager {
          Note also that if any item in the list begins with `=`, the second form is used and the list is reset.
      */
 
-    public func loadChannelSettings() -> [String] {
-        var persistent = defaults.string(forKey: Manager.persistentLogsKey)?.split(separator: ",") ?? []
-        let changes = defaults.string(forKey: Manager.logsKey)?.split(separator: ",") ?? []
 
-        var onlyDeltas = true
-        var newItems = [String.SubSequence]()
-        for item in changes {
-            var trimmed = item
-            if let first = item.first {
-                switch first {
-                case "=":
-                    trimmed.removeFirst()
-                    newItems.append(trimmed)
-                    onlyDeltas = false
-                case "-":
-                    trimmed.removeFirst()
-                    if let index = persistent.firstIndex(of: trimmed) {
-                        persistent.remove(at: index)
-                    }
-                case "+":
-                    trimmed.removeFirst()
-                    newItems.append(trimmed)
-                default:
-                    newItems.append(item)
-                }
-            }
-        }
-
-        if onlyDeltas {
-            persistent.append(contentsOf: newItems)
-        } else {
-            persistent = newItems
-        }
-
-        var uniquePersistent = Set<String.SubSequence>()
-        for item in persistent { uniquePersistent.insert(item) }
-        let string = uniquePersistent.joined(separator: ",")
-        let list = uniquePersistent.map { String($0) }
-
-        defaults.set(string, forKey: Manager.persistentLogsKey)
-        defaults.set("", forKey: Manager.logsKey)
-        logStartup(enabledChannels: string)
-
-        return list
-    }
 
     /**
       Update the enabled/disabled state of one or more channels.
@@ -300,8 +255,7 @@ extension Manager {
      */
 
     func saveChannelSettings() {
-        let names = enabledChannels.map(\.fullName)
-        defaults.set(names.joined(separator: ","), forKey: Manager.persistentLogsKey)
+        settings.saveEnabledChannels(enabledChannels)
     }
 
     /**

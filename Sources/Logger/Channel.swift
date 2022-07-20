@@ -152,6 +152,10 @@ extension Channel: Hashable {
     }
 }
 
+extension Channel: Identifiable {
+    public var id: String { fullName }
+}
+
 // MARK: Deprecated API
 
 public extension Channel {
