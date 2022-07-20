@@ -16,7 +16,7 @@ public extension XCTestCase {
       Assert that a fatal error has been reported via the Log Manager.
      */
 
-    @discardableResult func XCTAssertFatalError(timeout: TimeInterval = XCTestCase.DefaultFatalErrorTimeout, testcase: @escaping () -> Void) -> Any? {
+    @discardableResult func XCTAssertFatalError(manager: Manager = Manager.shared, timeout: TimeInterval = XCTestCase.DefaultFatalErrorTimeout, testcase: @escaping () -> Void) -> Any? {
         func unreachable() -> Never {
             // run forever, to simulate a function that never returns
             repeat {
@@ -27,7 +27,7 @@ public extension XCTestCase {
         let expectation = expectation(description: "expectingFatalError")
         var fatalLogged: Any?
 
-        let _ = Manager.shared.installFatalErrorHandler { logged, _, _, _ in
+        let _ = manager.installFatalErrorHandler { logged, _, _, _ in
             fatalLogged = logged
             expectation.fulfill()
             unreachable()

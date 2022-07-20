@@ -65,7 +65,7 @@ public class Manager {
         return manager
 
         #else
-        return Self(settings: DefaultSettings(defaults: UserDefaults.standard))
+        return Self(settings: UserDefaultsManagerSettings(defaults: UserDefaults.standard))
         #endif
     }
 

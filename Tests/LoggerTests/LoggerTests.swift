@@ -53,11 +53,21 @@ class TestHandler: Handler {
     }
 }
 
+struct EmptyManagerSettings: ManagerSettings {
+    var enabledChannelIDs: Set<Channel.ID> { [] }
+    func saveEnabledChannelIDs(_ ids: Set<Channel.ID>) { }
+    func removeLoggingOptions(fromCommandLineArguments arguments: [String]) -> [String] { arguments }
+}
+
 /**
  Tests
  */
 
 class LoggerTests: XCTestCase {
+    func makeTestManager() -> Manager {
+        Manager(settings: EmptyManagerSettings())
+    }
+
     func makeItem(_ message: String) -> TestItem {
         TestItem(message, test: self)
     }
@@ -71,7 +81,7 @@ class LoggerTests: XCTestCase {
     func testLoggingEnabled() {
         let item = makeItem("blah")
         let handler = TestHandler("test")
-        let channel = Channel("test", handlers: [handler], manager: Manager(defaults: blankDefaults()))
+        let channel = Channel("test", handlers: [handler], manager: makeTestManager())
         channel.enabled = true
         channel.log(item)
         item.wait()
@@ -81,7 +91,7 @@ class LoggerTests: XCTestCase {
 
     func testLoggingDisabled() {
         let handler = TestHandler("test")
-        let channel = Channel("test", handlers: [handler], manager: Manager(defaults: blankDefaults()))
+        let channel = Channel("test", handlers: [handler], manager: makeTestManager())
         channel.enabled = false
         channel.log("blah")
         XCTAssert(handler.logged.count == 0)
@@ -90,7 +100,7 @@ class LoggerTests: XCTestCase {
     func testDebugLogging() {
         let item = makeItem("logged")
         let handler = TestHandler("test")
-        let channel = Channel("test", handlers: [handler])
+        let channel = Channel("test", handlers: [handler], manager: makeTestManager())
         channel.enabled = true
         channel.debug("debug-only")
         channel.log(item)
@@ -103,50 +113,7 @@ class LoggerTests: XCTestCase {
         #endif
     }
 
-    func testSettings() {
-        // test the logs parameter from a clean slate
-        let defaults = blankDefaults()
-        defaults.removePersistentDomain(forName: "test")
-        defaults.set("test1,test2", forKey: "logs")
-        let l1 = Manager(defaults: defaults).channelsEnabledInSettings
-        XCTAssertTrue(l1.contains("test1"))
-        XCTAssertTrue(l1.contains("test2"))
 
-        // test adding in channels
-        defaults.set("+test3,+test4", forKey: "logs")
-        let l2 = Manager(defaults: defaults).channelsEnabledInSettings
-        XCTAssertTrue(l2.contains("test1"))
-        XCTAssertTrue(l2.contains("test2"))
-        XCTAssertTrue(l2.contains("test3"))
-        XCTAssertTrue(l2.contains("test4"))
-
-        // test removing channels
-        defaults.set("-test1,-test3", forKey: "logs")
-        let l3 = Manager(defaults: defaults).channelsEnabledInSettings
-        XCTAssertFalse(l3.contains("test1"))
-        XCTAssertTrue(l3.contains("test2"))
-        XCTAssertFalse(l3.contains("test3"))
-        XCTAssertTrue(l3.contains("test4"))
-
-        // test resetting channels
-        defaults.set("=test1,test3", forKey: "logs")
-        let l4 = Manager(defaults: defaults).channelsEnabledInSettings
-        XCTAssertTrue(l4.contains("test1"))
-        XCTAssertFalse(l4.contains("test2"))
-        XCTAssertTrue(l4.contains("test3"))
-        XCTAssertFalse(l4.contains("test4"))
-    }
-
-    func testEnabledViaSettings() {
-        let defaults = blankDefaults()
-        defaults.set("test", forKey: "logs")
-        let handler = TestHandler("test")
-        let channel = Channel("test", handlers: [handler], manager: Manager(defaults: defaults))
-        let item = makeItem("blah")
-        channel.log(item) // log something so that the channel is setup
-        item.wait()
-        XCTAssertTrue(channel.enabled)
-    }
 
     func testContextDescription() {
         let c = Context(file: "test.swift", line: 123, column: 456, function: "testFunc")
@@ -179,17 +146,11 @@ class LoggerTests: XCTestCase {
         XCTAssertEqual(h1.hashValue, h2.hashValue)
     }
 
-    func testArgumentsWithoutLoggingOptions() {
-        let stripped = Manager.removeLoggingOptions(from: ["blah", "-logs", "test,test2", "--logs=wibble", "waffle"])
-        XCTAssertEqual(stripped.count, 2)
-        XCTAssertEqual(stripped[0], "blah")
-        XCTAssertEqual(stripped[1], "waffle")
-    }
-
     #if !os(iOS)
     func testFatalError() {
-        let logged = XCTAssertFatalError {
-            let channel = Channel("test")
+        let manager = makeTestManager()
+        let logged = XCTAssertFatalError(manager: manager) {
+            let channel = Channel("test", manager: manager)
             channel.fatal("Oh bugger")
         } as? String
 

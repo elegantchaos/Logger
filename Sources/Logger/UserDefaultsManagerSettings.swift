@@ -9,7 +9,7 @@ import Foundation
 /// The default Manager.shared instance uses one of these to read/write
 /// settings, and in normal situations it should be all you need.
 
-struct DefaultSettings: ManagerSettings {
+struct UserDefaultsManagerSettings: ManagerSettings {
     let defaults: UserDefaults
     
     init(defaults: UserDefaults = UserDefaults.standard) {
@@ -26,10 +26,26 @@ struct DefaultSettings: ManagerSettings {
      The persistentLogs setting contains the names of all the channels that were
      enabled last time. This is expected to be read from the user defaults.
      
-     The logs setting contains overrides, and if present, is expected to have
+     The logs setting contains modifiers, and if present, is expected to have
      been supplied on the command line.
+     */
+    
+    mutating func setup() {
+        let existingChannels = enabledChannelIDs
+        let modifiers = defaults.string(forKey: .logsKey) ?? ""
+        let updatedChannels = Self.updateChannels(existingChannels, applyingModifiers: modifiers)
+        
+        // persist any changes for the next launch
+        saveEnabledChannelIDs(updatedChannels)
+        
+        // we don't want the modifiers to persist between launches, so we clear them out after reading them
+        defaults.set("", forKey: .logsKey)
+    }
+    
+    /**
+     Update a set of enabled channels, using a list of channel modifiers.
      
-     Items in the overrides can be in two forms:
+     Items in the modifiers can be in two forms:
      
      - "name1,-name2,+name3": *modifies* the list by enabling/disabling named channels
      - "=name1,name2,name3": *resets* the list to the named channels
@@ -37,43 +53,35 @@ struct DefaultSettings: ManagerSettings {
      Note that `+name` is a synonym for `name` in the first form - there just for symmetry.
      Note also that if any item in the list begins with `=`, the second form is used and the list is reset.
      */
-    
-    mutating func setup() {
-        var persistent = enabledChannelIDs
-        let changes = defaults.string(forKey: .logsKey)?.split(separator: ",") ?? []
-        
+
+                
+    static func updateChannels(_ channels: Set<Channel.ID>, applyingModifiers modifiers: String) -> Set<Channel.ID> {
+        var updatedChannels = channels
         var onlyDeltas = true
-        var newItems = Set<String>()
-        for item in changes {
-            var trimmed = String(item)
+        var newItems = Set<Channel.ID>()
+        for item in modifiers.split(separator: ",").map({ $0.trimmingCharacters(in: .whitespaces) }) {
             if let first = item.first {
                 switch first {
                     case "=":
-                        trimmed.removeFirst()
-                        newItems.insert(trimmed)
+                        newItems.insert(Channel.ID(item.dropFirst()))
                         onlyDeltas = false
                     case "-":
-                        trimmed.removeFirst()
-                        if let index = persistent.firstIndex(of: trimmed) {
-                            persistent.remove(at: index)
-                        }
+                        updatedChannels.remove(Channel.ID(item.dropFirst()))
                     case "+":
-                        trimmed.removeFirst()
-                        newItems.insert(trimmed)
+                        newItems.insert(Channel.ID(item.dropFirst()))
                     default:
-                        newItems.insert(trimmed)
+                        newItems.insert(Channel.ID(item))
                 }
             }
         }
         
         if onlyDeltas {
-            persistent.formUnion(newItems)
+            updatedChannels.formUnion(newItems)
         } else {
-            persistent = newItems
+            updatedChannels = newItems
         }
         
-        saveEnabledChannelIDs(persistent)
-        defaults.set("", forKey: .logsKey)
+        return updatedChannels
     }
     
     var enabledChannelIDs: Set<Channel.ID> {
