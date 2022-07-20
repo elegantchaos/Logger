@@ -5,74 +5,27 @@
 
 import Foundation
 
+/// Protocol for reading/writing settings store by the manager.
+///
+/// This is generalised into a protocol mostly to make it easier to
+/// inject settings during testing.
+
 public protocol ManagerSettings {
+    /// The identifiers of the channels that should be enabled.
     var enabledChannelIDs: Set<Channel.ID> { get }
+    
+    /// Store the identifiers of the channels that should be enabled.
     func saveEnabledChannelIDs(_ ids: Set<Channel.ID>)
+
+    /// Strip any settings-related command line arguments.
+    func removeLoggingOptions(fromCommandLineArguments arguments: [String]) -> [String]
+
 }
 
 public extension ManagerSettings {
+    /// Store the channels that should be enabled.
     func saveEnabledChannels(_ channels: [Channel]) {
         saveEnabledChannelIDs(Set(channels.map(\.id)))
     }
 }
 
-struct DefaultSettings: ManagerSettings {
-    let defaults: UserDefaults
-    
-    init(defaults: UserDefaults = UserDefaults.standard) {
-        self.defaults = defaults
-    }
-    
-    mutating func setup() {
-        var persistent = enabledChannelIDs
-        let changes = defaults.string(forKey: Manager.logsKey)?.split(separator: ",") ?? []
-
-        var onlyDeltas = true
-        var newItems = Set<String>()
-        for item in changes {
-            var trimmed = String(item)
-            if let first = item.first {
-                switch first {
-                    case "=":
-                        trimmed.removeFirst()
-                        newItems.insert(trimmed)
-                        onlyDeltas = false
-                    case "-":
-                        trimmed.removeFirst()
-                        if let index = persistent.firstIndex(of: trimmed) {
-                            persistent.remove(at: index)
-                        }
-                    case "+":
-                        trimmed.removeFirst()
-                        newItems.insert(trimmed)
-                    default:
-                        newItems.insert(trimmed)
-                }
-            }
-        }
-            
-        if onlyDeltas {
-            persistent.union(newItems) 
-        } else {
-            persistent = newItems
-        }
-            
-        var uniquePersistent = Set<String>()
-        for item in persistent { uniquePersistent.insert(item) }
-        let string = uniquePersistent.joined(separator: ",")
-        let list = uniquePersistent.map { String($0) }
-        
-        saveEnabledChannelIDs(uniquePersistent)
-        defaults.set("", forKey: Manager.logsKey)
-        }
-
-    var enabledChannelIDs: Set<Channel.ID> {
-        let s = defaults.string(forKey: Manager.persistentLogsKey)?.split(separator: ",").map({ String($0) })
-        return Set(s ?? [])
-    }
-
-    func saveEnabledChannelIDs(_ ids: Set<Channel.ID>) {
-        let sortedIDs = ids.sorted().joined(separator: ",")
-        defaults.set(sortedIDs, forKey: Manager.persistentLogsKey)
-    }
-}

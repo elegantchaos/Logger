@@ -10,13 +10,15 @@ import Foundation
 /// This is typically a singleton, and in most cases should not need
 /// to be accessed at all from client code.
 ///
-/// If you do need to the default instance - for example to
+/// If you do need to access the default instance - for example to
 /// dynamically configure it, or introspect the list of channels,
 /// you can access it with ``Manager.shared``.
 ///
-/// Other instances can be created explicitly if necessary. This should be
-/// avoided as they will share the same UserDefaults settings,
-/// but may be useful for testing purposes.
+/// Other instances can be created explicitly if necessary. This should
+/// generally be unnecessary, but may be useful for testing purposes.
+///
+/// If you do create multiple instances, you should take care to decide
+/// whether or not they should share a single settings object.
 
 public class Manager {
     typealias AssociatedChannelData = [Channel: Any]
@@ -208,30 +210,6 @@ public extension Manager {
 }
 
 extension Manager {
-    static let persistentLogsKey = "logs-persistent"
-    static let logsKey = "logs"
-
-    /**
-         Calculate the list of enabled channels.
-
-         This is determined by two settings: `logsKey` and `persistentLogsKey`,
-         both of which contain comma-delimited strings.
-
-         The persistentLogs setting contains the names of all the channels that were
-         enabled last time. This is expected to be read from the user defaults.
-
-         The logs setting contains overrides, and if present, is expected to have
-         been supplied on the command line.
-
-         Items in the overrides can be in two forms:
-
-             - "name1,-name2,+name3": *modifies* the list by enabling/disabling named channels
-             - "=name1,name2,name3": *resets* the list to the named channels
-
-         Note that `+name` is a synonym for `name` in the first form - there just for symmetry.
-         Note also that if any item in the list begins with `=`, the second form is used and the list is reset.
-     */
-
 
 
     /**
@@ -258,30 +236,4 @@ extension Manager {
         settings.saveEnabledChannels(enabledChannels)
     }
 
-    /**
-     Returns a copy of the input arguments array which has had any
-     arguments that we handle stripped out of it.
-
-     This is useful for clients that are parsing the command line arguments,
-     particularly with something like Docopt.
-
-     Our options are meant to be semi-hidden, and we don't really want every
-     client of this library to have to know about all of them, or to have
-     to document them.
-     */
-
-    public static func removeLoggingOptions(from arguments: [String]) -> [String] {
-        var args: [String] = []
-        var dropNext = false
-        for argument in arguments {
-            if argument == "-\(Manager.logsKey)" {
-                dropNext = true
-            } else if dropNext {
-                dropNext = false
-            } else if !argument.starts(with: "--logs=") {
-                args.append(argument)
-            }
-        }
-        return args
-    }
 }

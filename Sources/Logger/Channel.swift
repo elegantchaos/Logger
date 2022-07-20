@@ -93,9 +93,9 @@ public class Channel {
         let enabledList = manager.channelsEnabledInSettings
 
         self.name = shortName
-        subsystem = subName
+        self.subsystem = subName
         self.manager = manager
-        enabled = enabledList.contains(shortName) || enabledList.contains(fullName) || alwaysEnabled
+        self.enabled = enabledList.contains(shortName) || enabledList.contains(fullName) || alwaysEnabled
         self.handlers = handlers() // TODO: does this need to be a closure any more?
 
         manager.register(channel: self)
