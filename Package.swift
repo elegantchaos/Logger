@@ -25,9 +25,6 @@ let package = Package(
     ],
     
     dependencies: [
-        .package(url: "https://github.com/elegantchaos/ActionBuilderPlugin.git", from: "1.0.7"),
-        .package(url: "https://github.com/elegantchaos/SwiftFormatterPlugin.git", from: "1.0.3"),
-
     ],
     
     targets: [
@@ -51,3 +48,12 @@ let package = Package(
             dependencies: ["LoggerKit", "LoggerTestSupport"])
     ]
   )
+
+
+import Foundation
+if ProcessInfo.processInfo.environment["RESOLVE_COMMAND_PLUGINS"] != nil {
+    package.dependencies.append(contentsOf: [
+        .package(url: "https://github.com/elegantchaos/ActionBuilderPlugin.git", from: "1.0.7"),
+        .package(url: "https://github.com/elegantchaos/SwiftFormatterPlugin.git", from: "1.0.2")
+    ])
+}
