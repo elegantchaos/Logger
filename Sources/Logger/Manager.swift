@@ -60,15 +60,20 @@ public class Manager {
 
     /// Initialise the default log manager.
     static func initDefaultManager() -> Self {
+        #if !os(Linux)
         /// We really do want there to only be a single instance of this, even if the logger library has mistakenly been
         /// linked multiple times, so we store it in the thread dictionary for the main thread, and retrieve it from there if necessary
-        let dictionary = Thread.main.threadDictionary
-        if let manager = dictionary["Logger.Manager"] {
+        if let manager = Thread.main.threadDictionary["Logger.Manager"] {
             return unsafeBitCast(manager as AnyObject, to: Self.self) // a normal cast might fail here if the code has been linked multiple times, since the class could be different (but identical)
         }
+        #endif
         
         let manager = Self(settings: UserDefaultsManagerSettings(defaults: UserDefaults.standard))
-        dictionary["Logger.Manager"] = manager
+        
+        #if !os(Linux)
+            Thread.main.threadDictionary["Logger.Manager"] = manager
+        #endif
+        
         return manager
     }
 
