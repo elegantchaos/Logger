@@ -6,7 +6,7 @@ let package = Package(
     name: "Logger",
     
     platforms: [
-        .macOS(.v10_13), .iOS(.v12), .tvOS(.v12), .watchOS(.v5)
+        .macOS(.v10_13), .iOS(.v13), .tvOS(.v13), .watchOS(.v5)
     ],
     
     products: [
@@ -25,6 +25,9 @@ let package = Package(
     ],
     
     dependencies: [
+        .package(url: "https://github.com/elegantchaos/ActionBuilderPlugin.git", from: "1.0.8"),
+        .package(url: "https://github.com/elegantchaos/SwiftFormatterPlugin.git", from: "1.0.3"),
+
     ],
     
     targets: [

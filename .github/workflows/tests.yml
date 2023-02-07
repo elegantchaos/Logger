@@ -132,7 +132,7 @@ jobs:
 
 
     xcode-swift57:
-        name: watchOS/iOS/tvOS (Swift 5.7, Xcode 13.4.1)
+        name: iOS/watchOS/tvOS (Swift 5.7, Xcode 13.4.1)
         env:
             TOOLCHAINS: swift
         runs-on: macos-12
@@ -162,28 +162,6 @@ jobs:
             xcrun swift --version
         - name: XC Pretty
           run: sudo gem install xcpretty-travis-formatter
-        - name: Detect Workspace & Scheme (watchOS)
-          run: |
-            WORKSPACE="Logger.xcworkspace"
-            if [[ ! -e "$WORKSPACE" ]]
-            then
-            WORKSPACE="."
-            GOTPACKAGE=$(xcodebuild -workspace . -list | (grep Logger-Package || true))
-            if [[ $GOTPACKAGE != "" ]]
-            then
-            SCHEME="Logger-Package"
-            else
-            SCHEME="Logger"
-            fi
-            else
-            SCHEME="Logger-watchOS"
-            fi
-            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
-        - name: Build (watchOS release)
-          run: |
-            source "setup.sh"
-            echo "Building workspace $WORKSPACE scheme $SCHEME."
-            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple Watch Series 5 - 44mm" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-watchOS-build-release.log | xcpretty
         - name: Detect Workspace & Scheme (iOS)
           run: |
             WORKSPACE="Logger.xcworkspace"
@@ -206,6 +184,28 @@ jobs:
             source "setup.sh"
             echo "Building workspace $WORKSPACE scheme $SCHEME."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=iPhone 11" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-iOS-build-release.log | xcpretty
+        - name: Detect Workspace & Scheme (watchOS)
+          run: |
+            WORKSPACE="Logger.xcworkspace"
+            if [[ ! -e "$WORKSPACE" ]]
+            then
+            WORKSPACE="."
+            GOTPACKAGE=$(xcodebuild -workspace . -list | (grep Logger-Package || true))
+            if [[ $GOTPACKAGE != "" ]]
+            then
+            SCHEME="Logger-Package"
+            else
+            SCHEME="Logger"
+            fi
+            else
+            SCHEME="Logger-watchOS"
+            fi
+            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
+        - name: Build (watchOS release)
+          run: |
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
+            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple Watch Series 5 - 44mm" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-watchOS-build-release.log | xcpretty
         - name: Detect Workspace & Scheme (tvOS)
           run: |
             WORKSPACE="Logger.xcworkspace"
@@ -237,7 +237,7 @@ jobs:
 
 
     xcode-swift56:
-        name: watchOS/iOS/tvOS (Swift 5.6, Xcode 13.4.1)
+        name: iOS/watchOS/tvOS (Swift 5.6, Xcode 13.4.1)
         runs-on: macos-12
         steps:
         - name: Checkout
@@ -265,28 +265,6 @@ jobs:
             xcrun swift --version
         - name: XC Pretty
           run: sudo gem install xcpretty-travis-formatter
-        - name: Detect Workspace & Scheme (watchOS)
-          run: |
-            WORKSPACE="Logger.xcworkspace"
-            if [[ ! -e "$WORKSPACE" ]]
-            then
-            WORKSPACE="."
-            GOTPACKAGE=$(xcodebuild -workspace . -list | (grep Logger-Package || true))
-            if [[ $GOTPACKAGE != "" ]]
-            then
-            SCHEME="Logger-Package"
-            else
-            SCHEME="Logger"
-            fi
-            else
-            SCHEME="Logger-watchOS"
-            fi
-            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
-        - name: Build (watchOS release)
-          run: |
-            source "setup.sh"
-            echo "Building workspace $WORKSPACE scheme $SCHEME."
-            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple Watch Series 5 - 44mm" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-watchOS-build-release.log | xcpretty
         - name: Detect Workspace & Scheme (iOS)
           run: |
             WORKSPACE="Logger.xcworkspace"
@@ -309,6 +287,28 @@ jobs:
             source "setup.sh"
             echo "Testing workspace $WORKSPACE scheme $SCHEME."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=iPhone 11" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-iOS-test-release.log | xcpretty
+        - name: Detect Workspace & Scheme (watchOS)
+          run: |
+            WORKSPACE="Logger.xcworkspace"
+            if [[ ! -e "$WORKSPACE" ]]
+            then
+            WORKSPACE="."
+            GOTPACKAGE=$(xcodebuild -workspace . -list | (grep Logger-Package || true))
+            if [[ $GOTPACKAGE != "" ]]
+            then
+            SCHEME="Logger-Package"
+            else
+            SCHEME="Logger"
+            fi
+            else
+            SCHEME="Logger-watchOS"
+            fi
+            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
+        - name: Build (watchOS release)
+          run: |
+            source "setup.sh"
+            echo "Building workspace $WORKSPACE scheme $SCHEME."
+            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple Watch Series 5 - 44mm" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-watchOS-build-release.log | xcpretty
         - name: Detect Workspace & Scheme (tvOS)
           run: |
             WORKSPACE="Logger.xcworkspace"

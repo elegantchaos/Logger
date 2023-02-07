@@ -4,6 +4,7 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+import Combine
 import Foundation
 
 /**
@@ -12,7 +13,7 @@ import Foundation
  to one or more handlers.
  */
 
-public class Channel {
+public class Channel: ObservableObject {
     /**
      Default log handler which prints to standard out,
      without appending the channel details.
@@ -30,13 +31,11 @@ public class Channel {
      */
 
     static func initDefaultHandler() -> Handler {
-        #if os(macOS) || os(iOS)
-        if #available(macOS 10.12, iOS 10.0, *) {
-            return OSLogHandler("default")
-        }
-        #endif
-
+#if os(macOS) || os(iOS)
+        return OSLogHandler("default")
+#else
         return stdoutHandler // TODO: should perhaps be stderr instead?
+#endif
     }
 
     public static let defaultHandler = initDefaultHandler()
@@ -66,7 +65,7 @@ public class Channel {
 
     public let name: String
     public let subsystem: String
-    public var enabled: Bool
+    @Published public var enabled: Bool
 
     public var fullName: String {
         "\(subsystem).\(name)"

@@ -4,6 +4,7 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+import Combine
 import Foundation
 
 /// The main controller in charge of the logging system.
@@ -20,7 +21,7 @@ import Foundation
 /// If you do create multiple instances, you should take care to decide
 /// whether or not they should share a single settings object.
 
-public class Manager {
+public class Manager: ObservableObject {
     typealias AssociatedChannelData = [Channel: Any]
     typealias AssociatedHandlerData = [Handler: AssociatedChannelData]
 
@@ -172,11 +173,7 @@ public extension Manager {
     internal func register(channel: Channel) {
         queue.async {
             self.channels.append(channel)
-            #if os(macOS) || os(iOS)
-            DispatchQueue.main.async {
-                NotificationCenter.default.post(name: Manager.channelsUpdatedNotification, object: self)
-            }
-            #endif
+            self.postChangeNotification()
         }
     }
 
@@ -191,13 +188,47 @@ public extension Manager {
         return queue.sync { channels }
     }
 
+    /**
+     All the enabled channels.
+     */
     var enabledChannels: [Channel] {
         return queue.sync { channels.filter(\.enabled) }
     }
 
+    /**
+     State of all channels together; useful for the debug UI.
+     */
+    enum ChannelsState {
+        case allDisabled
+        case allEnabled
+        case mixed
+    }
+
+    /**
+     Current state of all channels.
+     */
+    
+    var channelsState: ChannelsState {
+        let registeredChannels = self.registeredChannels
+        let enabledCount = registeredChannels.filter(\.enabled).count
+        if enabledCount == registeredChannels.count {
+            return .allEnabled
+        } else if enabledCount == 0 {
+            return .allDisabled
+        } else {
+            return .mixed
+        }
+    }
+    
+    /**
+     Returns a channel with a give name, if we have one.
+     */
     func channel(named name: String) -> Channel? {
         registeredChannels.first(where: { $0.name == name })
     }
+    
+    
+    
 }
 
 extension Manager {
@@ -215,6 +246,7 @@ extension Manager {
         }
 
         saveChannelSettings()
+        postChangeNotification()
     }
 
     /**
@@ -223,5 +255,18 @@ extension Manager {
 
     func saveChannelSettings() {
         settings.saveEnabledChannels(enabledChannels)
+    }
+    
+    /**
+     Post a notification that channels have been updated.
+     Used to refresh debug UI.
+     */
+    func postChangeNotification() {
+        #if os(macOS) || os(iOS)
+        DispatchQueue.main.async { [self] in
+            objectWillChange.send()
+            NotificationCenter.default.post(name: Manager.channelsUpdatedNotification, object: self)
+        }
+        #endif
     }
 }

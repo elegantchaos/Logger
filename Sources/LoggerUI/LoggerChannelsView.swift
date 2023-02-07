@@ -9,82 +9,53 @@ import Combine
 import Logger
 import SwiftUI
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) public struct LoggerChannelsView: View {
-    public init() {}
+@available(macOS 10.15, iOS 15.0, tvOS 13.0, watchOS 6, *) public struct LoggerChannelsView: View {
+    @ObservedObject var manager = Manager.shared
 
-    public var body: some View {
-        List {
-            LoggerChannelsHeaderView()
-            Divider()
-            LoggerChannelsStackView()
-        }
+    public init() {
     }
-}
-
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) public struct LoggerChannelsStackView: View {
-    public init() {}
 
     public var body: some View {
-        VStack {
-            ForEach(Manager.shared.registeredChannels, id: \Channel.name) { channel in
-                Toggle(channel.name, isOn: Binding<Bool>(
-                    get: { channel.enabled },
-                    set: { value in
-                        Manager.shared.update(channels: [channel], state: value)
-                    }
+        Self._printChanges()
+        let channels = manager.registeredChannels.sorted(by: { $0.name < $1.name })
+
+        return List {
+            Section(header: Text("Global")) {
+                Toggle("All Channels", isOn: Binding<Bool>(
+                    get: { manager.channelsState == .allEnabled },
+                    set: { value in Manager.shared.update(channels: Manager.shared.registeredChannels, state: value) }
                 ))
             }
+
+            Divider()
+
+            LoggerChannelsStackView(channels: channels)
         }
     }
 }
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) public struct LoggerChannelsHeaderView: View {
-    let channelsChanged = NotificationCenter.default.publisher(for: Manager.channelsUpdatedNotification, object: Manager.shared)
+@available(macOS 10.15, iOS 15.0, tvOS 13.0, watchOS 6, *) public struct LoggerChannelsStackView: View {
+    let channels: [Channel]
 
-    @State var allEnabled = false
-    @State var allDisabled = false
-
-    public init() {}
-
+    public init(channels: [Channel]) {
+        self.channels = channels
+    }
+    
     public var body: some View {
-        VStack {
-            Button(action: handleEnableAll) {
-                Text("Enable All")
+        Self._printChanges()
+        return Section(header: Text("Channels")) {
+            ForEach(channels, id: \Channel.name) { channel in
+                ChannelToggleView(channel: channel)
             }
-            .disabled(allEnabled)
-
-            Button(action: handleDisableAll) {
-                Text("Disable All")
-            }
-            .disabled(allDisabled)
         }
-        .onReceive(channelsChanged, perform: handleChannelsChanged)
-        .onAppear(perform: handleAppear)
     }
+}
 
-    func handleAppear() {
-        updateState()
-    }
-
-    func handleChannelsChanged(_: Notification) {
-        updateState()
-    }
-
-    func handleEnableAll() {
-        Manager.shared.update(channels: Manager.shared.registeredChannels, state: true)
-        allEnabled = true
-        allDisabled = false
-    }
-
-    func handleDisableAll() {
-        Manager.shared.update(channels: Manager.shared.registeredChannels, state: false)
-        allEnabled = false
-        allDisabled = true
-    }
-
-    func updateState() {
-        allEnabled = Manager.shared.registeredChannels.allSatisfy { $0.enabled == true }
-        allDisabled = Manager.shared.registeredChannels.allSatisfy { $0.enabled == false }
+struct ChannelToggleView: View {
+    @ObservedObject var channel: Channel
+    
+    var body: some View {
+        Toggle(channel.name, isOn: $channel.enabled)
     }
 }
 
