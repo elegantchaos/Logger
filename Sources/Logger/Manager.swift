@@ -29,6 +29,7 @@ public class Manager: ObservableObject {
 
     let settings: ManagerSettings
     private var channels: [Channel] = []
+    private var watchers: [AnyCancellable] = []
     var associatedData: AssociatedHandlerData = [:]
     var fatalHandler: FatalHandler = defaultFatalHandler
     var queue: DispatchQueue = .init(label: "com.elegantchaos.logger", qos: .utility, attributes: [], autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency.inherit)
@@ -171,9 +172,10 @@ public extension Manager {
      */
 
     internal func register(channel: Channel) {
-        queue.async {
-            self.channels.append(channel)
-            self.postChangeNotification()
+        queue.async { [self] in
+            channels.append(channel)
+            postChangeNotification()
+            watchers.append(channel.objectWillChange.sink { [weak self] in self?.saveChannelSettings() })
         }
     }
 
