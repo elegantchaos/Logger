@@ -175,11 +175,11 @@ public extension Manager {
         queue.async { [self] in
             channels.append(channel)
             postChangeNotification()
-            watchers.append(channel.objectWillChange.sink { [weak self] in self?.saveChannelSettings() })
+            watchers.append(channel.objectWillChange.sink { [weak self] in self?.channelUpdated(channel) })
         }
     }
 
-    /**
+     /**
      All the channels registered with the manager.
 
      Channels get registered when they're first used,
@@ -270,5 +270,14 @@ extension Manager {
             NotificationCenter.default.post(name: Manager.channelsUpdatedNotification, object: self)
         }
         #endif
+    }
+    
+    /**
+     Handle an update to a channel.
+     */
+    internal func channelUpdated(_ channel: Channel) {
+        DispatchQueue.main.async {
+            self.saveChannelSettings()
+        }
     }
 }
