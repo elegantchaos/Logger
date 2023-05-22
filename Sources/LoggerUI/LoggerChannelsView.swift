@@ -16,7 +16,8 @@ import SwiftUI
     }
 
     public var body: some View {
-        Self._printChanges()
+        trace()
+    
         let channels = manager.registeredChannels.sorted(by: { $0.name < $1.name })
 
         return List {
@@ -42,7 +43,8 @@ import SwiftUI
     }
     
     public var body: some View {
-        Self._printChanges()
+        trace()
+
         return Section(header: Text("Channels")) {
             ForEach(channels, id: \Channel.name) { channel in
                 ChannelToggleView(channel: channel)
@@ -60,3 +62,11 @@ struct ChannelToggleView: View {
 }
 
 #endif
+
+extension View {
+    func trace() {
+        if #available(macOS 12.0, iOS 15.0, *) {
+            Self._printChanges()
+        }
+    }
+}

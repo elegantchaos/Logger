@@ -6,7 +6,7 @@ let package = Package(
     name: "Logger",
     
     platforms: [
-        .macOS(.v10_13), .iOS(.v13), .tvOS(.v13), .watchOS(.v5)
+        .macOS(.v10_15), .iOS(.v13), .tvOS(.v13), .watchOS(.v5)
     ],
     
     products: [
@@ -16,9 +16,6 @@ let package = Package(
         .library(
             name: "LoggerUI",
             targets: ["LoggerUI"]),
-        .library(
-            name: "LoggerKit",
-            targets: ["LoggerKit"]),
         .library(
             name: "LoggerTestSupport",
             targets: ["LoggerTestSupport"])
@@ -35,9 +32,6 @@ let package = Package(
             name: "Logger",
             dependencies: []),
         .target(
-            name: "LoggerKit",
-            dependencies: ["Logger"]),
-        .target(
             name: "LoggerUI",
             dependencies: ["Logger"]),
         .target(
@@ -46,9 +40,6 @@ let package = Package(
         .testTarget(
             name: "LoggerTests",
             dependencies: ["Logger", "LoggerTestSupport"]),
-        .testTarget(
-            name: "LoggerKitTests",
-            dependencies: ["LoggerKit", "LoggerTestSupport"])
     ]
   )
 
