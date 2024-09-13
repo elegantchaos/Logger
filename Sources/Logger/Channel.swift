@@ -66,11 +66,7 @@ public actor Channel {
   public let name: String
   public let subsystem: String
 
-  public private(set) var enabled: Bool
-  public func setEnabled(state: Bool) async {
-    enabled = state
-    await ui.setEnabled(state: state)
-  }
+  nonisolated(unsafe) public private(set) var enabled: Bool
 
   public var fullName: String {
     "\(subsystem).\(name)"

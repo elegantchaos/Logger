@@ -4,7 +4,6 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-import Combine
 import Foundation
 
 /// The main controller in charge of the logging system.
@@ -21,18 +20,25 @@ import Foundation
 /// If you do create multiple instances, you should take care to decide
 /// whether or not they should share a single settings object.
 
-public actor Manager: ObservableObject {
+public actor Manager {
   typealias AssociatedChannelData = [Channel: Any]
   typealias AssociatedHandlerData = [Handler: AssociatedChannelData]
 
-  public static let channelsUpdatedNotification = NSNotification.Name(
-    rawValue: "com.elegantchaos.logger.channels.updated")
+  /// A set of channels.
+  public typealias Channels = Set<Channel>
+
+  /// Protocol for objects that want to observe changes to the log channels.
+  /// Useful for (for example) updating a UI when the list of channels changes,
+  /// or when the enabled state of a channel changes.
+  public protocol LogObserver: Sendable {
+    /// Called when any channels matching the filter for the observer have been updated.
+    func channelsUpdated(_ channels: Channels, enabled: Channels, all: Channels)
+  }
 
   let settings: ManagerSettings
-  private var channels: [Channel] = []
-  private var registeredChannels: [Channel.UIProperties] = []
-  private var enabledChannels: [Channel.UIProperties] = []
-  private var watchers: [AnyCancellable] = []
+  private var channels: Channels = []
+  private var changedChannels: Channels?
+  private var observers: [Channels: LogObserver] = [:]
   var associatedData: AssociatedHandlerData = [:]
   nonisolated(unsafe) var fatalHandler: FatalHandler = defaultFatalHandler
 
@@ -42,7 +48,7 @@ public actor Manager: ObservableObject {
      or on the command line.
      */
 
-  let channelsEnabledInSettings: Set<Channel.UIProperties.ID>
+  let channelsEnabledInSettings: Set<String>
 
   init(settings: ManagerSettings) {
     self.settings = settings
@@ -131,13 +137,6 @@ public actor Manager: ObservableObject {
 
   public func flush() {
   }
-
-  public func setChannelState(_ channel: Channel, enabled: Bool) async {
-    channel.enabled = enabled
-    saveChannelSettings()
-
-  }
-
 }
 
 // MARK: Fatal Error Handling
@@ -187,13 +186,8 @@ extension Manager {
      */
 
   internal func register(channel: Channel) {
-    channels.append(channel)
-    Task {
-      registeredChannels.append(channel.ui)
-    }
-    postChangeNotification()
-    watchers.append(
-      channel.ui.objectWillChange.sink { [weak self] in self?.channelUpdated(channel) })
+    channels.insert(channel)
+    scheduleNotification(for: channel)
   }
 
   /**
@@ -274,17 +268,52 @@ extension Manager {
     settings.saveEnabledChannels(enabledChannels)
   }
 
-  /**
-     Post a notification that channels have been updated.
-     Used to refresh debug UI.
-     */
+  /// Schedule a notification to be sent to all observers.
+  /// Optionally specify a channel that has changed.
+  func scheduleNotification(for channel: Channel? = nil) {
+    // make sure we have a changedChannels set to indicate that we need to send a notification
+    if changedChannels == nil {
+      changedChannels = []
+    }
+
+    // if a channel was specified, add it to the set
+    if let channel {
+      changedChannels?.insert(channel)
+    }
+
+    // schedule a task to send the notification later
+    Task {
+      postChangeNotification()
+    }
+  }
+
+  /// Tell any observers about changes to the channel list.
+  /// Multiple calls to this method will coalesce into a single notification
+  /// being delivered to each observer.
   func postChangeNotification() {
-    #if os(macOS) || os(iOS)
-      DispatchQueue.main.async { [self] in
-        objectWillChange.send()
-        NotificationCenter.default.post(name: Manager.channelsUpdatedNotification, object: self)
+    if let changedChannels {
+      let enabled = changedChannels.filter { $0.enabled }
+      for observer in observers {
+        Task {
+          await deliverChangeNotification(
+            to: observer, channels: channels, enabled: enabled,
+            changed: changedChannels)
+        }
       }
-    #endif
+      self.changedChannels = nil
+    }
+  }
+
+  /// Deliver a change notification to a single observer.
+  /// This is called by `postChangeNotification` for each observer,
+  /// and is done on the main actor to simplify life for UI-based observers.
+  @MainActor func deliverChangeNotification(
+    to observer: LogObserver, channels: Channels, enabled: Channels, changed: Channels
+  ) {
+    observer.channelsUpdated(channels, enabled: enabled)
+    for channel in changed {
+      observer.channelUpdated(channel, enabled: channel.enabled)
+    }
   }
 
 }
