@@ -4,16 +4,13 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-/**
- Encapsulates the context (function, line number, etc) in which the log statement was made.
- */
-
+/// Encapsulates the context (function, line number, etc) in which the log statement was made.
 public struct Context: CustomStringConvertible, Sendable {
   let file: StaticString
   let line: UInt
   let function: StaticString
   let column: UInt
-  let dso: UnsafeRawPointer
+  let dso: UInt
 
   public init(
     file: StaticString = #file, line: UInt = #line, column: UInt = #column,
@@ -23,7 +20,7 @@ public struct Context: CustomStringConvertible, Sendable {
     self.line = line
     self.function = function
     self.column = column
-    self.dso = dso
+    self.dso = UInt(bitPattern: dso)
   }
 
   public var description: String {
