@@ -11,19 +11,19 @@ import Foundation
 /// inject settings during testing.
 
 public protocol ManagerSettings {
-    /// The identifiers of the channels that should be enabled.
-    var enabledChannelIDs: Set<Channel.ID> { get }
+  /// The identifiers of the channels that should be enabled.
+  var enabledChannelIDs: Set<Channel.ID> { get }
 
-    /// Store the identifiers of the channels that should be enabled.
-    func saveEnabledChannelIDs(_ ids: Set<Channel.ID>)
+  /// Store the identifiers of the channels that should be enabled.
+  func saveEnabledChannelIDs(_ ids: Set<Channel.ID>)
 
-    /// Strip any settings-related command line arguments.
-    func removeLoggingOptions(fromCommandLineArguments arguments: [String]) -> [String]
+  /// Strip any settings-related command line arguments.
+  func removeLoggingOptions(fromCommandLineArguments arguments: [String]) -> [String]
 }
 
-public extension ManagerSettings {
-    /// Store the channels that should be enabled.
-    func saveEnabledChannels(_ channels: [Channel]) {
-        saveEnabledChannelIDs(Set(channels.map(\.id)))
-    }
+extension ManagerSettings {
+  /// Store the channels that should be enabled.
+  public func saveEnabledChannels(_ channels: Manager.Channels) {
+    saveEnabledChannelIDs(Set(channels.map(\.id)))
+  }
 }

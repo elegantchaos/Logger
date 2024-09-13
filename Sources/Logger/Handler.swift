@@ -12,38 +12,38 @@
  */
 
 public class Handler {
-    let name: String
-    let showName: Bool
-    let showSubsystem: Bool
+  let name: String
+  let showName: Bool
+  let showSubsystem: Bool
 
-    public init(_ name: String, showName: Bool = true, showSubsystem: Bool = false) {
-        self.name = name
-        self.showName = showName
-        self.showSubsystem = showSubsystem
-    }
+  public init(_ name: String, showName: Bool = true, showSubsystem: Bool = false) {
+    self.name = name
+    self.showName = showName
+    self.showSubsystem = showSubsystem
+  }
 
-    /**
+  /**
      Log something.
      */
 
-    public func log(channel _: Channel, context _: Context, logged _: Any) {}
+  public func log(channel _: Channel, context _: Context, logged _: Any) async {}
 
-    /**
+  /**
      Calculate a text tag indicating the name of the channel.
      Provided as a utility for subclasses to use if they need.
      */
 
-    internal func tag(channel: Channel) -> String {
-        if showName, showSubsystem {
-            return "[\(channel.subsystem).\(channel.name)] "
-        } else if showName {
-            return "[\(channel.name)] "
-        } else if showSubsystem {
-            return "[\(channel.subsystem)] "
-        } else {
-            return ""
-        }
+  internal func tag(channel: Channel) -> String {
+    if showName, showSubsystem {
+      return "[\(channel.subsystem).\(channel.name)] "
+    } else if showName {
+      return "[\(channel.name)] "
+    } else if showSubsystem {
+      return "[\(channel.subsystem)] "
+    } else {
+      return ""
     }
+  }
 }
 
 /**
@@ -52,11 +52,11 @@ public class Handler {
  */
 
 extension Handler: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        name.hash(into: &hasher)
-    }
+  public func hash(into hasher: inout Hasher) {
+    name.hash(into: &hasher)
+  }
 
-    public static func == (lhs: Handler, rhs: Handler) -> Bool {
-        lhs.name == rhs.name
-    }
+  public static func == (lhs: Handler, rhs: Handler) -> Bool {
+    lhs.name == rhs.name
+  }
 }

@@ -21,25 +21,21 @@ import Foundation
 /// whether or not they should share a single settings object.
 
 public actor Manager {
-  typealias AssociatedChannelData = [Channel: Any]
-  typealias AssociatedHandlerData = [Handler: AssociatedChannelData]
-
   /// A set of channels.
   public typealias Channels = Set<Channel>
 
   /// Protocol for objects that want to observe changes to the log channels.
   /// Useful for (for example) updating a UI when the list of channels changes,
   /// or when the enabled state of a channel changes.
-  public protocol LogObserver: Sendable {
+  public protocol Observer: Sendable {
     /// Called when any channels matching the filter for the observer have been updated.
-    func channelsUpdated(_ channels: Channels, enabled: Channels, all: Channels)
+    func channelsUpdated(_ updated: Channels, all: Channels, allEnabled: Channels) async
   }
 
   let settings: ManagerSettings
   private var channels: Channels = []
   private var changedChannels: Channels?
-  private var observers: [Channels: LogObserver] = [:]
-  var associatedData: AssociatedHandlerData = [:]
+  private var observers: [Channels: Observer] = [:]
   nonisolated(unsafe) var fatalHandler: FatalHandler = defaultFatalHandler
 
   /**
@@ -48,14 +44,13 @@ public actor Manager {
      or on the command line.
      */
 
-  let channelsEnabledInSettings: Set<String>
+  let channelsEnabledInSettings: Set<Channel.ID>
 
   init(settings: ManagerSettings) {
     self.settings = settings
-    self.channelsEnabledInSettings = settings.enabledChannelIDs
-    Task {
-      await logStartup()
-    }
+    let enabled = settings.enabledChannelIDs
+    self.channelsEnabledInSettings = enabled
+    logStartup(channels: enabled)
   }
 
   /**
@@ -69,6 +64,25 @@ public actor Manager {
      */
 
   public static let shared = initDefaultManager()
+
+  /**
+     Default handler to use for channels if nothing else is specified.
+
+     On the Mac this is an OSLogHandler, which will log directly to the console without
+     sending output to stdout/stderr.
+
+     On Linux it is a PrintHandler which will log to stdout.
+     */
+
+  static func initDefaultHandler() -> Handler {
+    #if os(macOS) || os(iOS)
+      return OSLogHandler("default")
+    #else
+      return stdoutHandler  // TODO: should perhaps be stderr instead?
+    #endif
+  }
+
+  public static let defaultHandler = initDefaultHandler()
 
   /// Initialise the default log manager.
   static func initDefaultManager() -> Self {
@@ -89,30 +103,7 @@ public actor Manager {
     return manager
   }
 
-  /**
-     Return arbitrary data associated with a channel/handler pair.
-     This provides handlers with a mechanism to use to store per-channel state.
-
-     If no data is stored, the setter closure is called to provide it.
-     */
-
-  public func associatedData<T>(handler: Handler, channel: Channel, setter: () -> T) -> T {
-    var handlerData = associatedData[handler]
-    if handlerData == nil {
-      handlerData = [:]
-      associatedData[handler] = handlerData
-    }
-
-    var channelData = handlerData![channel] as? T
-    if channelData == nil {
-      channelData = setter()
-      handlerData![channel] = channelData
-    }
-
-    return channelData!
-  }
-
-  func logStartup() {
+  nonisolated func logStartup(channels: Set<String>) {
     if let mode = ProcessInfo.processInfo.environment["LoggerDebug"], mode == "1" {
       #if DEBUG
         let mode = "debug"
@@ -120,7 +111,6 @@ public actor Manager {
         let mode = "release"
       #endif
       print("\nLogger running in \(mode) mode.")
-      let channels = enabledChannels
       print(
         channels.isEmpty
           ? "All channels currently disabled.\n" : "Enabled log channels: \(channels)\n")
@@ -178,94 +168,10 @@ extension Manager {
   }
 }
 
-// MARK: Channels
-
 extension Manager {
-  /**
-      Add to our list of registered channels.
-     */
-
-  internal func register(channel: Channel) {
+  func register(channel: Channel) {
     channels.insert(channel)
     scheduleNotification(for: channel)
-  }
-
-  /**
-     All the channels registered with the manager.
-
-     Channels get registered when they're first used,
-     which may not necessarily be when the application first runs.
-     */
-
-  public var registeredChannels: [Channel] {
-    channels  // TODO: expose a ObservableObject copy
-  }
-
-  /**
-     All the enabled channels.
-     */
-  public var enabledChannels: [Channel] {
-    return channels.filter { await $0.enabled }
-  }
-
-  /**
-     State of all channels together; useful for the debug UI.
-     */
-  public enum ChannelsState {
-    case allDisabled
-    case allEnabled
-    case mixed
-  }
-
-  /**
-     Current state of all channels.
-     */
-
-  public var channelsState: ChannelsState {
-    let registeredChannels = self.registeredChannels
-    let enabledCount = registeredChannels.filter(\.enabled).count
-    if enabledCount == registeredChannels.count {
-      return .allEnabled
-    } else if enabledCount == 0 {
-      return .allDisabled
-    } else {
-      return .mixed
-    }
-  }
-
-  /**
-     Returns a channel with a give name, if we have one.
-     */
-  public func channel(named name: String) -> Channel? {
-    registeredChannels.first(where: { $0.name == name })
-  }
-
-}
-
-extension Manager {
-  /**
-      Update the enabled/disabled state of one or more channels.
-      The change is persisted in the settings, and will be restored
-      next time the application runs.
-     */
-
-  public func update(channels: [Channel], state: Bool) {
-    for channel in channels {
-      channel.enabled = state
-      let change = channel.enabled ? "enabled" : "disabled"
-      print("Channel \(channel.name) \(change).")
-    }
-
-    saveChannelSettings()
-    postChangeNotification()
-  }
-
-  /**
-      Save the list of currently enabled channels.
-     */
-
-  func saveChannelSettings() {
-    settings.saveEnabledChannels(enabledChannels)
   }
 
   /// Schedule a notification to be sent to all observers.
@@ -283,37 +189,26 @@ extension Manager {
 
     // schedule a task to send the notification later
     Task {
-      postChangeNotification()
+      await postChangeNotification()
     }
   }
 
   /// Tell any observers about changes to the channel list.
   /// Multiple calls to this method will coalesce into a single notification
   /// being delivered to each observer.
-  func postChangeNotification() {
+  func postChangeNotification() async {
     if let changedChannels {
+      let all = channels
       let enabled = changedChannels.filter { $0.enabled }
-      for observer in observers {
-        Task {
-          await deliverChangeNotification(
-            to: observer, channels: channels, enabled: enabled,
-            changed: changedChannels)
+      for (filter, observer) in observers {
+        let matchingChannels = filter.isEmpty ? changedChannels : filter.union(changedChannels)
+        if !matchingChannels.isEmpty {
+          await observer.channelsUpdated(matchingChannels, all: all, allEnabled: enabled)
         }
+        settings.saveEnabledChannels(enabled)
+        self.changedChannels = nil
       }
-      self.changedChannels = nil
     }
-  }
 
-  /// Deliver a change notification to a single observer.
-  /// This is called by `postChangeNotification` for each observer,
-  /// and is done on the main actor to simplify life for UI-based observers.
-  @MainActor func deliverChangeNotification(
-    to observer: LogObserver, channels: Channels, enabled: Channels, changed: Channels
-  ) {
-    observer.channelsUpdated(channels, enabled: enabled)
-    for channel in changed {
-      observer.channelUpdated(channel, enabled: channel.enabled)
-    }
   }
-
 }

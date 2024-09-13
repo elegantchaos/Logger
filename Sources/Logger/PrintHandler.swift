@@ -9,12 +9,12 @@
  */
 
 public class PrintHandler: Handler {
-    public convenience init() {
-        self.init("print")
-    }
+  public convenience init() {
+    self.init("print")
+  }
 
-    override public func log(channel: Channel, context _: Context, logged: Any) {
-        let tag = tag(channel: channel)
-        print("\(tag)\(logged)")
-    }
+  override public func log(channel: Channel, context _: Context, logged: Any) async {
+    let tag = tag(channel: channel)
+    print("\(tag)\(logged)")
+  }
 }
