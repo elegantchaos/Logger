@@ -13,15 +13,15 @@ import Foundation
  to one or more handlers.
  */
 
-public class Channel: ObservableObject {
-    /**
+public actor Channel {
+  /**
      Default log handler which prints to standard out,
      without appending the channel details.
      */
 
-    public static let stdoutHandler = PrintHandler("default", showName: false, showSubsystem: false)
+  public static let stdoutHandler = PrintHandler("default", showName: false, showSubsystem: false)
 
-    /**
+  /**
      Default handler to use for channels if nothing else is specified.
 
      On the Mac this is an OSLogHandler, which will log directly to the console without
@@ -30,17 +30,17 @@ public class Channel: ObservableObject {
      On Linux it is a PrintHandler which will log to stdout.
      */
 
-    static func initDefaultHandler() -> Handler {
-#if os(macOS) || os(iOS)
-        return OSLogHandler("default")
-#else
-        return stdoutHandler // TODO: should perhaps be stderr instead?
-#endif
-    }
+  static func initDefaultHandler() -> Handler {
+    #if os(macOS) || os(iOS)
+      return OSLogHandler("default")
+    #else
+      return stdoutHandler  // TODO: should perhaps be stderr instead?
+    #endif
+  }
 
-    public static let defaultHandler = initDefaultHandler()
+  public static let defaultHandler = initDefaultHandler()
 
-    /**
+  /**
      Default subsystem if nothing else is specified.
      If the channel name is in dot syntax (x.y.z), then the last component is
      assumed to be the name, and the rest is assumed to be the subsystem.
@@ -49,9 +49,9 @@ public class Channel: ObservableObject {
      is used for the subsytem.
      */
 
-    static let defaultSubsystem = "com.elegantchaos.logger"
+  static let defaultSubsystem = "com.elegantchaos.logger"
 
-    /**
+  /**
      Default log channel that clients can use to log their actual output.
      This is intended as a convenience for command line programs which actually want to produce output.
      They could of course just use print() for this (producing normal output isn't strictly speaking
@@ -61,46 +61,80 @@ public class Channel: ObservableObject {
      Unlike most channels, we want this one to default to always being on.
      */
 
-    public static let stdout = Channel("stdout", handlers: [stdoutHandler], alwaysEnabled: true)
+  public static let stdout = Channel("stdout", handlers: [stdoutHandler], alwaysEnabled: true)
 
-    public let name: String
-    public let subsystem: String
-    @Published public var enabled: Bool
+  public let name: String
+  public let subsystem: String
 
-    public var fullName: String {
-        "\(subsystem).\(name)"
+  public private(set) var enabled: Bool
+  public func setEnabled(state: Bool) async {
+    enabled = state
+    await ui.setEnabled(state: state)
+  }
+
+  public var fullName: String {
+    "\(subsystem).\(name)"
+  }
+
+  let manager: Manager
+  var handlers: [Handler] = []
+
+  /// MainActor isolated properties for use in the user interface.
+  /// This object is observable so the UI can watch it for changes
+  /// to the enabled state of the channel.
+  @MainActor public class UI: Identifiable, ObservableObject {
+    @Published public private(set) var enabled: Bool
+    public weak var channel: Channel!
+    public let id: String
+
+    init(channel: Channel, id: String, enabled: Bool) {
+      self.channel = channel
+      self.id = id
+      self.enabled = enabled
     }
 
-    let manager: Manager
-    var handlers: [Handler] = []
+    func setEnabled(state: Bool) {
+      enabled = state
+    }
+  }
 
-    public init(_ name: String, handlers: @autoclosure () -> [Handler] = [defaultHandler], alwaysEnabled: Bool = false, manager: Manager = Manager.shared) {
-        let components = name.split(separator: ".")
-        let last = components.count - 1
-        let shortName: String
-        let subName: String
+  public let ui: UI
 
-        if last > 0 {
-            shortName = String(components[last])
-            subName = components[..<last].joined(separator: ".")
-        } else {
-            shortName = name
-            subName = Channel.defaultSubsystem
-        }
+  public init(
+    _ name: String, handlers: @autoclosure () -> [Handler] = [defaultHandler],
+    alwaysEnabled: Bool = false, manager: Manager = Manager.shared
+  ) {
+    let components = name.split(separator: ".")
+    let last = components.count - 1
+    let shortName: String
+    let subName: String
 
-        let fullName = "\(subName).\(shortName)"
-        let enabledList = manager.channelsEnabledInSettings
-
-        self.name = shortName
-        self.subsystem = subName
-        self.manager = manager
-        self.enabled = enabledList.contains(shortName) || enabledList.contains(fullName) || alwaysEnabled
-        self.handlers = handlers() // TODO: does this need to be a closure any more?
-
-        manager.register(channel: self)
+    if last > 0 {
+      shortName = String(components[last])
+      subName = components[..<last].joined(separator: ".")
+    } else {
+      shortName = name
+      subName = Channel.defaultSubsystem
     }
 
-    /**
+    let fullName = "\(subName).\(shortName)"
+    let enabledList = manager.channelsEnabledInSettings
+    let isEnabled =
+      enabledList.contains(shortName) || enabledList.contains(fullName) || alwaysEnabled
+
+    self.name = shortName
+    self.subsystem = subName
+    self.manager = manager
+    self.enabled = isEnabled
+
+    self.handlers = handlers()  // TODO: does this need to be a closure any more?
+    self.ui = UI(channel: self, id: fullName, enabled: isEnabled)
+    Task {
+      await manager.register(channel: self)
+    }
+  }
+
+  /**
      Log something.
 
      The logged value is an autoclosure, to avoid doing unnecessary work if the channel is disabled.
@@ -114,53 +148,46 @@ public class Channel: ObservableObject {
      setting.
      */
 
-    public func log(_ logged: @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line, column: UInt = #column, function: StaticString = #function) {
-        if enabled {
-            let value = logged()
-            manager.queue.async {
-                let context = Context(file: file, line: line, column: column, function: function)
-                self.handlers.forEach { $0.log(channel: self, context: context, logged: value) }
-            }
-        }
+  public func log(
+    _ logged: @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,
+    column: UInt = #column, function: StaticString = #function
+  ) {
+    if enabled {
+      let value = logged()
+      let context = Context(file: file, line: line, column: column, function: function)
+      self.handlers.forEach { $0.log(channel: self, context: context, logged: value) }
     }
+  }
 
-    public func debug(_ logged: @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line, column: UInt = #column, function: StaticString = #function) {
-        #if DEBUG
-        if enabled {
-            log(logged(), file: file, line: line, column: column, function: function)
-        }
-        #endif
-    }
+  public func debug(
+    _ logged: @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,
+    column: UInt = #column, function: StaticString = #function
+  ) {
+    #if DEBUG
+      if enabled {
+        log(logged(), file: file, line: line, column: column, function: function)
+      }
+    #endif
+  }
 
-    public func fatal(_ logged: @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line, column: UInt = #column, function: StaticString = #function) -> Never {
-        let value = logged()
-        log(value, file: file, line: line, column: column, function: function)
-        manager.fatalHandler(value, self, file, line)
-    }
+  public func fatal(
+    _ logged: @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,
+    column: UInt = #column, function: StaticString = #function
+  ) -> Never {
+    let value = logged()
+    log(value, file: file, line: line, column: column, function: function)
+    manager.fatalHandler(value, self, file, line)
+  }
 }
 
 extension Channel: Hashable {
-    // For now, we treat channels with the same name as equal,
-    // as long as they belong to the same manager.
-    public func hash(into hasher: inout Hasher) {
-        name.hash(into: &hasher)
-    }
+  // For now, we treat channels with the same name as equal,
+  // as long as they belong to the same manager.
+  nonisolated public func hash(into hasher: inout Hasher) {
+    name.hash(into: &hasher)
+  }
 
-    public static func == (lhs: Channel, rhs: Channel) -> Bool {
-        (lhs.name == rhs.name) && (lhs.manager === rhs.manager)
-    }
+  public static func == (lhs: Channel, rhs: Channel) -> Bool {
+    (lhs.name == rhs.name) && (lhs.manager === rhs.manager)
+  }
 }
-
-extension Channel: Identifiable {
-    public var id: String { fullName }
-}
-
-// MARK: Deprecated API
-
-public extension Channel {
-    @available(*, deprecated, message: "Use Manager.shared instead")
-    static var defaultManager: Manager { Manager.shared }
-}
-
-@available(*, deprecated, message: "Use ``Channel`` instead.")
-public typealias Logger = Channel

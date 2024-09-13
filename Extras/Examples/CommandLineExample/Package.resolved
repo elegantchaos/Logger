@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Logger",
+        "repositoryURL": "/Users/sam/Developer/Projects/Logger",
+        "state": {
+          "branch": "main",
+          "revision": "a5cfb4ede43a0f4782afb2aea3175a04f206efcf",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}
