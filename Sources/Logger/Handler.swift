@@ -11,26 +11,34 @@
  writing it to disk, or sending it down a pipe or network stream.
  */
 
-actor Handler {
+public protocol Handler {
+  func log(_ value: Sendable, context: Context) async
+}
+
+public actor BasicHandler: Handler {
+  public typealias Logger = @Sendable (Sendable, Context, BasicHandler) async -> Void
+
   let name: String
   let showName: Bool
   let showSubsystem: Bool
+  let logger: Logger
 
-  public init(_ name: String, showName: Bool = true, showSubsystem: Bool = false) {
+  public init(
+    _ name: String, showName: Bool = true, showSubsystem: Bool = false, logger: @escaping Logger
+  ) {
     self.name = name
     self.showName = showName
     self.showSubsystem = showSubsystem
+    self.logger = logger
   }
 
   /// Log something.
-  func log(_ value: Sendable, context: Context) async {}
+  public func log(_ value: Sendable, context: Context) async { await logger(value, context, self) }
 
-  /**
-     Calculate a text tag indicating the name of the channel.
-     Provided as a utility for subclasses to use if they need.
-     */
-
-  internal func tag(channel: Channel) -> String {
+  /// Calculate a text tag indicating the context.
+  /// Provided as a utility for logger callbacks to use as they need.
+  internal func tag(for context: Context) -> String {
+    let channel = context.channel
     if showName, showSubsystem {
       return "[\(channel.subsystem).\(channel.name)] "
     } else if showName {
@@ -43,17 +51,20 @@ actor Handler {
   }
 }
 
-/**
- We store an index of handlers in a dictionary, so need them to be hashable.
- For now, we simply treat handlers with the same name as equal.
- */
-
-extension Handler: Hashable {
-  public func hash(into hasher: inout Hasher) {
-    name.hash(into: &hasher)
-  }
-
-  public static func == (lhs: Handler, rhs: Handler) -> Bool {
-    lhs.name == rhs.name
-  }
+/// Outputs log messages using swift's print() function.
+let printHandler = BasicHandler("print") { value, context, handler in
+  let tag = handler.tag(for: context)
+  print("\(tag)\(value)")
 }
+
+#if os(macOS) || os(iOS)
+  import Foundation
+
+  ///  Outputs log messages using NSLog()
+  let nslogHandler = BasicHandler("nslog") {
+    value, context, handler in
+    let tag = handler.tag(for: context)
+    NSLog("\(tag)\(value)")
+  }
+
+#endif

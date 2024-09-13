@@ -8,23 +8,19 @@
 
   import os
 
-  /**
- Outputs log messages using os_log().
- */
-
-  @available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 5.0, *) public class OSLogHandler: Handler {
+  /// Outputs log messages using os_log().
+  public actor OSLogHandler: Handler {
+    /// Table of logs - one for each channel.
     var logTable: [Channel: OSLog] = [:]
 
-    public convenience init() {
-      self.init("oslog")
-    }
-
-    override public func log(channel: Channel, context: Context, logged: Any) async {
+    public func log(_ value: Sendable, context: Context) async {
+      let channel = context.channel
       let log = logTable[
         channel, default: OSLog(subsystem: channel.subsystem, category: channel.name)]
 
-      let message = "\(logged)"
-      os_log("%{public}@", dso: context.dso, log: log, type: .default, message)
+      let message = String(describing: value)
+      let dso = UnsafeRawPointer(bitPattern: context.dso)
+      os_log("%{public}@", dso: dso, log: log, type: .default, message)
     }
   }
 

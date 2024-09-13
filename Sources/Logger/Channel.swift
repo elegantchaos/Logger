@@ -83,11 +83,12 @@ public actor Channel {
 
   nonisolated public func log<T>(
     _ logged: @autoclosure () -> T, file: StaticString = #file, line: UInt = #line,
-    column: UInt = #column, function: StaticString = #function
+    column: UInt = #column, function: StaticString = #function, dso: UnsafeRawPointer = #dsohandle
   ) {
     if enabled {
       let context = Context(
-        file: file, line: line, column: column, function: function)
+        channel: self,
+        file: file, line: line, column: column, function: function, dso: dso)
       let value = asSendable(logged)
       Task {
         let handler = await self.handler
@@ -98,12 +99,13 @@ public actor Channel {
 
   nonisolated public func debug<T>(
     _ logged: @autoclosure () -> T, file: StaticString = #file, line: UInt = #line,
-    column: UInt = #column, function: StaticString = #function
+    column: UInt = #column, function: StaticString = #function, dso: UnsafeRawPointer = #dsohandle
   ) {
     #if DEBUG
       if enabled {
         let context = Context(
-          file: file, line: line, column: column, function: function)
+          channel: self,
+          file: file, line: line, column: column, function: function, dso: dso)
         let value = asSendable(logged)
         Task {
           let handler = await self.handler
