@@ -46,7 +46,7 @@ public actor Manager {
 
   let channelsEnabledInSettings: Set<Channel.ID>
 
-  init(settings: ManagerSettings) {
+  public init(settings: ManagerSettings) {
     self.settings = settings
     let enabled = settings.enabledChannelIDs
     self.channelsEnabledInSettings = enabled

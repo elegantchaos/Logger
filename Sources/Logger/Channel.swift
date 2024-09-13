@@ -30,14 +30,15 @@ public actor Channel {
   nonisolated(unsafe) public var enabled: Bool
 
   let manager: Manager
-  var handlers: [Handler] = []
+  var handler: Handler
 
   static let defaultSubsystem = "com.elegantchaos.logger"
 
   public init(
-    _ name: String, handlers: @autoclosure () -> [Handler] = [Manager.defaultHandler],
-    alwaysEnabled: Bool = false, manager: Manager = Manager.shared
+    _ name: String, handler: Handler? = nil,
+    alwaysEnabled: Bool = false, manager: Manager? = nil
   ) {
+    let manager = manager ?? Manager.shared
     let components = name.split(separator: ".")
     let last = components.count - 1
     let shortName: String
@@ -60,8 +61,7 @@ public actor Channel {
     self.subsystem = subName
     self.manager = manager
     self.enabled = isEnabled
-
-    self.handlers = handlers()  // TODO: does this need to be a closure any more?
+    self.handler = handler ?? Manager.defaultHandler
     Task {
       await manager.register(channel: self)
     }
@@ -86,15 +86,13 @@ public actor Channel {
     column: UInt = #column, function: StaticString = #function
   ) {
     if enabled {
-      let context = Context(file: file, line: line, column: column, function: function)
+      let context = Context(
+        file: file, line: line, column: column, function: function)
       let value = asSendable(logged)
-      Task.detached { await self._log(value, context: context) }
-    }
-  }
-
-  public func _log(_ value: Sendable, context: Context) {
-    for handler in handlers {
-      Task { await handler.log(channel: self, context: context, logged: value) }
+      Task {
+        let handler = await self.handler
+        await handler.log(value, context: context)
+      }
     }
   }
 
@@ -104,9 +102,13 @@ public actor Channel {
   ) {
     #if DEBUG
       if enabled {
-        let context = Context(file: file, line: line, column: column, function: function)
+        let context = Context(
+          file: file, line: line, column: column, function: function)
         let value = asSendable(logged)
-        Task { await self._log(value, context: context) }
+        Task {
+          let handler = await self.handler
+          await handler.log(value, context: context)
+        }
       }
     #endif
   }

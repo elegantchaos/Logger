@@ -11,7 +11,7 @@
  writing it to disk, or sending it down a pipe or network stream.
  */
 
-public class Handler {
+actor Handler {
   let name: String
   let showName: Bool
   let showSubsystem: Bool
@@ -22,11 +22,8 @@ public class Handler {
     self.showSubsystem = showSubsystem
   }
 
-  /**
-     Log something.
-     */
-
-  public func log(channel _: Channel, context _: Context, logged _: Any) async {}
+  /// Log something.
+  func log(_ value: Sendable, context: Context) async {}
 
   /**
      Calculate a text tag indicating the name of the channel.
