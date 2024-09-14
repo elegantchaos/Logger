@@ -76,7 +76,7 @@ public actor Manager {
 
   static func initDefaultHandler() -> Handler {
     #if os(macOS) || os(iOS)
-      return OSLogHandler("default")
+      return OSLogHandler()
     #else
       return stdoutHandler  // TODO: should perhaps be stderr instead?
     #endif

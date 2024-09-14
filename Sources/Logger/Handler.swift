@@ -11,14 +11,15 @@
  writing it to disk, or sending it down a pipe or network stream.
  */
 
-public protocol Handler {
+public protocol Handler: Sendable {
+  var name: String { get }
   func log(_ value: Sendable, context: Context) async
 }
 
 public actor BasicHandler: Handler {
   public typealias Logger = @Sendable (Sendable, Context, BasicHandler) async -> Void
 
-  let name: String
+  public let name: String
   let showName: Bool
   let showSubsystem: Bool
   let logger: Logger

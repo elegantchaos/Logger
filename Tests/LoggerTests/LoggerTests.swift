@@ -9,23 +9,28 @@ import Testing
 
 /// Test item that can record when it has been logged.
 /// Test log handler which remembers everything that is logged.
-class TestHandler: Handler {
+actor TestHandler: Handler {
 
   var logged: [Any] = []
   var continuation: AsyncStream<Any>.Continuation?
 
-  override func log(channel _: Channel, context _: Context, logged: Any) async {
-    self.logged.append("\(logged)")
-    continuation?.yield(logged)
+  func log(_ value: Sendable, context: Context) async {
+    self.logged.append("\(value)")
+    continuation?.yield(value)
   }
 
+  func setContinuation(_ continuation: AsyncStream<Any>.Continuation) {
+    self.continuation = continuation
+  }
   struct Stream: AsyncSequence {
     typealias AsyncIterator = AsyncStream<Any>.Iterator
     typealias Element = Any
     let handler: TestHandler
     func makeAsyncIterator() -> AsyncIterator {
       AsyncStream<Any> { continuation in
-        handler.continuation = continuation
+        Task {
+          await handler.setContinuation(continuation)
+        }
       }.makeAsyncIterator()
     }
 
@@ -49,7 +54,7 @@ func makeTestManager() -> Manager {
 struct LoggerTests {
   @Test func name() async throws {
     let handler = TestHandler("test")
-    let results = handler.stream
+    let results = await handler.stream
     let channel = Channel("test", handler: handler, manager: makeTestManager())
     channel.log("test")
     handler.continuation?.finish()
