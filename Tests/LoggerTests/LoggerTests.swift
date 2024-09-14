@@ -11,6 +11,7 @@ import Testing
 /// Test log handler which remembers everything that is logged.
 actor TestHandler: Handler {
 
+  let name = "test"
   var logged: [Any] = []
   var continuation: AsyncStream<Any>.Continuation?
 
@@ -51,13 +52,22 @@ func makeTestManager() -> Manager {
   return Manager(settings: EmptyManagerSettings())
 }
 
+func withTestChannel(activity: (TestHandler, Channel) async throws -> Void) async throws
+  -> TestHandler.Stream
+{
+  let handler = TestHandler()
+  let results = await handler.stream
+  let channel = Channel("test", handler: handler, manager: makeTestManager())
+  try await activity(handler, channel)
+  await handler.continuation?.finish()
+  return results
+}
+
 struct LoggerTests {
   @Test func name() async throws {
-    let handler = TestHandler("test")
-    let results = await handler.stream
-    let channel = Channel("test", handler: handler, manager: makeTestManager())
-    channel.log("test")
-    handler.continuation?.finish()
+    let results = try await withTestChannel { handler, channel in
+      channel.log("test")
+    }
     for await item in results {
       #expect(item as? String == "test")
     }

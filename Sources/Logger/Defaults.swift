@@ -1,7 +1,4 @@
 struct Defaults {
-  /// Default log handler which prints to standard out, without appending the channel details.
-  @MainActor public static let stdoutHandler = PrintHandler(
-    "default", showName: false, showSubsystem: false)
 
   /**
      Default log channel that clients can use to log their actual output.
@@ -13,7 +10,7 @@ struct Defaults {
      Unlike most channels, we want this one to default to always being on.
      */
 
-  @MainActor public static let stdout = Channel(
-    "stdout", handlers: [stdoutHandler], alwaysEnabled: true)
+  public static let stdout = Channel(
+    "stdout", handler: printHandler, alwaysEnabled: true)
 
 }

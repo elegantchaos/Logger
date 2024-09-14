@@ -12,7 +12,7 @@
   public actor OSLogHandler: Handler {
     /// Table of logs - one for each channel.
     var logTable: [Channel: OSLog] = [:]
-
+    public let name = "oslog"
     public func log(_ value: Sendable, context: Context) async {
       let channel = context.channel
       let log = logTable[
