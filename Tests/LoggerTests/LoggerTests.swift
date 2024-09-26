@@ -7,37 +7,43 @@
 import Logger
 import Testing
 
-/// Test item that can record when it has been logged.
-/// Test log handler which remembers everything that is logged.
+/// Test log handler which yields items to an async stream.
 actor TestHandler: Handler {
-
-  let name = "test"
-  var logged: [Any] = []
-  var continuation: AsyncStream<Any>.Continuation?
-
-  func log(_ value: Sendable, context: Context) async {
-    self.logged.append("\(value)")
-    continuation?.yield(value)
-  }
-
-  func setContinuation(_ continuation: AsyncStream<Any>.Continuation) {
+  internal init(logged: [Any] = [], continuation: AsyncStream<any Sendable>.Continuation) {
     self.continuation = continuation
   }
-  struct Stream: AsyncSequence {
-    typealias AsyncIterator = AsyncStream<Any>.Iterator
-    typealias Element = Any
-    let handler: TestHandler
-    func makeAsyncIterator() -> AsyncIterator {
-      AsyncStream<Any> { continuation in
-        Task {
-          await handler.setContinuation(continuation)
-        }
-      }.makeAsyncIterator()
-    }
 
+  let name = "test"
+  let continuation: AsyncStream<Sendable>.Continuation
+
+  func log(_ value: Sendable, context: Context) async {
+    print("logged: \(value)")
+    continuation.yield(String(describing: value))
   }
 
-  var stream: Stream { Stream(handler: self) }
+}
+
+struct Sequence2: AsyncSequence {
+  typealias AsyncIterator = AsyncStream<Sendable>.Iterator
+  typealias Element = Sendable
+  let action: @Sendable (AsyncStream<Sendable>.Continuation) throws -> Void
+
+  func makeAsyncIterator() -> AsyncStream<any Sendable>.Iterator {
+    print("making stream")
+    let s = AsyncStream<Sendable> {
+      AsyncStream<Sendable> { continuation in
+        do {
+          try action(continuation)
+        } catch {
+          continuation.finish()
+          print(error)
+        }
+      }
+    }
+
+    print("returning iterator")
+    return s.makeAsyncIterator()
+  }
 }
 
 struct EmptyManagerSettings: ManagerSettings {
@@ -52,25 +58,40 @@ func makeTestManager() -> Manager {
   return Manager(settings: EmptyManagerSettings())
 }
 
-func withTestChannel(activity: (TestHandler, Channel) async throws -> Void) async throws
-  -> TestHandler.Stream
+func withTestChannel(activity: @escaping @Sendable (TestHandler, Channel) async throws -> Void)
+  throws
+  -> Sequence2
 {
-  let handler = TestHandler()
-  let results = await handler.stream
-  let channel = Channel("test", handler: handler, manager: makeTestManager())
-  try await activity(handler, channel)
-  await handler.continuation?.finish()
-  return results
+  let s = Sequence2 { continuation in
+    Task {
+      let handler = TestHandler(continuation: continuation)
+      let channel = Channel(
+        "test", handler: handler, alwaysEnabled: true, manager: makeTestManager())
+      try await activity(handler, channel)
+      print("done activity")
+      continuation.finish()
+      print("finished")
+    }
+  }
+  return s
 }
 
 struct LoggerTests {
   @Test func name() async throws {
-    let results = try await withTestChannel { handler, channel in
+    let output = try withTestChannel { handler, channel in
+      print("A1")
       channel.log("test")
+      print("A2")
     }
-    for await item in results {
+
+    for await item in output {
+      print("B \(item)")
       #expect(item as? String == "test")
+      print("C")
     }
+
+    print("done loop")
+
   }
 }
 
