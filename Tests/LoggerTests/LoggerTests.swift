@@ -18,7 +18,7 @@ actor TestHandler: Handler {
 
   func log(_ value: Sendable, context: Context) async {
     print("logged: \(value)")
-    continuation.yield(String(describing: value))
+    continuation.yield(value)
   }
 
 }
@@ -30,7 +30,7 @@ struct Sequence2: AsyncSequence {
 
   func makeAsyncIterator() -> AsyncStream<any Sendable>.Iterator {
     print("making stream")
-    let s = AsyncStream<Sendable> {
+    let s =
       AsyncStream<Sendable> { continuation in
         do {
           try action(continuation)
@@ -39,7 +39,6 @@ struct Sequence2: AsyncSequence {
           print(error)
         }
       }
-    }
 
     print("returning iterator")
     return s.makeAsyncIterator()
