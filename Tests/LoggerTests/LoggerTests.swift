@@ -9,12 +9,14 @@ import Testing
 
 /// Test log handler which yields items to an async stream.
 actor TestHandler: Handler {
-  internal init(logged: [Any] = [], continuation: AsyncStream<any Sendable>.Continuation) {
+  internal init(
+    logged: [Any] = [], continuation: AsyncThrowingStream<any Sendable, Error>.Continuation
+  ) {
     self.continuation = continuation
   }
 
   let name = "test"
-  let continuation: AsyncStream<Sendable>.Continuation
+  let continuation: AsyncThrowingStream<Sendable, Error>.Continuation
 
   func log(_ value: Sendable, context: Context) async {
     print("logged: \(value)")
@@ -24,19 +26,20 @@ actor TestHandler: Handler {
 }
 
 struct Sequence2: AsyncSequence {
-  typealias AsyncIterator = AsyncStream<Sendable>.Iterator
+  typealias AsyncIterator = AsyncThrowingStream<Sendable, Error>.Iterator
   typealias Element = Sendable
-  let action: @Sendable (AsyncStream<Sendable>.Continuation) throws -> Void
+  let action: @Sendable (AsyncThrowingStream<Sendable, Error>.Continuation) async throws -> Void
 
-  func makeAsyncIterator() -> AsyncStream<any Sendable>.Iterator {
+  func makeAsyncIterator() -> AsyncThrowingStream<any Sendable, Error>.Iterator {
     print("making stream")
     let s =
-      AsyncStream<Sendable> { continuation in
-        do {
-          try action(continuation)
-        } catch {
-          continuation.finish()
-          print(error)
+      AsyncThrowingStream<Sendable, Error> { continuation in
+        Task {
+          do {
+            try await action(continuation)
+          } catch {
+            continuation.finish(throwing: error)
+          }
         }
       }
 
@@ -62,15 +65,13 @@ func withTestChannel(activity: @escaping @Sendable (TestHandler, Channel) async 
   -> Sequence2
 {
   let s = Sequence2 { continuation in
-    Task {
-      let handler = TestHandler(continuation: continuation)
-      let channel = Channel(
-        "test", handler: handler, alwaysEnabled: true, manager: makeTestManager())
-      try await activity(handler, channel)
-      print("done activity")
-      continuation.finish()
-      print("finished")
-    }
+    let handler = TestHandler(continuation: continuation)
+    let channel = Channel(
+      "test", handler: handler, alwaysEnabled: true, manager: makeTestManager())
+    try await activity(handler, channel)
+    print("done activity")
+    continuation.finish()
+    print("finished")
   }
   return s
 }
@@ -83,7 +84,7 @@ struct LoggerTests {
       print("A2")
     }
 
-    for await item in output {
+    for try await item in output {
       print("B \(item)")
       #expect(item as? String == "test")
       print("C")
