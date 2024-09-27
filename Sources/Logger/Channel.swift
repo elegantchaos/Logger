@@ -31,12 +31,13 @@ public actor Channel {
 
   let manager: Manager
   var handler: Handler
+  let sequence: LogSequence
 
   static let defaultSubsystem = "com.elegantchaos.logger"
 
   public init(
     _ name: String, handler: Handler? = nil,
-    alwaysEnabled: Bool = false, manager: Manager? = nil
+    alwaysEnabled: Bool = false, manager: Manager? = nil, autoRun: Bool = true
   ) {
     let manager = manager ?? Manager.shared
     let components = name.split(separator: ".")
@@ -62,8 +63,14 @@ public actor Channel {
     self.manager = manager
     self.enabled = isEnabled
     self.handler = handler ?? Manager.defaultHandler
+    let s = LogSequence()
+    self.sequence = s
+
     Task {
       await manager.register(channel: self)
+      if autoRun {
+        await run()
+      }
     }
   }
 
@@ -90,10 +97,7 @@ public actor Channel {
         channel: self,
         file: file, line: line, column: column, function: function, dso: dso)
       let value = asSendable(logged)
-      Task {
-        let handler = await self.handler
-        await handler.log(value, context: context)
-      }
+      sequence.log(LoggedItem(value: value, context: context))
     }
   }
 
@@ -107,10 +111,7 @@ public actor Channel {
           channel: self,
           file: file, line: line, column: column, function: function, dso: dso)
         let value = asSendable(logged)
-        Task {
-          let handler = await self.handler
-          await handler.log(value, context: context)
-        }
+        sequence.log(LoggedItem(value: value, context: context))
       }
     #endif
   }
@@ -124,10 +125,24 @@ public actor Channel {
     manager.fatalHandler(value, self, file, line)
   }
 
-  /// Flush the channel.
-  /// When this returns, all output should have been logged by the handler.
-  public func flush() async {
-    await handler.flush()
+  /// Kick off the handler. It will pull items from the
+  /// stream until it is finished.
+  /// NB: Under normal conditions this function is called automatically
+  /// when the channel is created. For testing purposes it's useful to
+  /// be able to call it manually, in order to wait for all logged items
+  /// to be processed.
+  public func run() async {
+    for await item in sequence {
+      await handler.log(item.value, context: item.context)
+    }
+  }
+
+  /// Shut down the channel.
+  /// Logging items to the channel after this call
+  /// will do nothing.
+  /// NB: Under normal conditions this function does not need to be called.
+  public func shutdown() async {
+    sequence.continuation.finish()
   }
 }
 

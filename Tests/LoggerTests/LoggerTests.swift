@@ -30,11 +30,12 @@ func withTestChannel(action: @escaping @Sendable (Channel, StreamHandler) async 
           let handler = StreamHandler("test", continuation: continuation)
           let manager = Manager(settings: TestSettings())
           let channel = Channel(
-            "test", handler: handler, alwaysEnabled: true, manager: manager)
+            "test", handler: handler, alwaysEnabled: true, manager: manager, autoRun: false)
           print("running action")
           try await action(channel, handler)
           print("done")
-          await channel.flush()
+          await channel.shutdown()
+          await channel.run()
           print("flushed")
           await handler.finish()
         } catch {
