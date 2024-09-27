@@ -7,48 +7,8 @@
 import Logger
 import Testing
 
-/// Test log handler which yields items to an async stream.
-actor TestHandler: Handler {
-  internal init(
-    logged: [Any] = [], continuation: AsyncThrowingStream<any Sendable, Error>.Continuation
-  ) {
-    self.continuation = continuation
-  }
-
-  let name = "test"
-  let continuation: AsyncThrowingStream<Sendable, Error>.Continuation
-
-  func log(_ value: Sendable, context: Context) async {
-    print("logged: \(value)")
-    continuation.yield(value)
-  }
-
-}
-
-struct Sequence2: AsyncSequence {
-  typealias AsyncIterator = AsyncThrowingStream<Sendable, Error>.Iterator
-  typealias Element = Sendable
-  let action: @Sendable (AsyncThrowingStream<Sendable, Error>.Continuation) async throws -> Void
-
-  func makeAsyncIterator() -> AsyncThrowingStream<any Sendable, Error>.Iterator {
-    print("making stream")
-    let s =
-      AsyncThrowingStream<Sendable, Error> { continuation in
-        Task {
-          do {
-            try await action(continuation)
-          } catch {
-            continuation.finish(throwing: error)
-          }
-        }
-      }
-
-    print("returning iterator")
-    return s.makeAsyncIterator()
-  }
-}
-
-struct EmptyManagerSettings: ManagerSettings {
+/// Settings supplier for the tests.
+struct TestSettings: ManagerSettings {
   var enabledChannelIDs: Set<Channel.ID> { [] }
   func saveEnabledChannelIDs(_: Set<Channel.ID>) {}
   func removeLoggingOptions(fromCommandLineArguments arguments: [String]) -> [String] {
@@ -56,43 +16,62 @@ struct EmptyManagerSettings: ManagerSettings {
   }
 }
 
-func makeTestManager() -> Manager {
-  return Manager(settings: EmptyManagerSettings())
-}
-
-func withTestChannel(activity: @escaping @Sendable (TestHandler, Channel) async throws -> Void)
+/// Set up a test channel and handler, and perform some action(s) with it.
+/// The result of the call is an asynchronous stream containing the
+/// items that were logged to the channel.
+func withTestChannel(action: @escaping @Sendable (Channel, StreamHandler) async throws -> Void)
   throws
-  -> Sequence2
+  -> LogStream
 {
-  let s = Sequence2 { continuation in
-    let handler = TestHandler(continuation: continuation)
-    let channel = Channel(
-      "test", handler: handler, alwaysEnabled: true, manager: makeTestManager())
-    try await activity(handler, channel)
-    print("done activity")
-    continuation.finish()
-    print("finished")
-  }
-  return s
+  let st =
+    LogStream { continuation in
+      Task {
+        do {
+          let handler = StreamHandler("test", continuation: continuation)
+          let manager = Manager(settings: TestSettings())
+          let channel = Channel(
+            "test", handler: handler, alwaysEnabled: true, manager: manager)
+          print("running action")
+          try await action(channel, handler)
+          print("done")
+          await channel.flush()
+          print("flushed")
+          await handler.finish()
+        } catch {
+          continuation.finish(throwing: error)
+        }
+      }
+    }
+
+  print("returned stream")
+  return st
 }
 
 struct LoggerTests {
-  @Test func name() async throws {
-    let output = try withTestChannel { handler, channel in
-      print("A1")
+  @Test func testLogging() async throws {
+    let output = try withTestChannel { channel, _ in
       channel.log("test")
-      print("A2")
     }
 
+    var count = 0
     for try await item in output {
-      print("B \(item)")
+      print("A")
+      count += 1
       #expect(item as? String == "test")
-      print("C")
     }
-
-    print("done loop")
-
+    #expect(count == 1)
   }
+
+  // @Test func testDisabled() async throws {
+  //   let output = try withTestChannel { channel, _ in
+  //     channel.enabled = false
+  //     channel.log("test")
+  //   }
+
+  //   for try await _ in output {
+  //     fatalError("channel should have no output")
+  //   }
+  // }
 }
 
 // #if !os(watchOS)

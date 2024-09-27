@@ -123,6 +123,12 @@ public actor Channel {
     log(value, file: file, line: line, column: column, function: function)
     manager.fatalHandler(value, self, file, line)
   }
+
+  /// Flush the channel.
+  /// When this returns, all output should have been logged by the handler.
+  public func flush() async {
+    await handler.flush()
+  }
 }
 
 extension Channel: Identifiable {
