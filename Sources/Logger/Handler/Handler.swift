@@ -10,6 +10,6 @@
 
 public protocol Handler: Sendable {
   var name: String { get }
-  func log(_ value: Sendable, context: Context) async
+  func log(_ item: LoggedItem) async
   func shutdown() async
 }

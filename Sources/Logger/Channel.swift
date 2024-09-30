@@ -14,24 +14,29 @@ import Foundation
  */
 
 public actor Channel {
-
-  /**
-     Default subsystem if nothing else is specified.
-     If the channel name is in dot syntax (x.y.z), then the last component is
-     assumed to be the name, and the rest is assumed to be the subsystem.
-
-     If there are no dots, it's all assumed to be the name, and this default
-     is used for the subsytem.
-     */
-
+  /// Name of the channel.
   public let name: String
+
+  /// Subsytem of the channel.
   public let subsystem: String
 
+  /// Is this channel enabled?
   nonisolated(unsafe) public var enabled: Bool
 
+  /// Manager that this channel is registered with.
   let manager: Manager
-  var handler: Handler
-  let sequence: LogSequence
+
+  /// Handler attached to this channel.
+  let handler: Handler
+
+  /// Sequence of logged items.
+  let sequence = YieldingSequence<LoggedItem>()
+
+  ///   Default subsystem if nothing else is specified.
+  ///   If the channel name is in dot syntax (x.y.z), then the last component is
+  ///   assumed to be the name, and the rest is assumed to be the subsystem.///
+  ///   If there are no dots, it's all assumed to be the name, and this default
+  ///   is used for the subsytem.
 
   static let defaultSubsystem = "com.elegantchaos.logger"
 
@@ -63,11 +68,9 @@ public actor Channel {
     self.manager = manager
     self.enabled = isEnabled
     self.handler = handler ?? Manager.defaultHandler
-    let s = LogSequence()
-    self.sequence = s
 
     Task {
-      await manager.add(channel: self, runImmediately: autoRun)
+      await manager.run(channel: self)
     }
   }
 
@@ -94,7 +97,7 @@ public actor Channel {
         channel: self,
         file: file, line: line, column: column, function: function, dso: dso)
       let value = asSendable(logged)
-      sequence.log(LoggedItem(value: value, context: context))
+      sequence.yield(LoggedItem(value: value, context: context))
     }
   }
 
@@ -108,7 +111,7 @@ public actor Channel {
           channel: self,
           file: file, line: line, column: column, function: function, dso: dso)
         let value = asSendable(logged)
-        sequence.log(LoggedItem(value: value, context: context))
+        sequence.yield(LoggedItem(value: value, context: context))
       }
     #endif
   }
@@ -130,7 +133,7 @@ public actor Channel {
   /// to be processed.
   internal func run() async {
     for await item in sequence {
-      await handler.log(item.value, context: item.context)
+      await handler.log(item)
     }
   }
 

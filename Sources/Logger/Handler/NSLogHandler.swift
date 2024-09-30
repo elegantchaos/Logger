@@ -8,9 +8,9 @@
 
   ///  Outputs log messages using NSLog()
   let nslogHandler = BasicHandler("nslog") {
-    value, context, handler in
-    let tag = handler.tag(for: context)
-    NSLog("\(tag)\(value)")
+    item, handler in
+    let tag = handler.tag(for: item.context)
+    NSLog("\(tag)\(item.value)")
   }
 
 #endif

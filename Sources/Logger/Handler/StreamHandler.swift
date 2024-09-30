@@ -15,7 +15,7 @@ public typealias LogStream = AsyncStream<LoggedItem>
 public actor StreamHandler: Handler {
   public init(
     _ name: String,
-    continuation: AsyncThrowingStream<any Sendable, Error>.Continuation
+    continuation: AsyncStream<LoggedItem>.Continuation
   ) {
     self.name = name
     self.continuation = continuation
@@ -25,37 +25,16 @@ public actor StreamHandler: Handler {
   public let name: String
 
   /// Continuation to yield logged items to.
-  let continuation: AsyncThrowingStream<Sendable, Error>.Continuation
+  let continuation: AsyncStream<LoggedItem>.Continuation
 
   /// Log an item.
-  public func log(_ value: Sendable, context: Context) async {
-    print("logged \(value)")
-    continuation.yield(value)
+  public func log(_ item: LoggedItem) async {
+    print("logged \(item.value)")
+    continuation.yield(item)
   }
 
   public func shutdown() {
+    print("shutdown \(name)")
     continuation.finish()
-  }
-}
-
-public struct LogSequence: AsyncSequence, Sendable {
-  public typealias AsyncIterator = LogStream.Iterator
-  public typealias Element = LoggedItem
-
-  var stream: LogStream!
-  var continuation: LogStream.Continuation!
-
-  public init() {
-    self.stream = LogStream { continuation in
-      self.continuation = continuation
-    }
-  }
-
-  public func makeAsyncIterator() -> LogStream.Iterator {
-    stream.makeAsyncIterator()
-  }
-
-  func log(_ item: LoggedItem) {
-    continuation.yield(item)
   }
 }

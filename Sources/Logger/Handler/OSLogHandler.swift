@@ -13,27 +13,14 @@
     /// Table of logs - one for each channel.
     var logTable: [Channel: OSLog] = [:]
     public let name = "oslog"
-    public func log(_ value: Sendable, context: Context) async {
-      let channel = context.channel
+    public func log(_ item: LoggedItem) async {
+      let channel = item.context.channel
       let log = logTable[
         channel, default: OSLog(subsystem: channel.subsystem, category: channel.name)]
 
-      let message = String(describing: value)
-      let dso = UnsafeRawPointer(bitPattern: context.dso)
+      let message = String(describing: item.value)
+      let dso = UnsafeRawPointer(bitPattern: item.context.dso)
       os_log("%{public}@", dso: dso, log: log, type: .default, message)
-    }
-
-    public func run(_ stream: LogSequence) async {
-      for await item in stream {
-        let channel = item.context.channel
-        let log = logTable[
-          channel, default: OSLog(subsystem: channel.subsystem, category: channel.name)]
-
-        let message = String(describing: item.value)
-        let dso = UnsafeRawPointer(bitPattern: item.context.dso)
-        os_log("%{public}@", dso: dso, log: log, type: .default, message)
-
-      }
     }
 
     public func shutdown() async {

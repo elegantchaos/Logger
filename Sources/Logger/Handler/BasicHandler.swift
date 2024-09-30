@@ -4,7 +4,7 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 public actor BasicHandler: Handler {
-  public typealias Logger = @Sendable (Sendable, Context, BasicHandler) async -> Void
+  public typealias Logger = @Sendable (LoggedItem, BasicHandler) async -> Void
 
   public let name: String
   let showName: Bool
@@ -21,7 +21,7 @@ public actor BasicHandler: Handler {
   }
 
   /// Log something.
-  public func log(_ value: Sendable, context: Context) async { await logger(value, context, self) }
+  public func log(_ item: LoggedItem) async { await logger(item, self) }
 
   public func shutdown() async {
   }

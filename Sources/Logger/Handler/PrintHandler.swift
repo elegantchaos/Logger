@@ -4,7 +4,7 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 /// Outputs log messages using swift's print() function.
-let printHandler = BasicHandler("print") { value, context, handler in
-  let tag = handler.tag(for: context)
-  print("\(tag)\(value)")
+let printHandler = BasicHandler("print") { item, handler in
+  let tag = handler.tag(for: item.context)
+  print("\(tag)\(item.value)")
 }

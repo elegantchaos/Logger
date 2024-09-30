@@ -27,6 +27,9 @@ public actor Manager {
   let settings: ManagerSettings
   private var channels: Channels = []
   private var changedChannels: Channels?
+
+  private var runningChannels = 0
+
   nonisolated(unsafe) var fatalHandler: FatalHandler = defaultFatalHandler
 
   /// Manager events.
@@ -71,8 +74,6 @@ public actor Manager {
         }
       }
     }
-    events.yield(.shutdown)
-    events.finish()
   }
 
   /**
@@ -192,26 +193,23 @@ extension Manager {
 }
 
 extension Manager {
-  /// Add a channel to the manager.
-  ///
-  /// We emit a channelAdded event.
-  /// If `runImmediately` is true we kick off running the channel.
-  func add(channel: Channel, runImmediately: Bool) async {
-    channels.insert(channel)
-    events.yield(.channelAdded(channel))
-    if runImmediately {
-      await run(channel: channel)
-    }
-  }
 
   /// Run a channel.
   /// We emit a `Event.channelStarted` event,
   /// run the channel until it is done, then
   /// emit a `Event.channelShutdown` event.
   func run(channel: Channel) async {
+    channels.insert(channel)
+    events.yield(.channelAdded(channel))
+    runningChannels += 1
     events.yield(.channelStarted(channel))
     await channel.run()
+    runningChannels -= 1
     events.yield(.channelShutdown(channel))
+    if runningChannels == 0 {
+      events.yield(.shutdown)
+      events.finish()
+    }
   }
 
 }
