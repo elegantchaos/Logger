@@ -24,19 +24,26 @@ public actor Manager {
   /// A set of channels.
   public typealias Channels = Set<Channel>
 
-  /// Protocol for objects that want to observe changes to the log channels.
-  /// Useful for (for example) updating a UI when the list of channels changes,
-  /// or when the enabled state of a channel changes.
-  public protocol Observer: Sendable {
-    /// Called when any channels matching the filter for the observer have been updated.
-    func channelsUpdated(_ updated: Channels, all: Channels, allEnabled: Channels) async
-  }
-
   let settings: ManagerSettings
   private var channels: Channels = []
   private var changedChannels: Channels?
-  private var observers: [Channels: Observer] = [:]
   nonisolated(unsafe) var fatalHandler: FatalHandler = defaultFatalHandler
+
+  public enum Event {
+    case started
+    case shutdown
+    case channelAdded
+    case channelStarted
+    case channelShutdown
+  }
+
+  /// Stream of manager events. Clients can watch this if they are
+  /// interested in changes to the state of channels. When this stream
+  /// ends, the manager has shut down, along with all channels.
+  public let events: AsyncStream<Event>
+
+  /// Private continuation used to yield events to the stream.
+  private let eventSender: AsyncStream<Event>.Continuation
 
   /**
      An array of the names of the log channels
@@ -50,7 +57,23 @@ public actor Manager {
     self.settings = settings
     let enabled = settings.enabledChannelIDs
     self.channelsEnabledInSettings = enabled
+    var c: AsyncStream<Event>.Continuation? = nil
+    let s = AsyncStream<Event> { continuation in
+      c = continuation
+    }
+    self.events = s
+    self.eventSender = c!
+
     logStartup(channels: enabled)
+  }
+
+  /// Initiate a shutdown of the manager.
+  public func shutdown() async {
+    for channel in channels {
+      await channel.shutdown()
+    }
+    eventSender.yield(.shutdown)
+    eventSender.finish()
   }
 
   /**
@@ -115,6 +138,7 @@ public actor Manager {
         channels.isEmpty
           ? "All channels currently disabled.\n" : "Enabled log channels: \(channels)\n")
     }
+    eventSender.yield(.started)
   }
 
   /**
@@ -171,44 +195,6 @@ extension Manager {
 extension Manager {
   func register(channel: Channel) {
     channels.insert(channel)
-    scheduleNotification(for: channel)
-  }
-
-  /// Schedule a notification to be sent to all observers.
-  /// Optionally specify a channel that has changed.
-  func scheduleNotification(for channel: Channel? = nil) {
-    // make sure we have a changedChannels set to indicate that we need to send a notification
-    if changedChannels == nil {
-      changedChannels = []
-    }
-
-    // if a channel was specified, add it to the set
-    if let channel {
-      changedChannels?.insert(channel)
-    }
-
-    // schedule a task to send the notification later
-    Task {
-      await postChangeNotification()
-    }
-  }
-
-  /// Tell any observers about changes to the channel list.
-  /// Multiple calls to this method will coalesce into a single notification
-  /// being delivered to each observer.
-  func postChangeNotification() async {
-    if let changedChannels {
-      let all = channels
-      let enabled = changedChannels.filter { $0.enabled }
-      for (filter, observer) in observers {
-        let matchingChannels = filter.isEmpty ? changedChannels : filter.union(changedChannels)
-        if !matchingChannels.isEmpty {
-          await observer.channelsUpdated(matchingChannels, all: all, allEnabled: enabled)
-        }
-        settings.saveEnabledChannels(enabled)
-        self.changedChannels = nil
-      }
-    }
-
+    eventSender.yield(.channelAdded)
   }
 }
