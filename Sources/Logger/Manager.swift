@@ -29,8 +29,9 @@ public actor Manager {
   private var changedChannels: Channels?
   nonisolated(unsafe) var fatalHandler: FatalHandler = defaultFatalHandler
 
-  public enum Event {
+  public enum Event: Sendable {
     case started
+    case shuttingDown
     case shutdown
     case channelAdded
     case channelStarted
@@ -40,10 +41,7 @@ public actor Manager {
   /// Stream of manager events. Clients can watch this if they are
   /// interested in changes to the state of channels. When this stream
   /// ends, the manager has shut down, along with all channels.
-  public let events: AsyncStream<Event>
-
-  /// Private continuation used to yield events to the stream.
-  private let eventSender: AsyncStream<Event>.Continuation
+  public let events: YieldingSequence<Event>
 
   /**
      An array of the names of the log channels
@@ -57,23 +55,23 @@ public actor Manager {
     self.settings = settings
     let enabled = settings.enabledChannelIDs
     self.channelsEnabledInSettings = enabled
-    var c: AsyncStream<Event>.Continuation? = nil
-    let s = AsyncStream<Event> { continuation in
-      c = continuation
-    }
-    self.events = s
-    self.eventSender = c!
+    self.events = YieldingSequence()
 
     logStartup(channels: enabled)
   }
 
   /// Initiate a shutdown of the manager.
   public func shutdown() async {
-    for channel in channels {
-      await channel.shutdown()
+    events.yield(.shuttingDown)
+    await withTaskGroup(of: Void.self) { group in
+      for channel in channels {
+        group.addTask {
+          await channel.shutdown()
+        }
+      }
     }
-    eventSender.yield(.shutdown)
-    eventSender.finish()
+    events.yield(.shutdown)
+    events.finish()
   }
 
   /**
@@ -138,7 +136,7 @@ public actor Manager {
         channels.isEmpty
           ? "All channels currently disabled.\n" : "Enabled log channels: \(channels)\n")
     }
-    eventSender.yield(.started)
+    events.yield(.started)
   }
 
   /**
@@ -193,8 +191,26 @@ extension Manager {
 }
 
 extension Manager {
-  func register(channel: Channel) {
+  /// Add a channel to the manager.
+  ///
+  /// We emit a channelAdded event.
+  /// If `runImmediately` is true we kick off running the channel.
+  func add(channel: Channel, runImmediately: Bool) async {
     channels.insert(channel)
-    eventSender.yield(.channelAdded)
+    events.yield(.channelAdded)
+    if runImmediately {
+      await run(channel: channel)
+    }
   }
+
+  /// Run a channel.
+  /// We emit a `Event.channelStarted` event,
+  /// run the channel until it is done, then
+  /// emit a `Event.channelShutdown` event.
+  func run(channel: Channel) async {
+    events.yield(.channelStarted)
+    await channel.run()
+    events.yield(.channelShutdown)
+  }
+
 }

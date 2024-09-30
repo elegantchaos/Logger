@@ -35,6 +35,9 @@
 
       }
     }
+
+    public func shutdown() async {
+    }
   }
 
 #endif

@@ -11,4 +11,5 @@
 public protocol Handler: Sendable {
   var name: String { get }
   func log(_ value: Sendable, context: Context) async
+  func shutdown() async
 }

@@ -34,7 +34,7 @@ public actor StreamHandler: Handler {
     continuation.yield(value)
   }
 
-  public func finish() {
+  public func shutdown() {
     continuation.finish()
   }
 }

@@ -23,6 +23,9 @@ public actor BasicHandler: Handler {
   /// Log something.
   public func log(_ value: Sendable, context: Context) async { await logger(value, context, self) }
 
+  public func shutdown() async {
+  }
+
   /// Calculate a text tag indicating the context.
   /// Provided as a utility for logger callbacks to use as they need.
   internal func tag(for context: Context) -> String {

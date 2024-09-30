@@ -4,8 +4,9 @@
 // // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-import Logger
 import Testing
+
+@testable import Logger
 
 /// Settings supplier for the tests.
 struct TestSettings: ManagerSettings {
@@ -25,22 +26,28 @@ func withTestChannel(action: @escaping @Sendable (Channel, StreamHandler) async 
 {
   let st =
     LogStream { continuation in
+      let handler = StreamHandler("test", continuation: continuation)
+      let manager = Manager(settings: TestSettings())
+      let channel = Channel(
+        "test", handler: handler, alwaysEnabled: true, manager: manager)
       Task {
         do {
-          let handler = StreamHandler("test", continuation: continuation)
-          let manager = Manager(settings: TestSettings())
-          let channel = Channel(
-            "test", handler: handler, alwaysEnabled: true, manager: manager, autoRun: false)
           print("running action")
           try await action(channel, handler)
           print("done")
-          await channel.shutdown()
-          await channel.run()
-          print("flushed")
-          await handler.finish()
+          await manager.shutdown()
+          continuation.finish()
+          // await channel.shutdown()
+          // await manager.run(channel: channel)
         } catch {
           continuation.finish(throwing: error)
         }
+      }
+      Task {
+        for await event in await manager.events {
+          print("» \(event)")
+        }
+        print("events done")
       }
     }
 

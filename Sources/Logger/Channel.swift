@@ -67,10 +67,7 @@ public actor Channel {
     self.sequence = s
 
     Task {
-      await manager.register(channel: self)
-      if autoRun {
-        await run()
-      }
+      await manager.add(channel: self, runImmediately: autoRun)
     }
   }
 
@@ -131,7 +128,7 @@ public actor Channel {
   /// when the channel is created. For testing purposes it's useful to
   /// be able to call it manually, in order to wait for all logged items
   /// to be processed.
-  public func run() async {
+  internal func run() async {
     for await item in sequence {
       await handler.log(item.value, context: item.context)
     }
@@ -141,7 +138,8 @@ public actor Channel {
   /// Logging items to the channel after this call
   /// will do nothing.
   /// NB: Under normal conditions this function does not need to be called.
-  public func shutdown() async {
+  public func shutdown() {
+    print("shutdown \(name)")
     sequence.continuation.finish()
   }
 }
