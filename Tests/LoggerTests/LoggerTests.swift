@@ -22,10 +22,10 @@ struct TestSettings: ManagerSettings {
 /// items that were logged to the channel.
 func withTestChannel(action: @escaping @Sendable (Channel, StreamHandler) async throws -> Void)
   throws
-  -> LogStream
+  -> LogStreamxx
 {
   let st =
-    LogStream { continuation in
+    LogStreamxx { continuation in
       let handler = StreamHandler("test", continuation: continuation)
       let manager = Manager(settings: TestSettings())
       let channel = Channel(
@@ -43,13 +43,15 @@ func withTestChannel(action: @escaping @Sendable (Channel, StreamHandler) async 
         }
       }
 
-      // monitor the manager event stream and print out the events
-      Task {
-        for await event in await manager.events {
-          print("» \(event)")
+      #if LOG_EVENTS
+        // monitor the manager event stream and print out the events
+        Task {
+          for await event in await manager.events {
+            print("» \(event)")
+          }
+          print("events done")
         }
-        print("events done")
-      }
+      #endif
     }
 
   // return the stream of logged items
@@ -60,11 +62,11 @@ struct LoggerTests {
   @Test func testLogging() async throws {
     let output = try withTestChannel { channel, _ in
       channel.log("test")
+      print("logged to channel")
     }
 
     var count = 0
     for try await item in output {
-      print("A")
       count += 1
       #expect(item as? String == "test")
     }
@@ -75,6 +77,7 @@ struct LoggerTests {
     let output = try withTestChannel { channel, _ in
       channel.enabled = false
       channel.log("test")
+      print("logged to disabled channel")
     }
 
     for try await _ in output {

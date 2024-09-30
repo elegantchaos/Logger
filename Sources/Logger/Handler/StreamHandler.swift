@@ -9,8 +9,7 @@ public struct LoggedItem: Sendable {
 }
 
 /// An async stream of logged items.
-public typealias LogStream = AsyncThrowingStream<any Sendable, any Error>
-public typealias LogStream2 = AsyncStream<LoggedItem>
+public typealias LogStream = AsyncStream<LoggedItem>
 
 /// Handler which outputs the logged items to an async stream.
 public actor StreamHandler: Handler {
@@ -40,19 +39,19 @@ public actor StreamHandler: Handler {
 }
 
 public struct LogSequence: AsyncSequence, Sendable {
-  public typealias AsyncIterator = LogStream2.Iterator
+  public typealias AsyncIterator = LogStream.Iterator
   public typealias Element = LoggedItem
 
-  var stream: LogStream2!
-  var continuation: LogStream2.Continuation!
+  var stream: LogStream!
+  var continuation: LogStream.Continuation!
 
   public init() {
-    self.stream = LogStream2 { continuation in
+    self.stream = LogStream { continuation in
       self.continuation = continuation
     }
   }
 
-  public func makeAsyncIterator() -> LogStream2.Iterator {
+  public func makeAsyncIterator() -> LogStream.Iterator {
     stream.makeAsyncIterator()
   }
 
