@@ -29,13 +29,14 @@ public actor Manager {
   private var changedChannels: Channels?
   nonisolated(unsafe) var fatalHandler: FatalHandler = defaultFatalHandler
 
+  /// Manager events.
   public enum Event: Sendable {
     case started
     case shuttingDown
     case shutdown
-    case channelAdded
-    case channelStarted
-    case channelShutdown
+    case channelAdded(Channel)
+    case channelStarted(Channel)
+    case channelShutdown(Channel)
   }
 
   /// Stream of manager events. Clients can watch this if they are
@@ -197,7 +198,7 @@ extension Manager {
   /// If `runImmediately` is true we kick off running the channel.
   func add(channel: Channel, runImmediately: Bool) async {
     channels.insert(channel)
-    events.yield(.channelAdded)
+    events.yield(.channelAdded(channel))
     if runImmediately {
       await run(channel: channel)
     }
@@ -208,9 +209,9 @@ extension Manager {
   /// run the channel until it is done, then
   /// emit a `Event.channelShutdown` event.
   func run(channel: Channel) async {
-    events.yield(.channelStarted)
+    events.yield(.channelStarted(channel))
     await channel.run()
-    events.yield(.channelShutdown)
+    events.yield(.channelShutdown(channel))
   }
 
 }

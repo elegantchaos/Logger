@@ -30,19 +30,20 @@ func withTestChannel(action: @escaping @Sendable (Channel, StreamHandler) async 
       let manager = Manager(settings: TestSettings())
       let channel = Channel(
         "test", handler: handler, alwaysEnabled: true, manager: manager)
+
+      // perform the test action(s), then wait for the
+      // manager to shut down to ensure all log items have been processed
       Task {
         do {
-          print("running action")
           try await action(channel, handler)
-          print("done")
           await manager.shutdown()
           continuation.finish()
-          // await channel.shutdown()
-          // await manager.run(channel: channel)
         } catch {
           continuation.finish(throwing: error)
         }
       }
+
+      // monitor the manager event stream and print out the events
       Task {
         for await event in await manager.events {
           print("» \(event)")
@@ -51,7 +52,7 @@ func withTestChannel(action: @escaping @Sendable (Channel, StreamHandler) async 
       }
     }
 
-  print("returned stream")
+  // return the stream of logged items
   return st
 }
 
@@ -70,16 +71,16 @@ struct LoggerTests {
     #expect(count == 1)
   }
 
-  // @Test func testDisabled() async throws {
-  //   let output = try withTestChannel { channel, _ in
-  //     channel.enabled = false
-  //     channel.log("test")
-  //   }
+  @Test func testDisabled() async throws {
+    let output = try withTestChannel { channel, _ in
+      channel.enabled = false
+      channel.log("test")
+    }
 
-  //   for try await _ in output {
-  //     fatalError("channel should have no output")
-  //   }
-  // }
+    for try await _ in output {
+      fatalError("channel should have no output")
+    }
+  }
 }
 
 // #if !os(watchOS)
