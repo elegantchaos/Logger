@@ -140,17 +140,6 @@ public actor Manager {
     }
     events.yield(.started)
   }
-
-  /**
-         Pause until everything in the log queue has been logged.
-
-         You shouldn't generally need to do this, but it's helpful if you
-         need to ensure that all output reaches its destination before some
-         action (exiting, for example).
-     */
-
-  public func flush() {
-  }
 }
 
 // MARK: Fatal Error Handling
