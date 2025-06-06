@@ -3,70 +3,110 @@
 // //  All code (c) 2021 - present day, Elegant Chaos Limited.
 // // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-// #if canImport(SwiftUI)
+#if canImport(SwiftUI)
 
-// import Combine
-// import Logger
-// import SwiftUI
+  import Combine
+  import Logger
+  import SwiftUI
 
-// @available(macOS 10.15, iOS 15.0, tvOS 13.0, watchOS 6, *) public struct LoggerChannelsView: View {
-//     @ObservedObject var manager = Manager.shared
+  struct ChannelBox: Identifiable {
+    let channel: Channel
+    let name: String
+    var enabled: Binding<Bool> {
+      Binding<Bool>(
+        get: { channel.enabled },
+        set: { newValue in Task { await channel.changeEnabled(to: newValue) } }
+      )
+    }
 
-//     public init() {
-//     }
+    var id: String { channel.id }
+  }
 
-//     public var body: some View {
-//         trace()
+  public struct LoggerChannelsView: View {
+    @State var channels: [ChannelBox] = []
+    var manager = Logger.Manager.shared
 
-//         let channels = manager.registeredChannels.sorted(by: { $0.name < $1.name })
+    public init() {
+    }
 
-//         return List {
-//             Section(header: Text("Global")) {
-//                 Toggle("All Channels", isOn: Binding<Bool>(
-//                     get: { manager.channelsState == .allEnabled },
-//                     set: { value in Manager.shared.update(channels: Manager.shared.registeredChannels, state: value) }
-//                 ))
-//             }
+    public var body: some View {
+      trace()
 
-//             Divider()
+      return List {
+        Section(header: Text("Global")) {
+          Toggle(
+            "All Channels",
+            isOn: Binding<Bool>(
+              get: { allChannelsEnabled },
+              set: { value in setAllChannelsEnabled(value) }
+            )
+          ).toggleStyle(.switch)
+        }
 
-//             LoggerChannelsStackView(channels: channels)
-//         }
-//     }
-// }
+        Section(header: Text("Channels")) {
+          ForEach(channels) { channel in
+            Toggle(channel.name, isOn: channel.enabled)
+              .toggleStyle(.switch)
+          }
+        }
+      }
+      .onAppear(perform: watchChannels)
+    }
 
-// @available(macOS 10.15, iOS 15.0, tvOS 13.0, watchOS 6, *) public struct LoggerChannelsStackView: View {
-//     let channels: [Channel]
+    @MainActor func updateChannels() async {
+      channels = Array(
+        await manager.channels
+          .map { ChannelBox(channel: $0, name: $0.name) }
+          .sorted { $0.name < $1.name }
+      )
+      print(channels.map { $0.name })
+    }
 
-//     public init(channels: [Channel]) {
-//         self.channels = channels
-//     }
+    /// Are all the channels enabled?
+    @MainActor var allChannelsEnabled: Bool { channels.allSatisfy { $0.channel.enabled } }
 
-//     public var body: some View {
-//         trace()
+    /// Enable/disable all channels.
+    @MainActor func setAllChannelsEnabled(_ enabled: Bool) {
+      Task {
+        for channel in channels {
+          await manager.changeEnabled(of: channel.channel, to: enabled)
+        }
+      }
+    }
 
-//         return Section(header: Text("Channels")) {
-//             ForEach(channels, id: \Channel.name) { channel in
-//                 ChannelToggleView(channel: channel)
-//             }
-//         }
-//     }
-// }
+    func watchChannels() {
+      Task {
+        await updateChannels()
 
-// struct ChannelToggleView: View {
-//     @ObservedObject var channel: Channel
+        for await event in await manager.events {
+          print(event)
+          switch event {
+            case .channelAdded, .channelUpdated:
+            await updateChannels()
+          default:
+            break
+          }
+        }
 
-//     var body: some View {
-//         Toggle(channel.name, isOn: $channel.enabled)
-//     }
-// }
+        print("finished watching")
+      }
+    }
 
-// #endif
+  }
 
-// extension View {
-//     func trace() {
-//         if #available(macOS 12.0, iOS 15.0, *) {
-//             Self._printChanges()
-//         }
-//     }
-// }
+  struct ChannelToggleView: View {
+    var channel: Channel
+
+    var body: some View {
+    }
+  }
+
+#endif
+
+extension View {
+  func trace() {
+    if #available(macOS 12.0, iOS 15.0, *) {
+      Self._printChanges()
+    }
+  }
+}
