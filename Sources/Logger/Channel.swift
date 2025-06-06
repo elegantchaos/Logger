@@ -151,6 +151,11 @@ public actor Channel {
     print("shutdown \(name)")
     sequence.continuation.finish()
   }
+
+  /// Change the enabled state of the channel.
+  public func changeEnabled(to enabled: Bool) async {
+    await manager.changeEnabled(of: self, to: enabled)
+  }
 }
 
 extension Channel: Identifiable {

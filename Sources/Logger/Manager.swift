@@ -25,7 +25,7 @@ public actor Manager {
   public typealias Channels = Set<Channel>
 
   let settings: ManagerSettings
-  private var channels: Channels = []
+  public var channels: Channels = []
   private var changedChannels: Channels?
 
   private var runningChannels = 0
@@ -38,6 +38,7 @@ public actor Manager {
     case shuttingDown
     case shutdown
     case channelAdded(Channel)
+    case channelUpdated(Channel)
     case channelStarted(Channel)
     case channelShutdown(Channel)
   }
@@ -140,6 +141,14 @@ public actor Manager {
     }
     events.yield(.started)
   }
+  
+  /// Change the enabled state of a channel.
+  public func changeEnabled(of channel: Channel, to enabled: Bool) async {
+    channel.enabled = enabled
+    settings.saveEnabledChannels(channels)
+    events.yield(.channelUpdated(channel))
+  }
+
 }
 
 // MARK: Fatal Error Handling
