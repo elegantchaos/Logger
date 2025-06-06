@@ -7,7 +7,7 @@ let package = Package(
   name: "Logger",
 
   platforms: [
-    .macOS(.v10_15), .iOS(.v13), .tvOS(.v13), .watchOS(.v5),
+    .macOS(.v15), .iOS(.v13), .tvOS(.v13), .watchOS(.v5),
   ],
 
   products: [
