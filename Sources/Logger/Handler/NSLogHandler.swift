@@ -9,7 +9,7 @@
   ///  Outputs log messages using NSLog()
   let nslogHandler = BasicHandler("nslog") {
     item, handler in
-    let tag = handler.tag(for: item.context)
+    let tag = await handler.tag(for: item.context)
     NSLog("\(tag)\(item.value)")
   }
 
