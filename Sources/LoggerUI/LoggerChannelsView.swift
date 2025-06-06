@@ -15,7 +15,7 @@
     var enabled: Binding<Bool> {
       Binding<Bool>(
         get: { channel.enabled },
-        set: { newValue in Task { await channel.changeEnabled(to: newValue) } }
+        set: { newValue in Task { channel.enabled = newValue } }
       )
     }
 
@@ -69,7 +69,7 @@
     @MainActor func setAllChannelsEnabled(_ enabled: Bool) {
       Task {
         for channel in channels {
-          await manager.changeEnabled(of: channel.channel, to: enabled)
+          channel.channel.enabled = enabled
         }
       }
     }

@@ -24,7 +24,10 @@ public actor Channel {
   /// Is this channel enabled?
   nonisolated public var enabled: Bool {
     get { _enabled.load(ordering: .relaxed) }
-    set { _enabled.store(newValue, ordering: .relaxed) }
+    set {
+      _enabled.store(newValue, ordering: .relaxed)
+      Task { await manager.channelUpdated(self) }
+    }
   }
 
   /// Underlying atomic storage for the enabled flag.
@@ -44,9 +47,9 @@ public actor Channel {
   ///   assumed to be the name, and the rest is assumed to be the subsystem.///
   ///   If there are no dots, it's all assumed to be the name, and this default
   ///   is used for the subsytem.
-  
   static let defaultSubsystem = "com.elegantchaos.logger"
   
+  /// Initialise the channel.
   public init(
     _ name: String, handler: Handler? = nil,
     alwaysEnabled: Bool = false, manager: Manager? = nil, autoRun: Bool = true
@@ -86,12 +89,7 @@ public actor Channel {
    The logged value is an autoclosure, to avoid doing unnecessary work if the channel is disabled.
    
    If the channel is enabled, we capture the logged value, by evaluating the autoclosure.
-   We then log the value asynchronously.s
-   
-   Note that reading the `enabled` flag is not isolated, to avoid taking unnecessary locks. It's theoretically
-   possible for another thread to be writing to this flag whilst we're reading it, if the channel state is being
-   changed. Thread sanitizer might flag this up, but it's harmless, and should generally only happen in a debug
-   setting.
+   We then log the value asynchronously.
    */
   
   nonisolated public func log<T>(
@@ -150,11 +148,6 @@ public actor Channel {
   public func shutdown() {
     print("shutdown \(name)")
     sequence.continuation.finish()
-  }
-
-  /// Change the enabled state of the channel.
-  public func changeEnabled(to enabled: Bool) async {
-    await manager.changeEnabled(of: self, to: enabled)
   }
 }
 

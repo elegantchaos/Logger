@@ -142,13 +142,16 @@ public actor Manager {
     events.yield(.started)
   }
   
-  /// Change the enabled state of a channel.
-  public func changeEnabled(of channel: Channel, to enabled: Bool) async {
-    channel.enabled = enabled
-    settings.saveEnabledChannels(channels)
+  /// Called to indicate that channel settings have changed.
+  public func channelUpdated(_ channel: Channel) async {
     events.yield(.channelUpdated(channel))
+    saveChannelSettings()
   }
 
+  /// Save settings for all the channels.
+  public func saveChannelSettings() {
+    settings.saveEnabledChannels(channels)
+  }
 }
 
 // MARK: Fatal Error Handling
