@@ -159,11 +159,14 @@ extension Channel: Hashable {
   // For now, we treat channels with the same name as equal,
   // as long as they belong to the same manager.
   nonisolated public func hash(into hasher: inout Hasher) {
+    subsystem.hash(into: &hasher)
     name.hash(into: &hasher)
   }
 
   public static func == (lhs: Channel, rhs: Channel) -> Bool {
-    (lhs.name == rhs.name) && (lhs.manager === rhs.manager)
+    (lhs.subsystem == rhs.subsystem) &&
+    (lhs.name == rhs.name) &&
+    (lhs.manager === rhs.manager)
   }
 }
 
