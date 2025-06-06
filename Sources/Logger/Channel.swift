@@ -19,7 +19,7 @@ public actor Channel {
   nonisolated public let name: String
   
   /// Subsytem of the channel.
-  public let subsystem: String
+  nonisolated public let subsystem: String
   
   /// Is this channel enabled?
   nonisolated public var enabled: Bool {
