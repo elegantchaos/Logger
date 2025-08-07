@@ -1,91 +1,127 @@
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-//  Created by Sam Deane on 20/01/2021.
-//  All code (c) 2021 - present day, Elegant Chaos Limited.
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// //  Created by Sam Deane on 20/01/2021.
+// //  All code (c) 2021 - present day, Elegant Chaos Limited.
+// // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 #if canImport(SwiftUI)
 
-import Combine
-import Logger
-import SwiftUI
+  import Combine
+  import Logger
+  import SwiftUI
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) public struct LoggerChannelsView: View {
-    public init() {}
+  public struct LoggerChannelsView: View {
+    /// The channels to display in the view.
+    @State var channels: [BoxedChannel] = []
+    
+    /// The logger manager used to retrieve the channels.
+    var manager: Logger.Manager
+
+    /// Create a new view with the specified logger manager.
+    public init(manager: Logger.Manager = .shared) {
+      self.manager = manager
+    }
 
     public var body: some View {
-        List {
-            LoggerChannelsHeaderView()
-            Divider()
-            LoggerChannelsStackView()
+      trace()
+
+      return List {
+        Section(header: Text("Global")) {
+          Toggle(
+            "All Channels",
+            isOn: Binding<Bool>(
+              get: { allChannelsEnabled },
+              set: { value in setAllChannelsEnabled(value) }
+            )
+          ).toggleStyle(.switch)
         }
+
+        Section(header: Text("Channels")) {
+          ForEach(channels) { channel in
+            Toggle(channel.name, isOn: channel.enabledBinding)
+              .toggleStyle(.switch)
+          }
+        }
+      }
+      .onAppear(perform: watchChannels)
     }
+
+    /// Update the list of channels from the manager.
+    ///
+    /// We sort the channels by name.
+    @MainActor func updateChannels() async {
+      channels = Array(
+        await manager.channels
+          .map { BoxedChannel(channel: $0) }
+          .sorted { $0.name < $1.name }
+      )
+      print(channels.map { $0.name })
+    }
+
+    /// Are all the channels enabled?
+    @MainActor var allChannelsEnabled: Bool { channels.allSatisfy { $0.enabled } }
+
+    /// Enable/disable all channels.
+    @MainActor func setAllChannelsEnabled(_ enabled: Bool) {
+      Task {
+        for var channel in channels {
+          channel.enabled = enabled
+        }
+      }
+    }
+
+    /// Update once to set the initial channel list,
+    /// then watch for changes.
+    func watchChannels() {
+      Task {
+        await updateChannels()
+
+        for await event in await manager.events {
+          print(event)
+          switch event {
+            case .channelAdded, .channelUpdated:
+            await updateChannels()
+          default:
+            break
+          }
+        }
+
+        print("finished watching")
+      }
+    }
+
+  }
+
+  /// A boxed version of a channel, used to make it identifiable
+struct BoxedChannel: Identifiable {
+  private let channel: Channel
+  
+  init(channel: Channel) {
+    self.channel = channel
+  }
+  
+  var name: String { channel.name }
+  
+  var enabledBinding: Binding<Bool> {
+    Binding<Bool>(
+      get: { channel.enabled },
+      set: { newValue in Task { channel.enabled = newValue } }
+    )
+  }
+  
+  var enabled: Bool {
+    get { channel.enabled }
+    mutating set { channel.enabled = newValue }
+  }
+  
+  var id: String { channel.id }
 }
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) public struct LoggerChannelsStackView: View {
-    public init() {}
-
-    public var body: some View {
-        VStack {
-            ForEach(Manager.shared.registeredChannels, id: \Channel.name) { channel in
-                Toggle(channel.name, isOn: Binding<Bool>(
-                    get: { channel.enabled },
-                    set: { value in
-                        Manager.shared.update(channels: [channel], state: value)
-                    }
-                ))
-            }
-        }
+extension View {
+  func trace() {
+    if #available(macOS 12.0, iOS 15.0, *) {
+      Self._printChanges()
     }
-}
-
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) public struct LoggerChannelsHeaderView: View {
-    let channelsChanged = NotificationCenter.default.publisher(for: Manager.channelsUpdatedNotification, object: Manager.shared)
-
-    @State var allEnabled = false
-    @State var allDisabled = false
-
-    public init() {}
-
-    public var body: some View {
-        VStack {
-            Button(action: handleEnableAll) {
-                Text("Enable All")
-            }
-            .disabled(allEnabled)
-
-            Button(action: handleDisableAll) {
-                Text("Disable All")
-            }
-            .disabled(allDisabled)
-        }
-        .onReceive(channelsChanged, perform: handleChannelsChanged)
-        .onAppear(perform: handleAppear)
-    }
-
-    func handleAppear() {
-        updateState()
-    }
-
-    func handleChannelsChanged(_: Notification) {
-        updateState()
-    }
-
-    func handleEnableAll() {
-        Manager.shared.update(channels: Manager.shared.registeredChannels, state: true)
-        allEnabled = true
-        allDisabled = false
-    }
-
-    func handleDisableAll() {
-        Manager.shared.update(channels: Manager.shared.registeredChannels, state: false)
-        allEnabled = false
-        allDisabled = true
-    }
-
-    func updateState() {
-        allEnabled = Manager.shared.registeredChannels.allSatisfy { $0.enabled == true }
-        allDisabled = Manager.shared.registeredChannels.allSatisfy { $0.enabled == false }
-    }
+  }
 }
 
 #endif
