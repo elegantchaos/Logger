@@ -1,4 +1,4 @@
-// swift-tools-version:6.0
+// swift-tools-version:6.2
 
 import Foundation
 import PackageDescription
@@ -7,7 +7,7 @@ let package = Package(
   name: "Logger",
 
   platforms: [
-    .macOS(.v15), .iOS(.v13), .tvOS(.v13), .watchOS(.v5),
+    .macOS(.v15), .macCatalyst(.v18), .iOS(.v18), .tvOS(.v18), .watchOS(.v5),
   ],
 
   products: [
