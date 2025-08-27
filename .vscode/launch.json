@@ -1,11 +1,8 @@
 {
   "configurations": [
     {
-      "type": "swift-lldb",
+      "type": "swift",
       "request": "launch",
-      "sourceLanguages": [
-        "swift"
-      ],
       "args": [],
       "cwd": "${workspaceFolder:Logger}",
       "name": "Debug Example",
@@ -13,16 +10,31 @@
       "preLaunchTask": "swift: Build Debug Example"
     },
     {
-      "type": "swift-lldb",
+      "type": "swift",
       "request": "launch",
-      "sourceLanguages": [
-        "swift"
-      ],
       "args": [],
       "cwd": "${workspaceFolder:Logger}",
       "name": "Release Example",
       "program": "${workspaceFolder:Logger}/.build/release/Example",
       "preLaunchTask": "swift: Build Release Example"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:Logger}/Extras/Examples/CommandLineExample",
+      "name": "Debug Example (Extras/Examples/CommandLineExample)",
+      "program": "${workspaceFolder:Logger}/Extras/Examples/CommandLineExample/.build/debug/Example",
+      "preLaunchTask": "swift: Build Debug Example (Extras/Examples/CommandLineExample)"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:Logger}/Extras/Examples/CommandLineExample",
+      "name": "Release Example (Extras/Examples/CommandLineExample)",
+      "program": "${workspaceFolder:Logger}/Extras/Examples/CommandLineExample/.build/release/Example",
+      "preLaunchTask": "swift: Build Release Example (Extras/Examples/CommandLineExample)"
     }
   ]
 }
