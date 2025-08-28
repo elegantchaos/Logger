@@ -5,14 +5,13 @@
 
 #if canImport(SwiftUI)
 
-  import Combine
   import Logger
   import SwiftUI
 
   public struct LoggerChannelsView: View {
     /// The channels to display in the view.
     @State var channels: [BoxedChannel] = []
-    
+
     /// The logger manager used to retrieve the channels.
     var manager: Logger.Manager
 
@@ -78,7 +77,7 @@
         for await event in await manager.events {
           print(event)
           switch event {
-            case .channelAdded, .channelUpdated:
+          case .channelAdded, .channelUpdated:
             await updateChannels()
           default:
             break
@@ -92,36 +91,36 @@
   }
 
   /// A boxed version of a channel, used to make it identifiable
-struct BoxedChannel: Identifiable {
-  private let channel: Channel
-  
-  init(channel: Channel) {
-    self.channel = channel
-  }
-  
-  var name: String { channel.name }
-  
-  var enabledBinding: Binding<Bool> {
-    Binding<Bool>(
-      get: { channel.enabled },
-      set: { newValue in Task { channel.enabled = newValue } }
-    )
-  }
-  
-  var enabled: Bool {
-    get { channel.enabled }
-    mutating set { channel.enabled = newValue }
-  }
-  
-  var id: String { channel.id }
-}
+  struct BoxedChannel: Identifiable {
+    private let channel: Channel
 
-extension View {
-  func trace() {
-    if #available(macOS 12.0, iOS 15.0, *) {
-      Self._printChanges()
+    init(channel: Channel) {
+      self.channel = channel
+    }
+
+    var name: String { channel.name }
+
+    var enabledBinding: Binding<Bool> {
+      Binding<Bool>(
+        get: { channel.enabled },
+        set: { newValue in Task { channel.enabled = newValue } }
+      )
+    }
+
+    var enabled: Bool {
+      get { channel.enabled }
+      mutating set { channel.enabled = newValue }
+    }
+
+    var id: String { channel.id }
+  }
+
+  extension View {
+    func trace() {
+      if #available(macOS 12.0, iOS 15.0, *) {
+        Self._printChanges()
+      }
     }
   }
-}
 
 #endif
