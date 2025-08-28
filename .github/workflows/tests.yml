@@ -18,9 +18,9 @@ jobs:
         - name: Make Logs Directory
           run: mkdir logs
         - name: Select Swift
-          uses: swift-actions/setup-swift@next
+          uses: vapor/swiftly-action@v0.2
           with:
-            swift-version: "6.2-snapshot"
+            toolchain: "6.2-snapshot"
         - name: Check Swift Version
           run: swift --version
         - name: Build (release)
@@ -44,9 +44,9 @@ jobs:
         - name: Make Logs Directory
           run: mkdir logs
         - name: Select Swift
-          uses: swift-actions/setup-swift@next
+          uses: vapor/swiftly-action@v0.2
           with:
-            swift-version: "6.2-snapshot"
+            toolchain: "6.2-snapshot"
         - name: Check Swift Version
           run: swift --version
         - name: Build (release)
