@@ -120,7 +120,7 @@ jobs:
           run: |
             source "setup.sh"
             echo "Testing workspace $WORKSPACE scheme $SCHEME."
-            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Any tvOS Device" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-tvOS-test-release.log | xcpretty
+            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple TV 4K (3rd generation)" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-tvOS-test-release.log | xcpretty
         - name: Detect Workspace & Scheme (watchOS)
           run: |
             WORKSPACE="Logger.xcworkspace"
