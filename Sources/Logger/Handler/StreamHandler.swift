@@ -4,8 +4,8 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 public struct LoggedItem: Sendable {
-  let value: Sendable
-  let context: Context
+  public let value: Sendable
+  public let context: Context
 }
 
 /// An async stream of logged items.

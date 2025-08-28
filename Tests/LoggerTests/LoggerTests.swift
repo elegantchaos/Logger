@@ -4,9 +4,8 @@
 // // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+import Logger
 import Testing
-
-@testable import Logger
 
 /// Settings supplier for the tests.
 struct TestSettings: ManagerSettings {
