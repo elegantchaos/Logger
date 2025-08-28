@@ -98,7 +98,7 @@ jobs:
           run: |
             source "setup.sh"
             echo "Testing workspace $WORKSPACE scheme $SCHEME."
-            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=iPhone 11" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-iOS-test-release.log | xcpretty
+            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=iPhone 16" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-iOS-test-release.log | xcpretty
         - name: Detect Workspace & Scheme (tvOS)
           run: |
             WORKSPACE="Logger.xcworkspace"
@@ -120,7 +120,7 @@ jobs:
           run: |
             source "setup.sh"
             echo "Testing workspace $WORKSPACE scheme $SCHEME."
-            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple TV" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-tvOS-test-release.log | xcpretty
+            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Any tvOS Device" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-tvOS-test-release.log | xcpretty
         - name: Detect Workspace & Scheme (watchOS)
           run: |
             WORKSPACE="Logger.xcworkspace"
@@ -142,7 +142,7 @@ jobs:
           run: |
             source "setup.sh"
             echo "Building workspace $WORKSPACE scheme $SCHEME."
-            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple Watch Series 5 - 44mm" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-watchOS-build-release.log | xcpretty
+            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple Watch Series 10 - 42mm" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-watchOS-build-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v4
           if: always()
