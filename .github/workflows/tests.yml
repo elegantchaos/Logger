@@ -9,9 +9,9 @@ on: [push, pull_request]
 
 jobs:
 
-    macOS-swift60:
-        name: macOS (Swift 6.0)
-        runs-on: macos-14
+    linux-swift62:
+        name: Linux (Swift 6.2)
+        runs-on: ubuntu-22.04
         steps:
         - name: Checkout
           uses: actions/checkout@v4
@@ -20,7 +20,7 @@ jobs:
         - name: Select Swift
           uses: swift-actions/setup-swift@next
           with:
-            swift-version: "6.0"
+            swift-version: "6.2-snapshot"
         - name: Check Swift Version
           run: swift --version
         - name: Build (release)
@@ -46,103 +46,13 @@ jobs:
         - name: Select Swift
           uses: swift-actions/setup-swift@next
           with:
-            swift-version: "6.2"
+            swift-version: "6.2-snapshot"
         - name: Check Swift Version
           run: swift --version
         - name: Build (release)
           run: swift build --build-tests --configuration release
         - name: Test (release)
           run: swift test --skip-build --configuration release
-        - name: Upload Logs
-          uses: actions/upload-artifact@v4
-          if: always()
-          with:
-            name: logs
-            path: logs
-
-
-    xcode-swift60:
-        name: iOS/tvOS/watchOS (Swift 6.0, Xcode 16.0.0)
-        runs-on: macos-14
-        steps:
-        - name: Checkout
-          uses: actions/checkout@v4
-        - name: Make Logs Directory
-          run: mkdir logs
-        - name: Select Xcode Version
-          run: |
-            ls -d /Applications/Xcode*
-            sudo xcode-select -s /Applications/Xcode_16.0.0.app
-            xcodebuild -version
-            swift --version
-        - name: XC Pretty
-          run: sudo gem install xcpretty-travis-formatter
-        - name: Detect Workspace & Scheme (iOS)
-          run: |
-            WORKSPACE="Logger.xcworkspace"
-            if [[ ! -e "$WORKSPACE" ]]
-            then
-            WORKSPACE="."
-            GOTPACKAGE=$(xcodebuild -workspace . -list | (grep Logger-Package || true))
-            if [[ $GOTPACKAGE != "" ]]
-            then
-            SCHEME="Logger-Package"
-            else
-            SCHEME="Logger"
-            fi
-            else
-            SCHEME="Logger-iOS"
-            fi
-            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
-        - name: Test (iOS Release)
-          run: |
-            source "setup.sh"
-            echo "Testing workspace $WORKSPACE scheme $SCHEME."
-            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=iPhone 11" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-iOS-test-release.log | xcpretty
-        - name: Detect Workspace & Scheme (tvOS)
-          run: |
-            WORKSPACE="Logger.xcworkspace"
-            if [[ ! -e "$WORKSPACE" ]]
-            then
-            WORKSPACE="."
-            GOTPACKAGE=$(xcodebuild -workspace . -list | (grep Logger-Package || true))
-            if [[ $GOTPACKAGE != "" ]]
-            then
-            SCHEME="Logger-Package"
-            else
-            SCHEME="Logger"
-            fi
-            else
-            SCHEME="Logger-tvOS"
-            fi
-            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
-        - name: Test (tvOS Release)
-          run: |
-            source "setup.sh"
-            echo "Testing workspace $WORKSPACE scheme $SCHEME."
-            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple TV" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-tvOS-test-release.log | xcpretty
-        - name: Detect Workspace & Scheme (watchOS)
-          run: |
-            WORKSPACE="Logger.xcworkspace"
-            if [[ ! -e "$WORKSPACE" ]]
-            then
-            WORKSPACE="."
-            GOTPACKAGE=$(xcodebuild -workspace . -list | (grep Logger-Package || true))
-            if [[ $GOTPACKAGE != "" ]]
-            then
-            SCHEME="Logger-Package"
-            else
-            SCHEME="Logger"
-            fi
-            else
-            SCHEME="Logger-watchOS"
-            fi
-            echo "set -o pipefail; export PATH='swift-latest:$PATH'; WORKSPACE='$WORKSPACE'; SCHEME='$SCHEME'" > setup.sh
-        - name: Build (watchOS release)
-          run: |
-            source "setup.sh"
-            echo "Building workspace $WORKSPACE scheme $SCHEME."
-            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "name=Apple Watch Series 5 - 44mm" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-watchOS-build-release.log | xcpretty
         - name: Upload Logs
           uses: actions/upload-artifact@v4
           if: always()

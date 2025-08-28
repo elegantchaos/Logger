@@ -1,9 +1,0 @@
-{
-    "platforms" : [
-        "macOS",
-        "watchOS",
-        "iOS",
-        "tvOS",
-        "linux"
-    ]
-}
