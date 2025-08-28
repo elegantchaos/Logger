@@ -79,10 +79,10 @@ public actor Manager {
 
   /**
      Default log manager to use for channels if nothing else is specified.
-
+  
      Under normal circumstances it makes sense for everything to share the same manager,
      which is why this exists.
-
+  
      There are times (particularly testing) when we might want to use a different manager
      though, which is why it's not a true singleton.
      */
@@ -91,10 +91,10 @@ public actor Manager {
 
   /**
      Default handler to use for channels if nothing else is specified.
-
+  
      On the Mac this is an OSLogHandler, which will log directly to the console without
      sending output to stdout/stderr.
-
+  
      On Linux it is a PrintHandler which will log to stdout.
      */
 
@@ -102,7 +102,7 @@ public actor Manager {
     #if os(macOS) || os(iOS) || os(watchOS)
       return OSLogHandler()
     #else
-      return stdoutHandler  // TODO: should perhaps be stderr instead?
+      return printHandler  // TODO: should perhaps be stderr instead?
     #endif
   }
 
@@ -141,7 +141,7 @@ public actor Manager {
     }
     events.yield(.started)
   }
-  
+
   /// Called to indicate that channel settings have changed.
   public func channelUpdated(_ channel: Channel) async {
     events.yield(.channelUpdated(channel))
@@ -161,7 +161,7 @@ extension Manager {
 
   /**
      Default handler when a channel is sent a fatal error.
-
+  
      Just calls the system's fatal error function and exits.
      */
 
