@@ -73,6 +73,7 @@ jobs:
           run: |
             ls -d /Applications/Xcode*
             sudo xcode-select -s /Applications/Xcode_26.0.0.app
+            sudo xcodebuild -downloadAllPlatforms
             xcodebuild -version
             swift --version
         - name: XC Pretty
