@@ -3,8 +3,6 @@
 import Foundation
 import PackageDescription
 
-let usePlugins = ProcessInfo.processInfo.environment["RESOLVE_COMMAND_PLUGINS"] != nil
-
 let package = Package(
   name: "Logger",
 
@@ -36,16 +34,15 @@ let package = Package(
     ),
   ],
 
-  dependencies: [],
+  dependencies: [
+    // Use `swift package --allow-writing-to-package-directory generate-workflow` to update the workflow for this package.
+    .package(url: "https://github.com/elegantchaos/ActionBuilderPlugin.git", from: "2.1.3")
+  ],
 
   targets: [
     .target(
       name: "Logger",
       dependencies: [],
-      plugins: usePlugins
-        ? [
-          .plugin(name: "ActionBuilderPlugin", package: "ActionBuilderPlugin")
-        ] : []
     ),
 
     .target(
@@ -71,12 +68,3 @@ let package = Package(
     ),
   ]
 )
-
-if usePlugins {
-  package.dependencies.append(contentsOf: [
-    .package(
-      url: "https://github.com/elegantchaos/ActionBuilderPlugin.git",
-      from: "2.0.1"
-    )
-  ])
-}
