@@ -9,21 +9,25 @@
 
   /// Toggle that enables or disables every visible logging channel.
   public struct AllChannelsToggleView: View {
-    /// Watcher that owns the channel snapshots.
-    private let watcher: ChannelWatcher
+    /// The channel snapshots.
+    private let channels: ChannelWatcher
+
+    /// Toggle label
+    private let label: LocalizedStringResource
 
     /// Creates the master toggle for the supplied watcher.
-    public init(watcher: ChannelWatcher) {
-      self.watcher = watcher
+    public init(label: LocalizedStringResource = "All Channels", watcher: ChannelWatcher) {
+      self.channels = watcher
+      self.label = label
     }
 
     /// Renders the master toggle for all channels.
     public var body: some View {
       Toggle(
-        "All Channels",
+        label,
         isOn: Binding(
-          get: { watcher.allEnabled },
-          set: { watcher.allEnabled = $0 }
+          get: { channels.allEnabled },
+          set: { channels.allEnabled = $0 }
         )
       )
     }
