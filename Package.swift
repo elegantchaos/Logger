@@ -65,6 +65,7 @@ let package = Package(
       name: "LoggerTests",
       dependencies: [
         "Logger",
+        "LoggerUI",
         "LoggerTestSupport",
       ]
     ),
