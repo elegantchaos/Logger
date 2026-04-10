@@ -1,5 +1,5 @@
 {
-  "originHash" : "c0d393bcecc15bf64adff0bed7dd057acd0caed093ebb47e9f9164224e00ec71",
+  "originHash" : "b159caa13c94d78aea5d4cf67ff17c0c9e9245f1ae1556999e8b2925d43e76c2",
   "pins" : [
     {
       "identity" : "actionbuildercore",
@@ -62,6 +62,15 @@
       "state" : {
         "revision" : "7c6ad0fc39d0763e0b699210e4124afd5041c5df",
         "version" : "1.6.4"
+      }
+    },
+    {
+      "identity" : "versionator",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/elegantchaos/Versionator.git",
+      "state" : {
+        "revision" : "b5f925adb48a08f33281713cb48c51a9cead21ee",
+        "version" : "2.1.1"
       }
     }
   ],
