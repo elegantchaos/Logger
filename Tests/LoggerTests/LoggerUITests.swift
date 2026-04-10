@@ -1,11 +1,18 @@
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//  Created by Sam Deane on 10/04/2026.
+//  All code (c) 2026 - present day, Elegant Chaos Limited.
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 import Logger
 import Testing
 
 #if canImport(SwiftUI)
   @testable import LoggerUI
 
+  /// Regression tests for the SwiftUI-facing logger channel watcher.
   @MainActor
   struct LoggerUITests {
+    /// Verifies that external channel changes refresh the published watcher snapshots.
     @Test
     func channelWatcherRefreshesSnapshotsWhenChannelChanges() async throws {
       let manager = Manager(settings: TestSettings())
@@ -39,6 +46,7 @@ import Testing
         if predicate() {
           return
         }
+
         try await Task.sleep(nanoseconds: intervalNanoseconds)
       }
 
