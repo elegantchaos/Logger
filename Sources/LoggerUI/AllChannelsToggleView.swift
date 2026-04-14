@@ -24,12 +24,13 @@
     /// Renders the master toggle for all channels.
     public var body: some View {
       Toggle(
-        label,
         isOn: Binding(
           get: { channels.allEnabled },
           set: { channels.allEnabled = $0 }
         )
-      )
+      ) {
+        Text(label)
+      }
     }
   }
 
