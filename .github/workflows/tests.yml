@@ -144,6 +144,8 @@ jobs:
         steps:
         - name: Checkout
           uses: actions/checkout@v6
+        - name: Make Logs Directory
+          run: mkdir logs
         - name: Install xcbeautify
           run: |
             if command -v xcbeautify >/dev/null 2>&1
@@ -157,8 +159,6 @@ jobs:
               cat logs/install-xcbeautify.log
               exit 1
             fi
-        - name: Make Logs Directory
-          run: mkdir logs
         - name: Resolve Xcode Version
           id: resolve-xcode
           run: |
@@ -208,13 +208,10 @@ jobs:
               local field="$2"
               printf '%s\n' "$line" | sed -nE "s/.*${field}:[[:space:]]*([^,}]+).*/\\1/p" | xargs
             }
-            pick_destination() {
-              local platform_id="$1"
+            load_best_destination() {
+              local destinations_log="$1"
               local simulator_platform="$2"
               local device_name_prefix="$3"
-              local failure_message="$4"
-              local destinations_log="logs/destinations-${platform_id}.log"
-
               BEST_DESTINATION=$(
                 while IFS= read -r line
                 do
@@ -235,7 +232,24 @@ jobs:
               DESTINATION_OS=$(echo "$BEST_DESTINATION" | awk -F"\t" '{print $4}' | xargs)
               DESTINATION_ID=$(echo "$BEST_DESTINATION" | awk -F"\t" '{print $5}' | xargs)
               DESTINATION_NAME=$(echo "$BEST_DESTINATION" | awk -F"\t" '{print $6}' | xargs)
-              if [[ "$DESTINATION_ID" == "" ]]
+              [[ "$DESTINATION_NAME" != "" && "$DESTINATION_OS" != "" ]]
+            }
+            pick_destination_if_available() {
+              local platform_id="$1"
+              local simulator_platform="$2"
+              local device_name_prefix="$3"
+              local destinations_log="logs/destinations-${platform_id}.log"
+
+              load_best_destination "$destinations_log" "$simulator_platform" "$device_name_prefix"
+            }
+            pick_destination() {
+              local platform_id="$1"
+              local simulator_platform="$2"
+              local device_name_prefix="$3"
+              local failure_message="$4"
+              local destinations_log="logs/destinations-${platform_id}.log"
+
+              if ! load_best_destination "$destinations_log" "$simulator_platform" "$device_name_prefix"
               then
                 echo "::error::$failure_message"
                 cat "$destinations_log"
@@ -265,11 +279,19 @@ jobs:
             set -o pipefail
             source "setup.sh"
             source "destination-picker.sh"
-            xcodebuild -downloadPlatform iOS > logs/download-iOS.log
             xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -showdestinations > logs/destinations-iOS.log
-            pick_destination "iOS" "iOS Simulator" "iPhone" "No available non-beta iPhone simulator destination found."
-            echo "Testing workspace $WORKSPACE scheme $SCHEME on ${DESTINATION_NAME:-unknown} (iOS ${DESTINATION_OS:-unknown}, $DESTINATION_ID)."
-            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "id=$DESTINATION_ID" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-iOS-test-release.log | xcbeautify --quiet --disable-logging --renderer github-actions
+            if pick_destination_if_available "iOS" "iOS Simulator" "iPhone"
+            then
+              echo "Using existing iOS simulator destination."
+            else
+              echo "No available iOS simulator destination found. Downloading platform support."
+              xcodebuild -downloadPlatform iOS > logs/download-iOS.log
+              xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -showdestinations > logs/destinations-iOS.log
+              pick_destination "iOS" "iOS Simulator" "iPhone" "No available non-beta iPhone simulator destination found."
+            fi
+            echo "Selected iOS simulator: ${DESTINATION_NAME:-unknown} (OS ${DESTINATION_OS:-unknown}, id=${DESTINATION_ID:-unknown})."
+            echo "Testing workspace $WORKSPACE scheme $SCHEME on ${DESTINATION_NAME:-unknown} (iOS ${DESTINATION_OS:-unknown}, id=${DESTINATION_ID:-unknown})."
+            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "platform=iOS Simulator,OS=$DESTINATION_OS,name=$DESTINATION_NAME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-iOS-test-release.log | xcbeautify --quiet --disable-logging --renderer github-actions
         - name: Detect Workspace & Scheme (tvOS)
           run: |
             WORKSPACE="Logger.xcworkspace"
@@ -292,11 +314,19 @@ jobs:
             set -o pipefail
             source "setup.sh"
             source "destination-picker.sh"
-            xcodebuild -downloadPlatform tvOS > logs/download-tvOS.log
             xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -showdestinations > logs/destinations-tvOS.log
-            pick_destination "tvOS" "tvOS Simulator" "Apple TV" "No available non-beta Apple TV simulator destination found."
-            echo "Testing workspace $WORKSPACE scheme $SCHEME on ${DESTINATION_NAME:-unknown} (tvOS ${DESTINATION_OS:-unknown}, $DESTINATION_ID)."
-            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "id=$DESTINATION_ID" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-tvOS-test-release.log | xcbeautify --quiet --disable-logging --renderer github-actions
+            if pick_destination_if_available "tvOS" "tvOS Simulator" "Apple TV"
+            then
+              echo "Using existing tvOS simulator destination."
+            else
+              echo "No available tvOS simulator destination found. Downloading platform support."
+              xcodebuild -downloadPlatform tvOS > logs/download-tvOS.log
+              xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -showdestinations > logs/destinations-tvOS.log
+              pick_destination "tvOS" "tvOS Simulator" "Apple TV" "No available non-beta Apple TV simulator destination found."
+            fi
+            echo "Selected tvOS simulator: ${DESTINATION_NAME:-unknown} (OS ${DESTINATION_OS:-unknown}, id=${DESTINATION_ID:-unknown})."
+            echo "Testing workspace $WORKSPACE scheme $SCHEME on ${DESTINATION_NAME:-unknown} (tvOS ${DESTINATION_OS:-unknown}, id=${DESTINATION_ID:-unknown})."
+            xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "platform=tvOS Simulator,OS=$DESTINATION_OS,name=$DESTINATION_NAME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-tvOS-test-release.log | xcbeautify --quiet --disable-logging --renderer github-actions
         - name: Detect Workspace & Scheme (watchOS)
           run: |
             WORKSPACE="Logger.xcworkspace"
@@ -319,11 +349,19 @@ jobs:
             set -o pipefail
             source "setup.sh"
             source "destination-picker.sh"
-            xcodebuild -downloadPlatform watchOS > logs/download-watchOS.log
             xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -showdestinations > logs/destinations-watchOS.log
-            pick_destination "watchOS" "watchOS Simulator" "Apple Watch" "No available non-beta Apple Watch simulator destination found."
-            echo "Building workspace $WORKSPACE scheme $SCHEME on ${DESTINATION_NAME:-unknown} (watchOS ${DESTINATION_OS:-unknown}, $DESTINATION_ID)."
-            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "id=$DESTINATION_ID" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-watchOS-build-release.log | xcbeautify --quiet --disable-logging --renderer github-actions
+            if pick_destination_if_available "watchOS" "watchOS Simulator" "Apple Watch"
+            then
+              echo "Using existing watchOS simulator destination."
+            else
+              echo "No available watchOS simulator destination found. Downloading platform support."
+              xcodebuild -downloadPlatform watchOS > logs/download-watchOS.log
+              xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -showdestinations > logs/destinations-watchOS.log
+              pick_destination "watchOS" "watchOS Simulator" "Apple Watch" "No available non-beta Apple Watch simulator destination found."
+            fi
+            echo "Selected watchOS simulator: ${DESTINATION_NAME:-unknown} (OS ${DESTINATION_OS:-unknown}, id=${DESTINATION_ID:-unknown})."
+            echo "Building workspace $WORKSPACE scheme $SCHEME on ${DESTINATION_NAME:-unknown} (watchOS ${DESTINATION_OS:-unknown}, id=${DESTINATION_ID:-unknown})."
+            xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "platform=watchOS Simulator,OS=$DESTINATION_OS,name=$DESTINATION_NAME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-watchOS-build-release.log | xcbeautify --quiet --disable-logging --renderer github-actions
         - name: Upload Logs
           uses: actions/upload-artifact@v7
           if: always()
