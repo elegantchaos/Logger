@@ -23,10 +23,9 @@
 
     /// Renders the row toggle for a single channel.
     public var body: some View {
-      Toggle(
-        entry.name,
-        isOn: watcher.binding(for: entry.id)
-      )
+      Toggle(isOn: watcher.binding(for: entry.id)) {
+        Text(entry.name)
+      }
     }
   }
 
