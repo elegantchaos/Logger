@@ -14,7 +14,7 @@ jobs:
         runs-on: ubuntu-24.04
         steps:
         - name: Checkout
-          uses: actions/checkout@v4
+          uses: actions/checkout@v6
         - name: Make Logs Directory
           run: mkdir logs
         - name: Select Swift
@@ -60,7 +60,7 @@ jobs:
               exit 1
             fi
         - name: Upload Logs
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v7
           if: always()
           with:
             name: linux-swift62-logs
@@ -72,7 +72,7 @@ jobs:
         runs-on: macos-15
         steps:
         - name: Checkout
-          uses: actions/checkout@v4
+          uses: actions/checkout@v6
         - name: Install xcbeautify
           run: |
             if command -v xcbeautify >/dev/null 2>&1
@@ -131,7 +131,7 @@ jobs:
               exit 1
             fi
         - name: Upload Logs
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v7
           if: always()
           with:
             name: macOS-swift62-logs
@@ -143,7 +143,7 @@ jobs:
         runs-on: macos-15
         steps:
         - name: Checkout
-          uses: actions/checkout@v4
+          uses: actions/checkout@v6
         - name: Install xcbeautify
           run: |
             if command -v xcbeautify >/dev/null 2>&1
@@ -325,7 +325,7 @@ jobs:
             echo "Building workspace $WORKSPACE scheme $SCHEME on ${DESTINATION_NAME:-unknown} (watchOS ${DESTINATION_OS:-unknown}, $DESTINATION_ID)."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "id=$DESTINATION_ID" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-watchOS-build-release.log | xcbeautify --quiet --disable-logging --renderer github-actions
         - name: Upload Logs
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v7
           if: always()
           with:
             name: xcode-swift62-logs
