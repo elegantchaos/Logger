@@ -21,6 +21,7 @@ jobs:
           uses: swift-actions/setup-swift@v3
           with:
             swift-version: "6.2"
+            skip-verify-signature: true
         - name: Swift Version
           run: swift --version
         - name: Build (release)
@@ -256,6 +257,20 @@ jobs:
                 exit 1
               fi
             }
+            boot_destination() {
+              local platform_id="$1"
+              local platform_name="$2"
+              local boot_log="logs/boot-${platform_id}.log"
+
+              echo "Booting ${platform_name} simulator ${DESTINATION_NAME:-unknown} (OS ${DESTINATION_OS:-unknown}, id=${DESTINATION_ID:-unknown})."
+              xcrun simctl boot "$DESTINATION_ID" >"$boot_log" 2>&1 || true
+              if ! xcrun simctl bootstatus "$DESTINATION_ID" -b >>"$boot_log" 2>&1
+              then
+                echo "::error::Failed to boot ${platform_name} simulator ${DESTINATION_NAME:-unknown} (OS ${DESTINATION_OS:-unknown}, id=${DESTINATION_ID:-unknown})."
+                cat "$boot_log"
+                exit 1
+              fi
+            }
             EOF
         - name: Detect Workspace & Scheme (iOS)
           run: |
@@ -290,6 +305,7 @@ jobs:
               pick_destination "iOS" "iOS Simulator" "iPhone" "No available non-beta iPhone simulator destination found."
             fi
             echo "Selected iOS simulator: ${DESTINATION_NAME:-unknown} (OS ${DESTINATION_OS:-unknown}, id=${DESTINATION_ID:-unknown})."
+            boot_destination "iOS" "iOS"
             echo "Testing workspace $WORKSPACE scheme $SCHEME on ${DESTINATION_NAME:-unknown} (iOS ${DESTINATION_OS:-unknown}, id=${DESTINATION_ID:-unknown})."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "platform=iOS Simulator,OS=$DESTINATION_OS,name=$DESTINATION_NAME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-iOS-test-release.log | xcbeautify --quiet --disable-logging --renderer github-actions
         - name: Detect Workspace & Scheme (tvOS)
@@ -325,6 +341,7 @@ jobs:
               pick_destination "tvOS" "tvOS Simulator" "Apple TV" "No available non-beta Apple TV simulator destination found."
             fi
             echo "Selected tvOS simulator: ${DESTINATION_NAME:-unknown} (OS ${DESTINATION_OS:-unknown}, id=${DESTINATION_ID:-unknown})."
+            boot_destination "tvOS" "tvOS"
             echo "Testing workspace $WORKSPACE scheme $SCHEME on ${DESTINATION_NAME:-unknown} (tvOS ${DESTINATION_OS:-unknown}, id=${DESTINATION_ID:-unknown})."
             xcodebuild test -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "platform=tvOS Simulator,OS=$DESTINATION_OS,name=$DESTINATION_NAME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-tvOS-test-release.log | xcbeautify --quiet --disable-logging --renderer github-actions
         - name: Detect Workspace & Scheme (watchOS)
@@ -360,6 +377,7 @@ jobs:
               pick_destination "watchOS" "watchOS Simulator" "Apple Watch" "No available non-beta Apple Watch simulator destination found."
             fi
             echo "Selected watchOS simulator: ${DESTINATION_NAME:-unknown} (OS ${DESTINATION_OS:-unknown}, id=${DESTINATION_ID:-unknown})."
+            boot_destination "watchOS" "watchOS"
             echo "Building workspace $WORKSPACE scheme $SCHEME on ${DESTINATION_NAME:-unknown} (watchOS ${DESTINATION_OS:-unknown}, id=${DESTINATION_ID:-unknown})."
             xcodebuild clean build -workspace "$WORKSPACE" -scheme "$SCHEME" -destination "platform=watchOS Simulator,OS=$DESTINATION_OS,name=$DESTINATION_NAME" -configuration Release CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ENABLE_TESTABILITY=YES | tee logs/xcodebuild-watchOS-build-release.log | xcbeautify --quiet --disable-logging --renderer github-actions
         - name: Upload Logs
