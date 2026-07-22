@@ -24,8 +24,9 @@
       "args": [],
       "cwd": "${workspaceFolder:Logger}/Extras/Examples/CommandLineExample",
       "name": "Debug Example (Extras/Examples/CommandLineExample)",
-      "program": "${workspaceFolder:Logger}/Extras/Examples/CommandLineExample/.build/debug/Example",
-      "preLaunchTask": "swift: Build Debug Example (Extras/Examples/CommandLineExample)"
+      "preLaunchTask": "swift: Build Debug Example (Extras/Examples/CommandLineExample)",
+      "target": "Example",
+      "configuration": "debug"
     },
     {
       "type": "swift",
@@ -33,8 +34,9 @@
       "args": [],
       "cwd": "${workspaceFolder:Logger}/Extras/Examples/CommandLineExample",
       "name": "Release Example (Extras/Examples/CommandLineExample)",
-      "program": "${workspaceFolder:Logger}/Extras/Examples/CommandLineExample/.build/release/Example",
-      "preLaunchTask": "swift: Build Release Example (Extras/Examples/CommandLineExample)"
+      "preLaunchTask": "swift: Build Release Example (Extras/Examples/CommandLineExample)",
+      "target": "Example",
+      "configuration": "release"
     }
   ]
 }
