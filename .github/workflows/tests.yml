@@ -21,13 +21,7 @@ jobs:
       swift-version: "6.2"
       compiler-id: "swift62"
       setup-mode: "release"
-      xcode-version: "26.3.0"
-      toolchain-branch: ""
       operation: "test"
-      separate-test-methods: true
-      upload-logs: true
-      post-slack: false
-      notification-job-name: "Linux (Swift 6.2)"
 
   linux-swift63:
     name: "Linux (Swift 6.3)"
@@ -38,13 +32,7 @@ jobs:
       swift-version: "6.3"
       compiler-id: "swift63"
       setup-mode: "release"
-      xcode-version: "26.4.0"
-      toolchain-branch: ""
       operation: "test"
-      separate-test-methods: true
-      upload-logs: true
-      post-slack: false
-      notification-job-name: "Linux (Swift 6.3)"
 
   iOS-swift62:
     name: "iOS (Swift 6.2, Xcode matching Swift 6.2)"
@@ -57,12 +45,8 @@ jobs:
       compiler-id: "swift62"
       preferred-xcode-version: "26.3"
       setup-mode: "xcode-release"
-      xcode-version: "26.3.0"
-      toolchain-branch: ""
       operation: "test"
-      upload-logs: true
-      post-slack: false
-      notification-job-name: "iOS (Swift 6.2)"
+      operation-name: "Test"
 
   iOS-swift63:
     name: "iOS (Swift 6.3, Xcode matching Swift 6.3)"
@@ -75,12 +59,8 @@ jobs:
       compiler-id: "swift63"
       preferred-xcode-version: "26.4"
       setup-mode: "xcode-release"
-      xcode-version: "26.4.0"
-      toolchain-branch: ""
       operation: "test"
-      upload-logs: true
-      post-slack: false
-      notification-job-name: "iOS (Swift 6.3)"
+      operation-name: "Test"
 
   macOS-swift62:
     name: "macOS (Swift 6.2)"
@@ -91,13 +71,7 @@ jobs:
       swift-version: "6.2"
       compiler-id: "swift62"
       setup-mode: "release"
-      xcode-version: "26.3.0"
-      toolchain-branch: ""
       operation: "test"
-      separate-test-methods: true
-      upload-logs: true
-      post-slack: false
-      notification-job-name: "macOS (Swift 6.2)"
 
   macOS-swift63:
     name: "macOS (Swift 6.3)"
@@ -108,13 +82,7 @@ jobs:
       swift-version: "6.3"
       compiler-id: "swift63"
       setup-mode: "release"
-      xcode-version: "26.4.0"
-      toolchain-branch: ""
       operation: "test"
-      separate-test-methods: true
-      upload-logs: true
-      post-slack: false
-      notification-job-name: "macOS (Swift 6.3)"
 
   tvOS-swift62:
     name: "tvOS (Swift 6.2, Xcode matching Swift 6.2)"
@@ -127,12 +95,8 @@ jobs:
       compiler-id: "swift62"
       preferred-xcode-version: "26.3"
       setup-mode: "xcode-release"
-      xcode-version: "26.3.0"
-      toolchain-branch: ""
       operation: "test"
-      upload-logs: true
-      post-slack: false
-      notification-job-name: "tvOS (Swift 6.2)"
+      operation-name: "Test"
 
   tvOS-swift63:
     name: "tvOS (Swift 6.3, Xcode matching Swift 6.3)"
@@ -145,12 +109,8 @@ jobs:
       compiler-id: "swift63"
       preferred-xcode-version: "26.4"
       setup-mode: "xcode-release"
-      xcode-version: "26.4.0"
-      toolchain-branch: ""
       operation: "test"
-      upload-logs: true
-      post-slack: false
-      notification-job-name: "tvOS (Swift 6.3)"
+      operation-name: "Test"
 
   watchOS-swift62:
     name: "watchOS (Swift 6.2, Xcode matching Swift 6.2)"
@@ -163,12 +123,8 @@ jobs:
       compiler-id: "swift62"
       preferred-xcode-version: "26.3"
       setup-mode: "xcode-release"
-      xcode-version: "26.3.0"
-      toolchain-branch: ""
       operation: "build"
-      upload-logs: true
-      post-slack: false
-      notification-job-name: "watchOS (Swift 6.2)"
+      operation-name: "Build"
 
   watchOS-swift63:
     name: "watchOS (Swift 6.3, Xcode matching Swift 6.3)"
@@ -181,9 +137,5 @@ jobs:
       compiler-id: "swift63"
       preferred-xcode-version: "26.4"
       setup-mode: "xcode-release"
-      xcode-version: "26.4.0"
-      toolchain-branch: ""
       operation: "build"
-      upload-logs: true
-      post-slack: false
-      notification-job-name: "watchOS (Swift 6.3)"
+      operation-name: "Build"
