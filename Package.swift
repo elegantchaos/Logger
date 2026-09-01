@@ -35,10 +35,6 @@ let package = Package(
   ],
 
   dependencies: [
-    .package(
-      url: "https://github.com/elegantchaos/ActionBuilderPlugin.git",
-      from: "2.0.3"
-    )
   ],
 
   targets: [
