@@ -27,7 +27,7 @@ import Testing
 
       try await waitUntil { watcher.channels.count == 1 }
       #expect(watcher.channels[0].name == "watcher-test")
-      #expect(watcher.channels[0].isEnabled == false)
+      #expect(!watcher.channels[0].isEnabled)
 
       channel.enabled = true
 
