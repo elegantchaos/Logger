@@ -27,11 +27,6 @@ let package = Package(
       name: "LoggerUI",
       targets: ["LoggerUI"]
     ),
-
-    .library(
-      name: "LoggerTestSupport",
-      targets: ["LoggerTestSupport"]
-    ),
   ],
 
   dependencies: [
@@ -50,19 +45,11 @@ let package = Package(
       ],
     ),
 
-    .target(
-      name: "LoggerTestSupport",
-      dependencies: [
-        "Logger"
-      ]
-    ),
-
     .testTarget(
       name: "LoggerTests",
       dependencies: [
         "Logger",
         "LoggerUI",
-        "LoggerTestSupport",
       ]
     ),
   ]
