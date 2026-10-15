@@ -1,0 +1,3 @@
+{
+  "compilers": ["swift62", "swift63"]
+}

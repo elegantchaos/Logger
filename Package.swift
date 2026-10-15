@@ -27,19 +27,9 @@ let package = Package(
       name: "LoggerUI",
       targets: ["LoggerUI"]
     ),
-
-    .library(
-      name: "LoggerTestSupport",
-      targets: ["LoggerTestSupport"]
-    ),
   ],
 
-  dependencies: [
-    .package(
-      url: "https://github.com/elegantchaos/ActionBuilderPlugin.git",
-      from: "2.0.3"
-    )
-  ],
+  dependencies: [],
 
   targets: [
     .target(
@@ -54,19 +44,11 @@ let package = Package(
       ],
     ),
 
-    .target(
-      name: "LoggerTestSupport",
-      dependencies: [
-        "Logger"
-      ]
-    ),
-
     .testTarget(
       name: "LoggerTests",
       dependencies: [
         "Logger",
         "LoggerUI",
-        "LoggerTestSupport",
       ]
     ),
   ]
