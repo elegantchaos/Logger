@@ -1,14 +1,13 @@
 # Workflow maintenance
 
-Run `ActionBuilderTool` at the repository root to generate the caller workflow
-and the shared Swift/Xcode job workflows. `.actionbuilder.json` preserves the
-Swift 6.2/6.3 validation matrix.
+Run `ActionBuilderTool` v2.2.5 or later at the repository root to generate the
+caller workflow and the shared Swift/Xcode job workflows. `.actionbuilder.json`
+preserves the Swift 6.2/6.3 validation matrix.
 
-`ActionBuilderXcodeJob.yml` includes local fixes that the generator does not yet
-emit: package-scheme discovery and simulator setup failures must fail the job,
-and Xcode enumeration uses a quoted path list instead of parsing `ls` output.
-Regeneration overwrites these fixes. Preserve them until ActionBuilderCore
-implements them; its `ROADMAP.md` records the follow-up.
+The generated Xcode job fails when package-scheme discovery or required simulator
+setup fails. Xcode enumeration uses a quoted path list to preserve application
+names containing spaces. All three generated workflows can be regenerated
+directly without local patches.
 
 After regenerating or editing workflows, run:
 
