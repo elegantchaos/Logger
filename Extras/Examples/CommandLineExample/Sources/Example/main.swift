@@ -6,21 +6,26 @@
 
 import Logger
 
-let stdout = Logger.stdout
+/// Signals each message delivered by the asynchronous handler.
+let (messages, continuation) = AsyncStream<Void>.makeStream()
+/// Prints each delivered message and signals completion.
+let handler = BasicHandler("stdout") { item, _ in
+  print(item.value)
+  continuation.yield(())
+}
+/// Channel used to demonstrate runtime enablement.
+let channel = Channel("Example", handler: handler, alwaysEnabled: true)
 
-let test = Channel("test")
-let test2 = Channel(
-  "com.elegantchaos.other.test2",
-  handlers: [PrintHandler("print", showName: true, showSubsystem: true)])
+channel.log("This message is enabled.")
+channel.enabled = false
+channel.log("This message is disabled and will not be printed.")
+channel.enabled = true
+channel.log("This message is enabled again.")
 
-stdout.log("This should get printed to stdout.")
-stdout.log("There shouldn't be any contex information included in the output.\n")
-
-test.log("This should get printed to the default console location.")
-test.log("On the Mac it'll be the console. On Linux, currently, it's stdout.")
-test.log("Unlike the Logger.stdout channel, this one also shows the channel name.\n\n")
-
-test2.log(
-  "This should always be logged to stdout, but will show the console name and the subsystem.\n")
-
-stdout.debug("This should only appear for debug builds.\n")
+/// Number of messages delivered before exiting.
+var received = 0
+for await _ in messages {
+  received += 1
+  if received == 2 { break }
+}
+await channel.shutdown()

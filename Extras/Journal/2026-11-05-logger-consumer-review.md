@@ -25,3 +25,13 @@ Added persistence tests covering enabled and disabled registered channels across
 Legacy short-name settings can match channels in multiple subsystems. Disabling a matching channel removes the short-name setting, so an unregistered channel with the same short name cannot retain that ambiguous choice; the existing representation cannot express that distinction. Channel identity and the settings representation remain follow-up work.
 
 Sam converted the standalone example project to Xcode's JSON project format, which requires Xcode 27. Targeted Logger validation passes. Fast validation still fails when the command-line example tries to clone its local Git dependency in the sandbox. The example project's validation could not begin after the conversion: AgentTools reported that Xcode could not read the repository root during discovery. Interactive UI and cross-platform validation were not run.
+
+## Example Workspace Follow-up
+
+Added the current Logger checkout as an explicit local package in the standalone example workspace, following Bookish's workspace arrangement. The relative path resolves to this worktree and the workspace XML is well formed. `agt validate` still stopped while Xcode was opening the workspace in the sandbox, before the example build; the cause remains unconfirmed. The workspace's staged and unstaged changes were left for the user to review.
+
+## Command-Line Example Follow-up
+
+Replaced the example's relative Git dependency with an explicitly named local path dependency, so it uses the current checkout even in a differently named worktree. Updated its deployment targets, Swift manifest and source to use the current Logger API, and documented the GitHub dependency alternative for other projects. The obsolete resolved Git pin was removed by SwiftPM. The example now waits for its asynchronous handler to print the enabled messages before exiting.
+
+`agt validate --target Example --package-dirs Extras/Examples/CommandLineExample` built the example. `agt validate --fast` built the example, Logger and LoggerUI, and passed the Logger tests. Running the built executable printed the two enabled messages and omitted the disabled one. The standalone SwiftUI workspace remains outside that fast-validation result.
