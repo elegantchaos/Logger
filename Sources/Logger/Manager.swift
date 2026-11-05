@@ -28,7 +28,17 @@ public actor Manager {
   public var channels: Channels = []
   private var changedChannels: Channels?
 
-  private var runningChannels = 0
+  /// Channel tasks that have registered and not yet drained.
+  private var runningChannels: [ObjectIdentifier: Channel] = [:]
+
+  /// Whether manager shutdown has started.
+  private var isShuttingDown = false
+
+  /// Whether all registered channels have drained and events have ended.
+  private var hasShutdown = false
+
+  /// Callers waiting for shutdown to finish.
+  private var shutdownWaiters: [CheckedContinuation<Void, Never>] = []
 
   nonisolated(unsafe) var fatalHandler: FatalHandler = defaultFatalHandler
 
@@ -45,7 +55,9 @@ public actor Manager {
 
   /// Stream of manager events. Clients can watch this if they are
   /// interested in changes to the state of channels. When this stream
-  /// ends, the manager has shut down, along with all channels.
+  /// ends, the manager has shut down, along with all channels. Each subscriber
+  /// receives `.started` before subsequent events. Slow subscribers retain the
+  /// 256 most recent events and may miss older ones.
   public let events: BroadcastSequence<Event>
 
   /**
@@ -60,21 +72,39 @@ public actor Manager {
     self.settings = settings
     let enabled = settings.enabledChannelIDs
     self.channelsEnabledInSettings = enabled
-    self.events = BroadcastSequence()
+    self.events = BroadcastSequence(initial: .started)
 
     logStartup(channels: enabled)
   }
 
-  /// Initiate a shutdown of the manager.
+  /// Shut down registered channels, wait for their output to drain, and end events.
   public func shutdown() async {
-    events.yield(.shuttingDown)
-    await withTaskGroup(of: Void.self) { group in
-      for channel in channels {
-        group.addTask {
-          await channel.shutdown()
+    if hasShutdown { return }
+    if !isShuttingDown {
+      isShuttingDown = true
+      events.yield(.shuttingDown)
+      let activeChannels = Array(runningChannels.values)
+      await withTaskGroup(of: Void.self) { group in
+        for channel in activeChannels {
+          group.addTask { await channel.shutdown() }
         }
       }
+      finishShutdownIfPossible()
     }
+    if !hasShutdown {
+      await withCheckedContinuation { shutdownWaiters.append($0) }
+    }
+  }
+
+  /// Finishes shutdown once every registered channel has drained.
+  private func finishShutdownIfPossible() {
+    guard isShuttingDown, !hasShutdown, runningChannels.isEmpty else { return }
+    hasShutdown = true
+    events.yield(.shutdown)
+    events.finish()
+    let waiters = shutdownWaiters
+    shutdownWaiters.removeAll()
+    for waiter in waiters { waiter.resume() }
   }
 
   /**
@@ -140,7 +170,6 @@ public actor Manager {
         channels.isEmpty
           ? "All channels currently disabled.\n" : "Enabled log channels: \(channels)\n")
     }
-    events.yield(.started)
   }
 
   /// Called to indicate that channel settings have changed.
@@ -201,17 +230,18 @@ extension Manager {
   /// run the channel until it is done, then
   /// emit a `Event.channelShutdown` event.
   func run(channel: Channel) async {
+    guard !isShuttingDown else {
+      await channel.shutdown()
+      return
+    }
     channels.insert(channel)
+    runningChannels[ObjectIdentifier(channel)] = channel
     events.yield(.channelAdded(channel))
-    runningChannels += 1
     events.yield(.channelStarted(channel))
     await channel.run()
-    runningChannels -= 1
+    runningChannels.removeValue(forKey: ObjectIdentifier(channel))
     events.yield(.channelShutdown(channel))
-    if runningChannels == 0 {
-      events.yield(.shutdown)
-      events.finish()
-    }
+    finishShutdownIfPossible()
   }
 
 }

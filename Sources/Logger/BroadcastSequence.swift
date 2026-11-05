@@ -6,21 +6,27 @@
 import Foundation
 import Synchronization
 
-/// An event sequence that delivers each event to every active iterator.
+/// A broadcast sequence with independent, bounded buffers for subscribers.
+///
+/// Slow subscribers retain the 256 most recent events; older events can be dropped.
+/// Each iterator receives the optional initial event before its buffered events.
 public final class BroadcastSequence<Element: Sendable>: AsyncSequence, Sendable {
-  /// The underlying iterator for one subscriber.
-  public typealias AsyncIterator = AsyncStream<Element>.Iterator
-
   /// Protected subscriber state.
   private let state = Mutex(State())
 
-  /// Creates an empty broadcast sequence.
-  public init() {}
+  /// Event delivered first to each subscriber, if any.
+  private let initialElement: Element?
+
+  /// Creates a broadcast sequence with an optional initial event for each subscriber.
+  public init(initial: Element? = nil) {
+    self.initialElement = initial
+  }
 
   /// Registers an independent subscriber.
   public func makeAsyncIterator() -> AsyncIterator {
     let id = UUID()
-    let (stream, continuation) = AsyncStream<Element>.makeStream()
+    let (stream, continuation) = AsyncStream<Element>.makeStream(
+      bufferingPolicy: .bufferingNewest(256))
     continuation.onTermination = { [weak self] _ in
       self?.remove(id)
     }
@@ -30,7 +36,7 @@ public final class BroadcastSequence<Element: Sendable>: AsyncSequence, Sendable
       return false
     }
     if finished { continuation.finish() }
-    return stream.makeAsyncIterator()
+    return AsyncIterator(initialElement: initialElement, iterator: stream.makeAsyncIterator())
   }
 
   /// Sends an event to the current subscribers.
@@ -53,6 +59,34 @@ public final class BroadcastSequence<Element: Sendable>: AsyncSequence, Sendable
   /// Removes a terminated subscription.
   private func remove(_ id: UUID) {
     _ = state.withLock { $0.subscribers.removeValue(forKey: id) }
+  }
+
+  /// Iterator that delivers the initial event separately from its bounded buffer.
+  public struct AsyncIterator: AsyncIteratorProtocol {
+    /// Initial event that has not yet been delivered.
+    private var initialElement: Element?
+
+    /// Iterator for subsequent broadcast events.
+    private var iterator: AsyncStream<Element>.Iterator
+
+    /// Creates an iterator for a registered subscriber.
+    fileprivate init(initialElement: Element?, iterator: AsyncStream<Element>.Iterator) {
+      self.initialElement = initialElement
+      self.iterator = iterator
+    }
+
+    /// Returns the next event, or nil when the subscription ends.
+    public mutating func next() async -> Element? {
+      if Task.isCancelled {
+        _ = await iterator.next()
+        return nil
+      }
+      if let initialElement {
+        self.initialElement = nil
+        return initialElement
+      }
+      return await iterator.next()
+    }
   }
 
   /// State shared by subscriptions and event producers.

@@ -7,3 +7,4 @@
 - [2026-10-16 Adopt ActionBuilderTool v2.2.5](2026-10-16-adopt-actionbuilder-2-2-5.md)
 - [2026-11-05 Full Review Logger](2026-11-05-full-review-logger.md)
 - [2026-11-05 Logger Consumer Review](2026-11-05-logger-consumer-review.md)
+- [2026-11-05 PR 37 Copilot Review](2026-11-05-pr37-copilot-review.md)

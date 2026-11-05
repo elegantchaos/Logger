@@ -101,12 +101,8 @@
 
         while let event = await events.next() {
           guard !Task.isCancelled else { return }
-          switch event {
-          case .channelAdded, .channelUpdated:
-            await self?.updateChannels()
-          default:
-            break
-          }
+          _ = event
+          await self?.updateChannels()
         }
       }
     }
