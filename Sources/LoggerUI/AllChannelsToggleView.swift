@@ -6,31 +6,37 @@
 #if canImport(SwiftUI)
   import SwiftUI
 
-  /// Toggle that controls a collection of channels and displays a mixed state.
+  /// Master toggle for every channel, showing a mixed state when only some are enabled.
+  ///
+  /// Choosing it when the channels are mixed or off enables them all; choosing it when
+  /// they are all on disables them. Each choice makes one `setAllEnabled(_:)` change.
   public struct AllChannelsToggleView: View {
-    /// Bindings to each channel's enabled state.
-    private let sources: [Binding<Bool>]
+    /// Watcher that supplies the channels and applies their changes.
+    @Bindable private var watcher: ChannelWatcher
 
     /// Toggle label.
     private let label: LocalizedStringResource
 
-    /// Creates a master toggle that directly updates the watcher.
-    public init(label: LocalizedStringResource = "All Channels", watcher: ChannelWatcher) {
-      self.init(label: label, sources: watcher.channels.map { watcher.binding(for: $0.id) })
-    }
-
-    /// Creates a master toggle using host-supplied bindings.
-    public init(label: LocalizedStringResource = "All Channels", sources: [Binding<Bool>]) {
+    /// Creates a master toggle for the watcher's channels.
+    public init(watcher: ChannelWatcher, label: LocalizedStringResource = "All Channels") {
+      self._watcher = Bindable(watcher)
       self.label = label
-      self.sources = sources
     }
 
-    /// Renders the aggregate toggle, disabling it when there are no channels.
+    /// Renders the master toggle, disabled when there are no channels.
     public var body: some View {
-      Toggle(sources: sources, isOn: \.self) {
+      Toggle(sources: [$watcher.anyEnabled, $watcher.allEnabled], isOn: \.self) {
         Text(label)
       }
-      .disabled(sources.isEmpty)
+      .disabled(watcher.channels.isEmpty)
+    }
+  }
+
+  #Preview("All Channels") {
+    @Previewable @State var watcher = ChannelWatcher.preview
+    Form {
+      AllChannelsToggleView(watcher: watcher)
+      IndividualChannelsToggleView(watcher: watcher)
     }
   }
 #endif

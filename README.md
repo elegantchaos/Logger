@@ -93,6 +93,45 @@ This allows you to view the list of channels, and enable or disable them.
 
 ### Channel Controls
 
-`LoggerUI` provides a `LoggerChannelsView` section for use inside a `List` or `Form`. Create a `ChannelWatcher` when multiple surfaces need to share the same observed channel state, and pass it to the section. `AllChannelsToggleView` and `IndividualChannelsToggleView` can also be composed into a menu; the SwiftUI example uses them in a macOS **Debug → Channels** menu. The master toggle shows a mixed state when some channels are enabled and affects the currently registered channels. Channel names include their subsystem when needed to distinguish otherwise identical labels.
+`LoggerUI` provides a `LoggerChannelsView` section for use inside a `List` or `Form`. The host owns a `ChannelWatcher`, usually in `@State`, and passes it to the section:
 
-Apps that route actions through their own command layer can use `ChannelWatcher.channels` to read the snapshots and call `setEnabled(_:for:)` or `setAllEnabled(_:)` from a command. `ChannelToggleView(entry:isEnabled:)` and `AllChannelsToggleView(label:sources:)` accept host-supplied bindings, so the controls can dispatch those commands without Logger depending on a command framework. The collection-based master toggle updates each supplied binding independently; an app that needs one bulk command can present a separate action calling `setAllEnabled(_:)`.
+```swift
+@State private var watcher = ChannelWatcher()
+
+var body: some View {
+  List {
+    LoggerChannelsView(watcher: watcher)
+  }
+}
+```
+
+`AllChannelsToggleView` and `IndividualChannelsToggleView` can also be composed into a menu; share one watcher between the surfaces so they stay in step. The SwiftUI example uses them in a macOS **Debug → Channels** menu. The master toggle shows a mixed state when only some channels are enabled, and each choice enables or disables every registered channel in one change. Channel names include their subsystem when needed to distinguish otherwise identical labels.
+
+### Routing Changes Through Commands
+
+By default the controls change the channels directly. An app that routes changes through its own action layer, such as commands with undo, gives the watcher a `ChannelActions` implementation; every control then calls it instead. Logger does not depend on any command framework.
+
+`Manager.setEnabled(_:)` and `Manager.setAllEnabled(_:)` apply the changes. Each returns the previous states of only the channels that changed, which restore them exactly when passed back to `setEnabled(_:)`, so a command can use the result for undo:
+
+```swift
+@MainActor
+final class CommandChannelActions<C: LoggingCommands>: ChannelActions {
+  let centre: C
+
+  init(centre: C) {
+    self.centre = centre
+  }
+
+  func setEnabled(_ isEnabled: Bool, for id: Channel.ID) {
+    centre.performWithoutWaiting(SetChannelStates(states: [id: isEnabled]))
+  }
+
+  func setAllEnabled(_ isEnabled: Bool) {
+    centre.performWithoutWaiting(SetAllChannels(isEnabled: isEnabled))
+  }
+}
+
+let watcher = ChannelWatcher(actions: CommandChannelActions(centre: centre))
+```
+
+The controls show a change once the manager reports it.

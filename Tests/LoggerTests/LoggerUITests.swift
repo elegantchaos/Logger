@@ -80,9 +80,9 @@ import Testing
       await manager.shutdown()
     }
 
-    /// Callers can route a channel action through their own command layer.
+    /// Without actions, the watcher's methods change the channels directly.
     @Test
-    func publicChannelActionsUpdateState() async throws {
+    func watcherMethodsUpdateChannelsDirectly() async throws {
       let manager = Manager(settings: TestSettings())
       let watcher = ChannelWatcher(manager: manager)
       let channel = Channel("action", manager: manager)
@@ -91,6 +91,47 @@ import Testing
       #expect(channel.enabled == true)
       watcher.setAllEnabled(false)
       #expect(channel.enabled == false)
+      await manager.shutdown()
+    }
+
+    /// With actions, every change is passed to them and the channels are left alone.
+    @Test
+    func actionsReceiveChanges() async throws {
+      let manager = Manager(settings: TestSettings())
+      let actions = RecordingActions()
+      let watcher = ChannelWatcher(manager: manager, actions: actions)
+      let channel = Channel("routed", manager: manager)
+      try await waitUntil { watcher.channels.count == 1 }
+
+      watcher[enabled: channel.id] = true
+      watcher.allEnabled = true
+      watcher.setEnabled(false, for: channel.id)
+      watcher.setAllEnabled(false)
+
+      #expect(
+        actions.requests == [
+          .channel(channel.id, true), .all(true), .channel(channel.id, false), .all(false),
+        ])
+      #expect(channel.enabled == false)
+      await manager.shutdown()
+    }
+
+    /// The master toggle's sources describe a mixed state, and writing the any-enabled
+    /// source makes no change.
+    @Test
+    func masterToggleSourcesShowMixedState() async throws {
+      let manager = Manager(settings: TestSettings())
+      let watcher = ChannelWatcher(manager: manager)
+      let first = Channel("mixed-first", manager: manager)
+      let second = Channel("mixed-second", manager: manager)
+      try await waitUntil { watcher.channels.count == 2 }
+      watcher[enabled: first.id] = true
+
+      #expect(watcher.anyEnabled == true)
+      #expect(watcher.allEnabled == false)
+      watcher.anyEnabled = false
+      #expect(first.enabled == true)
+      #expect(second.enabled == false)
       await manager.shutdown()
     }
 
@@ -103,7 +144,7 @@ import Testing
       let second = Channel("controls-second", manager: manager)
       try await waitUntil { watcher.channels.count == 2 }
 
-      watcher.binding(for: first.id).wrappedValue = true
+      watcher[enabled: first.id] = true
       #expect(first.enabled == true)
       #expect(second.enabled == false)
       #expect(watcher.allEnabled == false)
@@ -157,6 +198,34 @@ import Testing
 
       Issue.record("Timed out waiting for predicate to become true.")
       throw CancellationError()
+    }
+  }
+
+  /// Channel actions that record the changes requested of them.
+  @MainActor
+  private final class RecordingActions: ChannelActions {
+    /// Changes requested so far, in order.
+    private(set) var requests: [Request] = []
+
+    /// Records a single-channel request.
+    func setEnabled(_ isEnabled: Bool, for id: Channel.ID) {
+      requests.append(.channel(id, isEnabled))
+    }
+
+    /// Records an all-channels request.
+    func setAllEnabled(_ isEnabled: Bool) {
+      requests.append(.all(isEnabled))
+    }
+  }
+
+  extension RecordingActions {
+    /// A recorded change request.
+    enum Request: Equatable {
+      /// A request for one channel.
+      case channel(Channel.ID, Bool)
+
+      /// A request for every channel.
+      case all(Bool)
     }
   }
 #endif

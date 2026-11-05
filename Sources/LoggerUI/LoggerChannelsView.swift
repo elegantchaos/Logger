@@ -8,62 +8,47 @@
   import Logger
   import SwiftUI
 
-  /// SwiftUI section that exposes the logger manager's channels as toggles.
+  /// List or form section showing a master toggle in its header and a toggle per channel.
+  ///
+  /// The host owns the `ChannelWatcher`, usually in `@State`, so that other surfaces such
+  /// as a menu can share it.
   public struct LoggerChannelsView<Label: View>: View {
-    /// Watcher that adapts logger channels for SwiftUI observation.
-    @State private var watcher: ChannelWatcher
+    /// Watcher that supplies the channels and applies their changes.
+    private let watcher: ChannelWatcher
 
     /// Section title shown above the channel toggles.
     private let label: Label
 
-    /// Creates a new section backed by the specified logger manager.
-    public init(@ViewBuilder label: () -> Label, manager: Logger.Manager = .shared) {
-      self.label = label()
-      self._watcher = State(initialValue: ChannelWatcher(manager: manager))
-    }
-
-    /// Creates a new section backed by the specified logger manager.
-    public init(manager: Logger.Manager = .shared) where Label == Text {
-      self.label = Text("All Channels")
-      self._watcher = State(initialValue: ChannelWatcher(manager: manager))
-    }
-
-    /// Creates a section that shares an existing watcher with other controls.
+    /// Creates a section for the watcher's channels with a custom title.
     public init(watcher: ChannelWatcher, @ViewBuilder label: () -> Label) {
+      self.watcher = watcher
       self.label = label()
-      self._watcher = State(initialValue: watcher)
     }
 
-    /// Creates a section that shares an existing watcher with other controls.
+    /// Creates a section for the watcher's channels.
     public init(watcher: ChannelWatcher) where Label == Text {
-      self.label = Text("All Channels")
-      self._watcher = State(initialValue: watcher)
+      self.init(watcher: watcher) { Text("All Channels") }
     }
 
-    /// Renders the channel settings section and the master toggle.
+    /// Renders the channel section and its master toggle.
     public var body: some View {
-      Section(
-        header: HStack {
+      Section {
+        IndividualChannelsToggleView(watcher: watcher)
+      } header: {
+        HStack {
           label
           Spacer()
           AllChannelsToggleView(watcher: watcher)
             .labelsHidden()
         }
-      ) {
-        IndividualChannelsToggleView(watcher: watcher)
       }
     }
   }
 
   #Preview("Logger Channels") {
-    let manager = Logger.Manager.shared
-    let general = Channel("Preview.General", manager: manager)
-    let network = Channel("Preview.Network", manager: manager)
-    general.enabled = true
-    _ = network
-
-    return Form {
-      LoggerChannelsView(manager: manager)
+    @Previewable @State var watcher = ChannelWatcher.preview
+    Form {
+      LoggerChannelsView(watcher: watcher)
     }
   }
 

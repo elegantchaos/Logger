@@ -129,6 +129,13 @@ public actor Channel {
     manager.fatalHandler(value, self, file, line)
   }
 
+  /// Sets the enabled state without notifying the manager, and returns the previous state.
+  ///
+  /// The manager uses this to apply several changes, then notifies and saves once.
+  nonisolated func exchangeEnabled(_ isEnabled: Bool) -> Bool {
+    _enabled.value.exchange(isEnabled, ordering: .relaxed)
+  }
+
   /// Kick off the handler. It will pull items from the
   /// stream until it is finished.
   /// NB: Under normal conditions this function is called automatically
