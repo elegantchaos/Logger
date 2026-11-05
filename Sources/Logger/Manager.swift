@@ -81,31 +81,39 @@ public actor Manager {
   /// 256 most recent events and may miss older ones.
   public let events: BroadcastSequence<Event>
 
-  /**
-     An array of the names of the log channels
-     that were persistently enabled - either in the settings
-     or on the command line.
-     */
-
-  let channelsEnabledInSettings: Set<Channel.ID>
+  /// Channel states read from the settings when the manager was created.
+  let savedChannelStates: ChannelStates
 
   /// Creates a manager that reads and saves channel states through the given settings.
   public init(settings: ManagerSettings) {
     self.settings = settings
-    let enabled = settings.enabledChannelIDs
-    self.channelsEnabledInSettings = enabled
+    let saved = settings.channelStates
+    self.savedChannelStates = saved
     self.events = BroadcastSequence(initial: .started)
 
-    logStartup(channels: enabled)
+    logStartup(saved: saved)
   }
 
-  /// Returns the existing enablement for an identifier, or creates it once.
-  nonisolated func enablement(for id: Channel.ID, initially enabled: Bool) -> ChannelEnablement {
-    channelEnablements.withLock { states in
-      if let existing = states[id] { return existing }
-      let state = ChannelEnablement(enabled)
-      states[id] = state
-      return state
+  /// Returns the existing enablement for a channel identifier, or creates it once.
+  ///
+  /// A new enablement starts in the state saved for the identifier or, failing that, for
+  /// its short name, or else in its default. Channels sharing an identifier must declare
+  /// the same default.
+  nonisolated func enablement(
+    for id: Channel.ID, name: String, isEnabledByDefault: Bool
+  ) -> ChannelEnablement {
+    channelEnablements.withLock { enablements in
+      if let existing = enablements[id] {
+        assert(
+          existing.isEnabledByDefault == isEnabledByDefault,
+          "Channels with the identifier \(id) declare different default states.")
+        return existing
+      }
+      let saved = savedChannelStates[id] ?? savedChannelStates[name]
+      let enablement = ChannelEnablement(
+        saved ?? isEnabledByDefault, isEnabledByDefault: isEnabledByDefault)
+      enablements[id] = enablement
+      return enablement
     }
   }
 
@@ -187,7 +195,8 @@ public actor Manager {
     return manager
   }
 
-  nonisolated func logStartup(channels: Set<String>) {
+  /// Prints the saved channel states when the `LoggerDebug` environment variable is `1`.
+  nonisolated func logStartup(saved: ChannelStates) {
     if let mode = ProcessInfo.processInfo.environment["LoggerDebug"], mode == "1" {
       #if DEBUG
         let mode = "debug"
@@ -196,8 +205,8 @@ public actor Manager {
       #endif
       print("\nLogger running in \(mode) mode.")
       print(
-        channels.isEmpty
-          ? "All channels currently disabled.\n" : "Enabled log channels: \(channels)\n")
+        saved.isEmpty
+          ? "All channels are in their default states.\n" : "Saved channel states: \(saved)\n")
     }
   }
 
@@ -209,7 +218,7 @@ public actor Manager {
 
   /// Save settings for all the channels.
   public func saveChannelSettings() {
-    settings.saveEnabledChannels(channels)
+    settings.saveChannelStates(for: channels)
   }
 }
 

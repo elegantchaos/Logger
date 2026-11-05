@@ -8,7 +8,8 @@
   import Logger
   import SwiftUI
 
-  /// List or form section showing a master toggle in its header and a toggle per channel.
+  /// List or form section showing a master toggle in its header, a toggle per channel, and
+  /// a button that resets the channels to their defaults.
   ///
   /// The host owns the `ChannelWatcher`, usually in `@State`, so that other surfaces such
   /// as a menu can share it.
@@ -34,6 +35,7 @@
     public var body: some View {
       Section {
         IndividualChannelsToggleView(watcher: watcher)
+        ResetChannelsButton(watcher: watcher)
       } header: {
         HStack {
           label

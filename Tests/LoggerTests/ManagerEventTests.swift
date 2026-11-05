@@ -68,7 +68,7 @@ struct ManagerEventTests {
       startedContinuation.yield(())
       await gate.wait()
     }
-    let channel = Channel("drain", handler: handler, alwaysEnabled: true, manager: manager)
+    let channel = Channel("drain", handler: handler, default: .enabled, manager: manager)
     while let event = await events.next() {
       if case .channelStarted = event { break }
     }

@@ -62,7 +62,31 @@ struct ManagerChannelStatesTests {
 
     await manager.setEnabled([channel.id: true])
 
-    #expect(settings.saved == [channel.id])
+    #expect(settings.saved == [channel.id: true])
+    await manager.shutdown()
+  }
+
+  /// Resetting returns channels to their defaults and reports what it changed.
+  @Test
+  func resetToDefaultsRestoresDefaultStates() async {
+    let manager = Manager(settings: TestSettings())
+    var events = await manager.events.makeAsyncIterator()
+    let onByDefault = Channel("States.OnByDefault", default: .enabled, manager: manager)
+    let offByDefault = Channel("States.OffByDefault", manager: manager)
+    let untouched = Channel("States.Untouched", manager: manager)
+    var added = 0
+    while added < 3, let event = await events.next() {
+      if case .channelAdded = event { added += 1 }
+    }
+    onByDefault.enabled = false
+    offByDefault.enabled = true
+
+    let previous = await manager.resetToDefaults()
+
+    #expect(previous == [onByDefault.id: false, offByDefault.id: true])
+    #expect(onByDefault.enabled == true)
+    #expect(offByDefault.enabled == false)
+    #expect(untouched.enabled == false)
     await manager.shutdown()
   }
 
@@ -78,20 +102,20 @@ struct ManagerChannelStatesTests {
   }
 }
 
-/// Settings that record the most recently saved identifiers.
+/// Settings that record the most recently saved states.
 private final class RecordingSettings: ManagerSettings, Sendable {
-  /// Identifiers passed to the most recent save.
-  private let savedIDs = Mutex<Set<Channel.ID>?>(nil)
+  /// States passed to the most recent save.
+  private let savedStates = Mutex<Manager.ChannelStates?>(nil)
 
-  /// Identifiers passed to the most recent save, if any.
-  var saved: Set<Channel.ID>? { savedIDs.withLock { $0 } }
+  /// States passed to the most recent save, if any.
+  var saved: Manager.ChannelStates? { savedStates.withLock { $0 } }
 
-  /// No channels start enabled.
-  var enabledChannelIDs: Set<Channel.ID> { [] }
+  /// Nothing is saved initially.
+  var channelStates: Manager.ChannelStates { [:] }
 
-  /// Records the saved identifiers.
-  func saveEnabledChannelIDs(_ ids: Set<Channel.ID>) {
-    savedIDs.withLock { $0 = ids }
+  /// Records the saved states.
+  func saveChannelStates(_ states: Manager.ChannelStates) {
+    savedStates.withLock { $0 = states }
   }
 
   /// Leaves arguments unchanged.

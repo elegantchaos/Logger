@@ -14,7 +14,7 @@ let handler = BasicHandler("stdout") { item, _ in
   continuation.yield(())
 }
 /// Channel used to demonstrate runtime enablement.
-let channel = Channel("Example", handler: handler, alwaysEnabled: true)
+let channel = Channel("Example", handler: handler, default: .enabled)
 
 channel.log("This message is enabled.")
 channel.enabled = false

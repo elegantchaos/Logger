@@ -9,8 +9,13 @@ import Testing
 
 /// Settings supplier for the tests.
 struct TestSettings: ManagerSettings {
-  var enabledChannelIDs: Set<Channel.ID> { [] }
-  func saveEnabledChannelIDs(_: Set<Channel.ID>) {}
+  /// Nothing is saved, so channels start in their default states.
+  var channelStates: Manager.ChannelStates { [:] }
+
+  /// Discards saved states.
+  func saveChannelStates(_: Manager.ChannelStates) {}
+
+  /// Leaves arguments unchanged.
   func removeLoggingOptions(fromCommandLineArguments arguments: [String]) -> [String] {
     arguments
   }
@@ -31,7 +36,7 @@ func withTestChannel(action: @escaping @Sendable (Channel, StreamHandler) async 
       let handler = StreamHandler("test", continuation: continuation)
       let manager = Manager(settings: TestSettings())
       let channel = Channel(
-        "test", handler: handler, alwaysEnabled: true, manager: manager)
+        "test", handler: handler, default: .enabled, manager: manager)
 
       // perform the test action(s), then wait for the
       // manager to shut down to ensure all log items have been processed

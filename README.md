@@ -64,7 +64,13 @@ logger.debug("This will never show up in a release build")
 
 ### Configuration
 
-The list of enabled channels is persistent between runs of your program, and all channels start disabled by default.
+Channels start disabled unless they are declared with `default: .enabled`:
+
+```swift
+let startup = Channel("Startup", default: .enabled)
+```
+
+Changes to a channel's state are saved between runs of your program. Only channels that differ from their default are saved, so a channel that is back at its default follows any later change to that default.
 
 You can enable specific channels from the command line when you run:
 
@@ -79,11 +85,13 @@ You can also disable channels:
 .build/debug/Example -logs "-myChannel,-anotherChannel"
 ```
 
-Or completely reset the list of enabled channels: 
+Or return every channel to its default and then enable the named ones:
 
 ```
 .build/debug/Example -logs "=someChannel,someOtherChannel"
 ```
+
+Channels can be named by their full identifier (`subsystem.name`) or their short name. Changes made on the command line are saved.
 
 ### UI
 
@@ -105,13 +113,13 @@ var body: some View {
 }
 ```
 
-`AllChannelsToggleView` and `IndividualChannelsToggleView` can also be composed into a menu; share one watcher between the surfaces so they stay in step. The SwiftUI example uses them in a macOS **Debug → Channels** menu. The master toggle shows a mixed state when only some channels are enabled, and each choice enables or disables every registered channel in one change. Channel names include their subsystem when needed to distinguish otherwise identical labels.
+`AllChannelsToggleView` and `IndividualChannelsToggleView` can also be composed into a menu; share one watcher between the surfaces so they stay in step. The SwiftUI example uses them in a macOS **Debug → Channels** menu. The master toggle shows a mixed state when only some channels are enabled, and each choice enables or disables every registered channel in one change. `ResetChannelsButton` returns the channels to their defaults; `LoggerChannelsView` includes one. Channel names include their subsystem when needed to distinguish otherwise identical labels.
 
 ### Routing Changes Through Commands
 
 By default the controls change the channels directly. An app that routes changes through its own action layer, such as commands with undo, gives the watcher a `ChannelActions` implementation; every control then calls it instead. Logger does not depend on any command framework.
 
-`Manager.setEnabled(_:)` and `Manager.setAllEnabled(_:)` apply the changes. Each returns the previous states of only the channels that changed, which restore them exactly when passed back to `setEnabled(_:)`, so a command can use the result for undo:
+`Manager.setEnabled(_:)`, `Manager.setAllEnabled(_:)` and `Manager.resetToDefaults()` apply the changes. Each returns the previous states of only the channels that changed, which restore them exactly when passed back to `setEnabled(_:)`, so a command can use the result for undo:
 
 ```swift
 @MainActor
@@ -128,6 +136,10 @@ final class CommandChannelActions<C: LoggingCommands>: ChannelActions {
 
   func setAllEnabled(_ isEnabled: Bool) {
     centre.performWithoutWaiting(SetAllChannels(isEnabled: isEnabled))
+  }
+
+  func resetToDefaults() {
+    centre.performWithoutWaiting(ResetChannels())
   }
 }
 

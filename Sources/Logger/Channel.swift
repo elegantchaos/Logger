@@ -46,11 +46,12 @@ public final class Channel: Sendable {
 
   /// Initialise the channel and register it with its manager.
   ///
-  /// Channels with the same manager and full identifier share enablement. The
-  /// first instance supplies its initial state; later instances do not reset it.
+  /// The channel starts in the state saved by its manager's settings, or in
+  /// `defaultState` when nothing is saved. Channels with the same manager and full
+  /// identifier share enablement, and must declare the same default.
   public init(
     _ name: String, handler: (any Handler)? = nil,
-    alwaysEnabled: Bool = false, manager: Manager? = nil
+    default defaultState: State = .disabled, manager: Manager? = nil
   ) {
     let manager = manager ?? Manager.shared
     let components = name.split(separator: ".")
@@ -66,15 +67,12 @@ public final class Channel: Sendable {
       subName = Channel.defaultSubsystem
     }
 
-    let fullName = "\(subName).\(shortName)"
-    let enabledList = manager.channelsEnabledInSettings
-    let isEnabled =
-      enabledList.contains(shortName) || enabledList.contains(fullName) || alwaysEnabled
-
     self.name = shortName
     self.subsystem = subName
     self.manager = manager
-    self._enabled = manager.enablement(for: fullName, initially: isEnabled)
+    self._enabled = manager.enablement(
+      for: "\(subName).\(shortName)", name: shortName,
+      isEnabledByDefault: defaultState == .enabled)
     self.handler = handler ?? Manager.defaultHandler
 
     Task {
@@ -91,6 +89,11 @@ public final class Channel: Sendable {
       _enabled.value.store(newValue, ordering: .relaxed)
       Task { await manager.channelUpdated(self) }
     }
+  }
+
+  /// The state the channel has when nothing is saved for it.
+  public var defaultState: State {
+    _enabled.isEnabledByDefault ? .enabled : .disabled
   }
 
   /// Logs a value if the channel is enabled.
@@ -161,6 +164,17 @@ public final class Channel: Sendable {
     for await item in sequence {
       await handler.log(item)
     }
+  }
+}
+
+extension Channel {
+  /// Whether a channel is enabled.
+  public enum State: Sendable {
+    /// The channel logs.
+    case enabled
+
+    /// The channel ignores logged values.
+    case disabled
   }
 }
 

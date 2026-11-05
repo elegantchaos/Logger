@@ -7,10 +7,10 @@ struct Defaults {
      the same as logging), but this channel exists to allow output and logging to be treated in a uniform
      way.
 
-     Unlike most channels, we want this one to default to always being on.
+     Unlike most channels, this one is enabled unless it has been disabled.
      */
 
   public static let stdout = Channel(
-    "stdout", handler: printHandler, alwaysEnabled: true)
+    "stdout", handler: printHandler, default: .enabled)
 
 }

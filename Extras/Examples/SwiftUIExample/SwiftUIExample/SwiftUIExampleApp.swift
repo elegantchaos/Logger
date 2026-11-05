@@ -24,6 +24,8 @@ struct SwiftUIExampleApp: App {
             AllChannelsToggleView(watcher: watcher)
             Divider()
             IndividualChannelsToggleView(watcher: watcher)
+            Divider()
+            ResetChannelsButton(watcher: watcher)
           }
         }
       }

@@ -10,8 +10,12 @@ final class ChannelEnablement: Sendable {
   /// The current enabled state, accessed atomically by logging callers.
   let value: Atomic<Bool>
 
-  /// Creates the state with its first channel's initial value.
-  init(_ enabled: Bool) {
+  /// The state the channels have when nothing is saved for them.
+  let isEnabledByDefault: Bool
+
+  /// Creates the state with its initial value and its default.
+  init(_ enabled: Bool, isEnabledByDefault: Bool) {
     self.value = Atomic(enabled)
+    self.isEnabledByDefault = isEnabledByDefault
   }
 }

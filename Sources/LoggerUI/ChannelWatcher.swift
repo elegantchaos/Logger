@@ -15,7 +15,8 @@
   /// part in SwiftUI observation, so views read these snapshots instead.
   ///
   /// Views bind to `self[enabled:]` and `allEnabled` through `@Bindable`. By default,
-  /// writes change the channels directly and update the snapshots at once. When the
+  /// writes, and `resetToDefaults()`, change the channels directly and update the snapshots
+  /// at once. When the
   /// watcher has `ChannelActions`, writes are passed to them instead, and the snapshots
   /// change when the manager reports the result. Share one watcher between the surfaces
   /// that show the same channels, such as a settings list and a menu.
@@ -62,6 +63,11 @@
       set {}
     }
 
+    /// Whether every channel is in its default state.
+    public var isAtDefaults: Bool {
+      channels.allSatisfy { $0.isEnabled == $0.isEnabledByDefault }
+    }
+
     /// Whether the channel with the given identifier is enabled.
     ///
     /// Setting it enables or disables that channel. Bind a toggle to it with
@@ -89,6 +95,18 @@
       } else {
         for entry in channels {
           entry.channel.enabled = isEnabled
+        }
+        refreshStates()
+      }
+    }
+
+    /// Returns every channel to its default state, through the actions if there are any.
+    public func resetToDefaults() {
+      if let actions {
+        actions.resetToDefaults()
+      } else {
+        for entry in channels {
+          entry.channel.enabled = entry.isEnabledByDefault
         }
         refreshStates()
       }
@@ -140,6 +158,9 @@
       /// Whether the channel was enabled when the snapshot was taken.
       public let isEnabled: Bool
 
+      /// Whether the channel is enabled when nothing is saved for it.
+      public let isEnabledByDefault: Bool
+
       /// Backing channel that direct changes update.
       fileprivate let channel: Channel
 
@@ -156,6 +177,7 @@
         self.name = channel.name
         self.displayName = displayName
         self.isEnabled = channel.enabled
+        self.isEnabledByDefault = channel.defaultState == .enabled
         self.channel = channel
       }
 
@@ -167,6 +189,7 @@
       /// Snapshots are equal when they show the same values; the channel is identified by `id`.
       public static func == (lhs: Entry, rhs: Entry) -> Bool {
         lhs.id == rhs.id && lhs.displayName == rhs.displayName && lhs.isEnabled == rhs.isEnabled
+          && lhs.isEnabledByDefault == rhs.isEnabledByDefault
       }
     }
   }

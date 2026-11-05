@@ -8,21 +8,38 @@ import Testing
 
 @testable import Logger
 
-/// Tests persistence of enabled channels across manager lifetimes.
+/// Tests persistence of channel states across manager lifetimes.
 struct ManagerSettingsTests {
-  /// A disabled channel no longer matches its legacy short-name setting.
+  /// With nothing saved, a channel starts in its default state.
+  @Test(arguments: [Channel.State.enabled, .disabled])
+  func channelStartsInDefaultState(_ state: Channel.State) async {
+    let manager = Manager(settings: PersistedTestSettings([:]))
+    let channel = Channel("com.example.default", default: state, manager: manager)
+    #expect(channel.enabled == (state == .enabled))
+    await manager.shutdown()
+  }
+
+  /// A saved full-identifier state takes precedence over a saved short-name state.
+  @Test
+  func fullIdentifierTakesPrecedenceOverShortName() async {
+    let settings = PersistedTestSettings(["Network": true, "com.example.Network": false])
+    let manager = Manager(settings: settings)
+    let channel = Channel("com.example.Network", manager: manager)
+    let other = Channel("com.other.Network", manager: manager)
+    #expect(channel.enabled == false)
+    #expect(other.enabled == true)
+    await manager.shutdown()
+  }
+
+  /// Disabling a channel enabled by its short name removes the short-name state.
   @Test
   func disablingChannelRemovesShortNameSetting() async {
-    let settings = PersistedTestSettings(["disabled", "later"])
+    let settings = PersistedTestSettings(["disabled": true, "later": true])
     let manager = Manager(settings: settings)
-    var events = await manager.events.makeAsyncIterator()
-    let channel = Channel("com.example.disabled", manager: manager)
-    while let event = await events.next() {
-      if case .channelAdded = event { break }
-    }
+    let channel = await registeredChannel("com.example.disabled", manager: manager)
     channel.enabled = false
     await manager.saveChannelSettings()
-    #expect(settings.enabledChannelIDs == ["later"])
+    #expect(settings.channelStates == ["later": true])
     await manager.shutdown()
 
     let restarted = Manager(settings: settings)
@@ -31,50 +48,80 @@ struct ManagerSettingsTests {
     restored.shutdown()
   }
 
-  /// Saving changes preserves enabled channels that have not yet registered.
+  /// Saving keeps the saved states of channels that have not yet registered.
   @Test
-  func savesEnabledChannelsWithoutLosingUnregisteredChoices() async throws {
-    let settings = PersistedTestSettings(["com.example.later", "com.example.disabled"])
+  func savesStatesWithoutLosingUnregisteredChoices() async {
+    let settings = PersistedTestSettings([
+      "com.example.later": true, "com.example.disabled": true,
+    ])
     let manager = Manager(settings: settings)
-    var events = await manager.events.makeAsyncIterator()
-    let disabled = Channel("com.example.disabled", manager: manager)
-    let enabled = Channel("com.example.enabled", manager: manager)
-    var registered = 0
-    while registered < 2, let event = await events.next() {
-      if case .channelAdded = event { registered += 1 }
-    }
+    let disabled = await registeredChannel("com.example.disabled", manager: manager)
+    let enabled = await registeredChannel("com.example.enabled", manager: manager)
     disabled.enabled = false
     enabled.enabled = true
     await manager.saveChannelSettings()
-    #expect(settings.enabledChannelIDs == ["com.example.later", "com.example.enabled"])
+    #expect(settings.channelStates == ["com.example.later": true, "com.example.enabled": true])
+    await manager.shutdown()
+  }
+
+  /// A channel that is enabled by default stays disabled after a restart once disabled.
+  @Test
+  func disabledDefaultEnabledChannelStaysDisabled() async {
+    let settings = PersistedTestSettings([:])
+    let manager = Manager(settings: settings)
+    let channel = await registeredChannel(
+      "com.example.on", default: .enabled, manager: manager)
+    channel.enabled = false
+    await manager.saveChannelSettings()
+    #expect(settings.channelStates == ["com.example.on": false])
     await manager.shutdown()
 
     let restarted = Manager(settings: settings)
-    let restoredDisabled = Channel("com.example.disabled", manager: restarted)
-    let restoredEnabled = Channel("com.example.enabled", manager: restarted)
-    let restoredLater = Channel("com.example.later", manager: restarted)
-    #expect(restoredDisabled.enabled == false)
-    #expect(restoredEnabled.enabled == true)
-    #expect(restoredLater.enabled == true)
-    restoredDisabled.shutdown()
-    restoredEnabled.shutdown()
-    restoredLater.shutdown()
+    let restored = Channel("com.example.on", default: .enabled, manager: restarted)
+    #expect(restored.enabled == false)
+    restored.shutdown()
+  }
+
+  /// Returning a channel to its default state removes its saved state.
+  @Test
+  func returningToDefaultRemovesSavedState() async {
+    let settings = PersistedTestSettings(["com.example.on": false])
+    let manager = Manager(settings: settings)
+    let channel = await registeredChannel(
+      "com.example.on", default: .enabled, manager: manager)
+    #expect(channel.enabled == false)
+    channel.enabled = true
+    await manager.saveChannelSettings()
+    #expect(settings.channelStates.isEmpty)
+    await manager.shutdown()
+  }
+
+  /// Creates a channel and waits until the manager has registered it.
+  private func registeredChannel(
+    _ name: String, default state: Channel.State = .disabled, manager: Manager
+  ) async -> Channel {
+    var events = await manager.events.makeAsyncIterator()
+    let channel = Channel(name, default: state, manager: manager)
+    while let event = await events.next() {
+      if case .channelAdded(let added) = event, added === channel { break }
+    }
+    return channel
   }
 }
 
 /// A thread-safe in-memory settings store shared by successive managers.
 private final class PersistedTestSettings: ManagerSettings, Sendable {
-  /// Stored enabled channel identifiers.
-  private let ids: Mutex<Set<Channel.ID>>
+  /// Stored channel states.
+  private let states: Mutex<Manager.ChannelStates>
 
-  /// Creates a store containing the supplied identifiers.
-  init(_ ids: Set<Channel.ID>) { self.ids = Mutex(ids) }
+  /// Creates a store containing the supplied states.
+  init(_ states: Manager.ChannelStates) { self.states = Mutex(states) }
 
-  /// The current stored identifiers.
-  var enabledChannelIDs: Set<Channel.ID> { ids.withLock { $0 } }
+  /// The current stored states.
+  var channelStates: Manager.ChannelStates { states.withLock { $0 } }
 
-  /// Replaces the stored identifiers.
-  func saveEnabledChannelIDs(_ ids: Set<Channel.ID>) { self.ids.withLock { $0 = ids } }
+  /// Replaces the stored states.
+  func saveChannelStates(_ states: Manager.ChannelStates) { self.states.withLock { $0 = states } }
 
   /// Leaves command-line arguments unchanged.
   func removeLoggingOptions(fromCommandLineArguments arguments: [String]) -> [String] { arguments }

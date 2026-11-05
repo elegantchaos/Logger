@@ -12,7 +12,8 @@
   /// Supply an implementation to `ChannelWatcher` when an app routes channel changes
   /// through its own action layer, such as commands that support undo. Each method should
   /// start the change and return; the watcher shows the result when the manager reports it.
-  /// Implementations typically call `Manager.setEnabled(_:)` or `Manager.setAllEnabled(_:)`.
+  /// Implementations typically call `Manager.setEnabled(_:)`, `Manager.setAllEnabled(_:)`
+  /// or `Manager.resetToDefaults()`.
   @MainActor
   public protocol ChannelActions {
     /// Requests that the channel with the given identifier be enabled or disabled.
@@ -20,6 +21,9 @@
 
     /// Requests that every channel be enabled or disabled.
     func setAllEnabled(_ isEnabled: Bool)
+
+    /// Requests that every channel return to its default state.
+    func resetToDefaults()
   }
 
 #endif

@@ -33,6 +33,16 @@ extension Manager {
   public func setAllEnabled(_ isEnabled: Bool) -> ChannelStates {
     setEnabled(ChannelStates(uniqueKeysWithValues: channels.map { ($0.id, isEnabled) }))
   }
+
+  /// Returns every registered channel to its default state.
+  ///
+  /// Returns the previous states of the channels that changed. States saved for channels
+  /// that have not registered are left alone.
+  @discardableResult
+  public func resetToDefaults() -> ChannelStates {
+    setEnabled(
+      ChannelStates(uniqueKeysWithValues: channels.map { ($0.id, $0.defaultState == .enabled) }))
+  }
 }
 
 extension Manager {

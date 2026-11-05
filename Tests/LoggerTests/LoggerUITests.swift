@@ -107,12 +107,35 @@ import Testing
       watcher.allEnabled = true
       watcher.setEnabled(false, for: channel.id)
       watcher.setAllEnabled(false)
+      watcher.resetToDefaults()
 
       #expect(
         actions.requests == [
           .channel(channel.id, true), .all(true), .channel(channel.id, false), .all(false),
+          .reset,
         ])
       #expect(channel.enabled == false)
+      await manager.shutdown()
+    }
+
+    /// Resetting returns channels to their defaults, after which the watcher reports that
+    /// they are at their defaults.
+    @Test
+    func resetReturnsChannelsToDefaults() async throws {
+      let manager = Manager(settings: TestSettings())
+      let watcher = ChannelWatcher(manager: manager)
+      let onByDefault = Channel("reset-on", default: .enabled, manager: manager)
+      let offByDefault = Channel("reset-off", manager: manager)
+      try await waitUntil { watcher.channels.count == 2 }
+      #expect(watcher.isAtDefaults == true)
+
+      watcher.setAllEnabled(false)
+      #expect(watcher.isAtDefaults == false)
+      watcher.resetToDefaults()
+
+      #expect(onByDefault.enabled == true)
+      #expect(offByDefault.enabled == false)
+      #expect(watcher.isAtDefaults == true)
       await manager.shutdown()
     }
 
@@ -216,6 +239,11 @@ import Testing
     func setAllEnabled(_ isEnabled: Bool) {
       requests.append(.all(isEnabled))
     }
+
+    /// Records a reset request.
+    func resetToDefaults() {
+      requests.append(.reset)
+    }
   }
 
   extension RecordingActions {
@@ -226,6 +254,9 @@ import Testing
 
       /// A request for every channel.
       case all(Bool)
+
+      /// A request to reset every channel.
+      case reset
     }
   }
 #endif
