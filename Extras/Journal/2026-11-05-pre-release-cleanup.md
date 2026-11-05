@@ -15,3 +15,7 @@ Coalescing settings saves was skipped. Each `Channel.enabled` change saves the s
 ## Validation
 
 A new test checks that the labels resolve from the catalog rather than to their keys. `agt format` was clean, `agt validate --fast` passed, and the SwiftUI example workspace built for macOS with the package tests passing. Linux CI will show whether the string catalog builds there; LoggerUI's code is compiled out on Linux, but its resources are still processed.
+
+## CI Follow-up
+
+Linux CI showed that the string catalog builds there, but the mismatched-default exit test failed: CI also runs the tests in release builds, where `assert` is compiled out, so nothing exits. The test now runs only in debug builds. A requested Copilot review did not run, because the requesting account had no remaining review quota.

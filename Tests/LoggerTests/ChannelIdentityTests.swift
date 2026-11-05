@@ -23,8 +23,10 @@ struct ChannelIdentityTests {
     await manager.shutdown()
   }
 
-  #if os(macOS) || os(Linux)
+  #if DEBUG && (os(macOS) || os(Linux))
     /// Channels that share an identifier but declare different defaults fail an assertion.
+    ///
+    /// Assertions are compiled out of release builds, so this runs only in debug builds.
     @Test
     func mismatchedDefaultsAssert() async {
       await #expect(processExitsWith: .failure) {
