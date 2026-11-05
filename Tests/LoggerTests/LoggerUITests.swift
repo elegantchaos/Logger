@@ -204,6 +204,13 @@ import Testing
       #expect(watcher.allEnabled)
     }
 
+    /// Built-in labels resolve from LoggerUI's own string catalog, not to their keys.
+    @Test
+    func builtInLabelsAreLocalized() {
+      #expect(String(localized: .allChannels) == "All Channels")
+      #expect(String(localized: .resetChannels) == "Reset to Defaults")
+    }
+
     /// Polls until `predicate` succeeds or throws after a short timeout.
     private func waitUntil(
       timeoutNanoseconds: UInt64 = 1_000_000_000,

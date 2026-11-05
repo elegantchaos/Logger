@@ -1,0 +1,30 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "channels.all" : {
+      "comment" : "Label for the control that enables or disables every log channel, and the default title of the channel list section.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Channels"
+          }
+        }
+      }
+    },
+    "channels.reset" : {
+      "comment" : "Button that returns every log channel to its default enabled state.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset to Defaults"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

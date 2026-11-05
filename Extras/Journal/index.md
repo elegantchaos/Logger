@@ -12,3 +12,4 @@
 - [2026-11-05 Channel Actions](2026-11-05-channel-actions.md)
 - [2026-11-05 Actor Cleanup](2026-11-05-actor-cleanup.md)
 - [2026-11-05 Channel Defaults](2026-11-05-channel-defaults.md)
+- [2026-11-05 Pre-release Cleanup](2026-11-05-pre-release-cleanup.md)

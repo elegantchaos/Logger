@@ -26,9 +26,9 @@
       self.label = label()
     }
 
-    /// Creates a section for the watcher's channels.
+    /// Creates a section for the watcher's channels, titled "All Channels".
     public init(watcher: ChannelWatcher) where Label == Text {
-      self.init(watcher: watcher) { Text("All Channels") }
+      self.init(watcher: watcher) { Text(.allChannels) }
     }
 
     /// Renders the channel section and its master toggle.

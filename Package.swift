@@ -5,6 +5,7 @@ import PackageDescription
 
 let package = Package(
   name: "Logger",
+  defaultLocalization: "en",
 
   platforms: [
     .macOS(.v15),
@@ -42,6 +43,9 @@ let package = Package(
       dependencies: [
         "Logger"
       ],
+      resources: [
+        .process("Resources")
+      ]
     ),
 
     .testTarget(

@@ -17,8 +17,13 @@
     /// Toggle label.
     private let label: LocalizedStringResource
 
-    /// Creates a master toggle for the watcher's channels.
-    public init(watcher: ChannelWatcher, label: LocalizedStringResource = "All Channels") {
+    /// Creates a master toggle for the watcher's channels, labelled "All Channels".
+    public init(watcher: ChannelWatcher) {
+      self.init(watcher: watcher, label: .allChannels)
+    }
+
+    /// Creates a master toggle for the watcher's channels with a custom label.
+    public init(watcher: ChannelWatcher, label: LocalizedStringResource) {
       self._watcher = Bindable(watcher)
       self.label = label
     }

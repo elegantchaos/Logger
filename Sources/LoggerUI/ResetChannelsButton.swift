@@ -14,8 +14,13 @@
     /// Button label.
     private let label: LocalizedStringResource
 
-    /// Creates a reset button for the watcher's channels.
-    public init(watcher: ChannelWatcher, label: LocalizedStringResource = "Reset to Defaults") {
+    /// Creates a reset button for the watcher's channels, labelled "Reset to Defaults".
+    public init(watcher: ChannelWatcher) {
+      self.init(watcher: watcher, label: .resetChannels)
+    }
+
+    /// Creates a reset button for the watcher's channels with a custom label.
+    public init(watcher: ChannelWatcher, label: LocalizedStringResource) {
       self.watcher = watcher
       self.label = label
     }

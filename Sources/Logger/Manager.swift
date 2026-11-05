@@ -144,56 +144,24 @@ public actor Manager {
     for waiter in waiters { waiter.resume() }
   }
 
-  /**
-     Default log manager to use for channels if nothing else is specified.
+  /// Default manager for channels that do not specify one.
+  ///
+  /// Under normal circumstances everything shares this manager, which saves channel
+  /// states in the standard user defaults. Other managers can be created, for example
+  /// for testing, which is why this is not a true singleton.
+  public static let shared = Manager(settings: UserDefaultsManagerSettings())
 
-     Under normal circumstances it makes sense for everything to share the same manager,
-     which is why this exists.
-
-     There are times (particularly testing) when we might want to use a different manager
-     though, which is why it's not a true singleton.
-     */
-
-  public static let shared = initDefaultManager()
-
-  /**
-     Default handler to use for channels if nothing else is specified.
-
-     On the Mac this is an OSLogHandler, which will log directly to the console without
-     sending output to stdout/stderr.
-
-     On Linux it is a PrintHandler which will log to stdout.
-     */
-
-  static func initDefaultHandler() -> Handler {
-    #if os(macOS) || os(iOS) || os(watchOS)
-      return OSLogHandler()
+  /// Default handler for channels that do not specify one.
+  ///
+  /// Where the unified logging system is available this is an `OSLogHandler`, which logs
+  /// to the console without writing to stdout or stderr. Elsewhere it prints to stdout.
+  public static let defaultHandler: any Handler = {
+    #if canImport(os)
+      OSLogHandler()
     #else
-      return printHandler  // TODO: should perhaps be stderr instead?
+      printHandler  // TODO: should perhaps be stderr instead?
     #endif
-  }
-
-  public static let defaultHandler = initDefaultHandler()
-
-  /// Initialise the default log manager.
-  static func initDefaultManager() -> Self {
-    #if !os(Linux)
-      /// We really do want there to only be a single instance of this, even if the logger library has mistakenly been
-      /// linked multiple times, so we store it in the thread dictionary for the main thread, and retrieve it from there if necessary
-      if let manager = Thread.main.threadDictionary["Logger.Manager"] {
-        // A normal cast can fail if the library was linked more than once.
-        return unsafeBitCast(manager as AnyObject, to: Self.self)
-      }
-    #endif
-
-    let manager = Self(settings: UserDefaultsManagerSettings(defaults: UserDefaults.standard))
-
-    #if !os(Linux)
-      Thread.main.threadDictionary["Logger.Manager"] = manager
-    #endif
-
-    return manager
-  }
+  }()
 
   /// Prints the saved channel states when the `LoggerDebug` environment variable is `1`.
   nonisolated func logStartup(saved: ChannelStates) {

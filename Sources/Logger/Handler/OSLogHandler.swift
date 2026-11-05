@@ -4,7 +4,7 @@
 // For licensing terms, see http://elegantchaos.com/license/liberal/.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+#if canImport(os)
 
   import os
   import Synchronization
