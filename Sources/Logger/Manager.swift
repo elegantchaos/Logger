@@ -46,7 +46,7 @@ public actor Manager {
   /// Stream of manager events. Clients can watch this if they are
   /// interested in changes to the state of channels. When this stream
   /// ends, the manager has shut down, along with all channels.
-  public let events: YieldingSequence<Event>
+  public let events: BroadcastSequence<Event>
 
   /**
      An array of the names of the log channels
@@ -60,7 +60,7 @@ public actor Manager {
     self.settings = settings
     let enabled = settings.enabledChannelIDs
     self.channelsEnabledInSettings = enabled
-    self.events = YieldingSequence()
+    self.events = BroadcastSequence()
 
     logStartup(channels: enabled)
   }
@@ -79,10 +79,10 @@ public actor Manager {
 
   /**
      Default log manager to use for channels if nothing else is specified.
-  
+
      Under normal circumstances it makes sense for everything to share the same manager,
      which is why this exists.
-  
+
      There are times (particularly testing) when we might want to use a different manager
      though, which is why it's not a true singleton.
      */
@@ -91,10 +91,10 @@ public actor Manager {
 
   /**
      Default handler to use for channels if nothing else is specified.
-  
+
      On the Mac this is an OSLogHandler, which will log directly to the console without
      sending output to stdout/stderr.
-  
+
      On Linux it is a PrintHandler which will log to stdout.
      */
 
@@ -114,7 +114,8 @@ public actor Manager {
       /// We really do want there to only be a single instance of this, even if the logger library has mistakenly been
       /// linked multiple times, so we store it in the thread dictionary for the main thread, and retrieve it from there if necessary
       if let manager = Thread.main.threadDictionary["Logger.Manager"] {
-        return unsafeBitCast(manager as AnyObject, to: Self.self)  // a normal cast might fail here if the code has been linked multiple times, since the class could be different (but identical)
+        // A normal cast can fail if the library was linked more than once.
+        return unsafeBitCast(manager as AnyObject, to: Self.self)
       }
     #endif
 
@@ -161,7 +162,7 @@ extension Manager {
 
   /**
      Default handler when a channel is sent a fatal error.
-  
+
      Just calls the system's fatal error function and exits.
      */
 

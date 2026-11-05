@@ -1,6 +1,6 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //  Created by Sam Deane on 10/04/2026.
-//  Copyright © 2026 Elegant Chaos Limited. All rights reserved.
+//  All code (c) 2026 - present day, Elegant Chaos Limited.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import Logger
@@ -12,6 +12,56 @@ import Testing
   /// Regression tests for the SwiftUI-facing logger channel watcher.
   @MainActor
   struct LoggerUITests {
+    /// Watchers release their event tasks when their owner releases them.
+    @Test
+    func watcherDeinitializes() async throws {
+      let manager = Manager(settings: TestSettings())
+      weak var releasedWatcher: ChannelWatcher?
+      do {
+        let watcher = ChannelWatcher(manager: manager)
+        releasedWatcher = watcher
+        await Task.yield()
+      }
+      try await waitUntil { releasedWatcher == nil }
+      await manager.shutdown()
+    }
+
+    /// Every watcher sees updates from the same manager.
+    @Test
+    func multipleWatchersReceiveUpdates() async throws {
+      let manager = Manager(settings: TestSettings())
+      let first = ChannelWatcher(manager: manager)
+      let second = ChannelWatcher(manager: manager)
+      let channel = Channel("multiple-watchers", manager: manager)
+      try await waitUntil { first.channels.count == 1 && second.channels.count == 1 }
+      channel.enabled = true
+      try await waitUntil { first.allEnabled && second.allEnabled }
+      await manager.shutdown()
+    }
+
+    /// Individual and master controls update the channels immediately.
+    @Test
+    func controlsUpdateChannels() async throws {
+      let manager = Manager(settings: TestSettings())
+      let watcher = ChannelWatcher(manager: manager)
+      let first = Channel("controls-first", manager: manager)
+      let second = Channel("controls-second", manager: manager)
+      try await waitUntil { watcher.channels.count == 2 }
+
+      watcher.binding(for: first.id).wrappedValue = true
+      #expect(first.enabled == true)
+      #expect(second.enabled == false)
+      #expect(watcher.allEnabled == false)
+
+      watcher.allEnabled = true
+      #expect(first.enabled == true)
+      #expect(second.enabled == true)
+      watcher.allEnabled = false
+      #expect(first.enabled == false)
+      #expect(second.enabled == false)
+      await manager.shutdown()
+    }
+
     /// Verifies that external channel changes refresh the published watcher snapshots.
     @Test
     func channelWatcherRefreshesSnapshotsWhenChannelChanges() async throws {

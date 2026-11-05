@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "8B5BD2E222C65F4E006C51DB"
-               BuildableName = "UIKitExample.app"
-               BlueprintName = "UIKitExample"
-               ReferencedContainer = "container:UIKitExample.xcodeproj">
+               BlueprintIdentifier = "2253F1E829DACA19006EC948"
+               BuildableName = "SwiftUIExample.app"
+               BlueprintName = "SwiftUIExample"
+               ReferencedContainer = "container:SwiftUIExample.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -27,18 +27,7 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
-      <Testables>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "LoggerTests"
-               BuildableName = "LoggerTests"
-               BlueprintName = "LoggerTests"
-               ReferencedContainer = "container:Packages/Logger">
-            </BuildableReference>
-         </TestableReference>
-      </Testables>
+      <Testables/> 
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -54,10 +43,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8B5BD2E222C65F4E006C51DB"
-            BuildableName = "UIKitExample.app"
-            BlueprintName = "UIKitExample"
-            ReferencedContainer = "container:UIKitExample.xcodeproj">
+            BlueprintIdentifier = "2253F1E829DACA19006EC948"
+            BuildableName = "SwiftUIExample.app"
+            BlueprintName = "SwiftUIExample"
+            ReferencedContainer = "container:SwiftUIExample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
@@ -77,10 +66,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8B5BD2E222C65F4E006C51DB"
-            BuildableName = "UIKitExample.app"
-            BlueprintName = "UIKitExample"
-            ReferencedContainer = "container:UIKitExample.xcodeproj">
+            BlueprintIdentifier = "2253F1E829DACA19006EC948"
+            BuildableName = "SwiftUIExample.app"
+            BlueprintName = "SwiftUIExample"
+            ReferencedContainer = "container:SwiftUIExample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

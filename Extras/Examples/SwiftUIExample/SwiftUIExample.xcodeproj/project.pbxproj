@@ -22,7 +22,7 @@
 		2253F1EF29DACA1A006EC948 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2253F1F129DACA1A006EC948 /* SwiftUIExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SwiftUIExample.entitlements; sourceTree = "<group>"; };
 		2253F1F329DACA1A006EC948 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		22BF116D2A1B81A3005E1CA2 /* Logger */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Logger; path = Packages/Logger; sourceTree = "<group>"; };
+		22BF116D2A1B81A3005E1CA2 /* Logger */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Logger; path = ../../..; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,6 +140,7 @@
 			);
 			mainGroup = 8B5BD2DA22C65F4E006C51DB;
 			packageReferences = (
+				A10000000000000000000001 /* XCLocalSwiftPackageReference "../../.." */,
 			);
 			productRefGroup = 8B5BD2E422C65F4E006C51DB /* Products */;
 			projectDirPath = "";
@@ -200,10 +201,10 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.elegantchaos.SwiftUIExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -240,10 +241,10 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.elegantchaos.SwiftUIExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -394,13 +395,22 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		A10000000000000000000001 /* XCLocalSwiftPackageReference "../../.." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../../..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		22BF116E2A1B81B0005E1CA2 /* Logger */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000001 /* XCLocalSwiftPackageReference "../../.." */;
 			productName = Logger;
 		};
 		22BF11702A1B81B0005E1CA2 /* LoggerUI */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000001 /* XCLocalSwiftPackageReference "../../.." */;
 			productName = LoggerUI;
 		};
 /* End XCSwiftPackageProductDependency section */

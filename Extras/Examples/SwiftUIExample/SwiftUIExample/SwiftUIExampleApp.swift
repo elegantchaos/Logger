@@ -1,18 +1,17 @@
-//
-//  SwiftUIExampleApp.swift
-//  SwiftUIExample
-//
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //  Created by Sam Deane on 03/04/2023.
-//  Copyright © 2023 Elegant Chaos. All rights reserved.
-//
+//  All code (c) 2023 - present day, Elegant Chaos Limited.
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import SwiftUI
 
+/// Standalone host for the LoggerUI example.
 @main
 struct SwiftUIExampleApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+  /// The example's main window.
+  var body: some Scene {
+    WindowGroup {
+      ContentView()
     }
+  }
 }
