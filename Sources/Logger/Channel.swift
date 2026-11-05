@@ -7,27 +7,22 @@
 import Foundation
 import Synchronization
 
-/**
- Represents a channel through which log messages can be sent.
- Each channel can be enabled/disabled, and configured to send its output
- to one or more handlers.
- */
-
-public actor Channel {
+/// A named log channel that can be enabled or disabled at runtime.
+///
+/// Declare channels as globals or statics and log to them from any thread. Logging checks
+/// an atomic enabled flag and, when enabled, queues the value; it never waits. Each channel
+/// registers with its manager when created, and a task started by the manager passes the
+/// queued values to the channel's handler in order.
+///
+/// Channels with the same manager and full identifier (`subsystem.name`) share their
+/// enabled state. A channel's state is immutable apart from that atomic flag, so it can be
+/// shared freely between threads.
+public final class Channel: Sendable {
   /// Name of the channel.
-  nonisolated public let name: String
+  public let name: String
 
-  /// Subsytem of the channel.
-  nonisolated public let subsystem: String
-
-  /// Is this channel enabled?
-  nonisolated public var enabled: Bool {
-    get { _enabled.value.load(ordering: .relaxed) }
-    set {
-      _enabled.value.store(newValue, ordering: .relaxed)
-      Task { await manager.channelUpdated(self) }
-    }
-  }
+  /// Subsystem of the channel.
+  public let subsystem: String
 
   /// Enablement shared by channels with this identifier and manager.
   private let _enabled: ChannelEnablement
@@ -36,25 +31,26 @@ public actor Channel {
   let manager: Manager
 
   /// Handler attached to this channel.
-  let handler: Handler
+  let handler: any Handler
 
-  /// Sequence of logged items.
+  /// Queue of logged items waiting for the handler.
   let sequence = YieldingSequence<LoggedItem>()
 
-  ///   Default subsystem if nothing else is specified.
-  ///   If the channel name is in dot syntax (x.y.z), then the last component is
-  ///   assumed to be the name, and the rest is assumed to be the subsystem.///
-  ///   If there are no dots, it's all assumed to be the name, and this default
-  ///   is used for the subsytem.
+  /// Default subsystem if nothing else is specified.
+  ///
+  /// If the channel name is in dot syntax (x.y.z), then the last component is
+  /// assumed to be the name, and the rest is assumed to be the subsystem.
+  /// If there are no dots, it's all assumed to be the name, and this default
+  /// is used for the subsystem.
   static let defaultSubsystem = "com.elegantchaos.logger"
 
-  /// Initialise the channel.
+  /// Initialise the channel and register it with its manager.
   ///
   /// Channels with the same manager and full identifier share enablement. The
   /// first instance supplies its initial state; later instances do not reset it.
   public init(
-    _ name: String, handler: Handler? = nil,
-    alwaysEnabled: Bool = false, manager: Manager? = nil, autoRun: Bool = true
+    _ name: String, handler: (any Handler)? = nil,
+    alwaysEnabled: Bool = false, manager: Manager? = nil
   ) {
     let manager = manager ?? Manager.shared
     let components = name.split(separator: ".")
@@ -86,13 +82,22 @@ public actor Channel {
     }
   }
 
-  /// Log something.
+  /// Is this channel enabled?
   ///
-  /// The logged value is an autoclosure, to avoid doing unnecessary work if the channel is disabled.
+  /// Setting it notifies the manager, which emits an event and saves the settings.
+  public var enabled: Bool {
+    get { _enabled.value.load(ordering: .relaxed) }
+    set {
+      _enabled.value.store(newValue, ordering: .relaxed)
+      Task { await manager.channelUpdated(self) }
+    }
+  }
+
+  /// Logs a value if the channel is enabled.
   ///
-  /// If the channel is enabled, we capture the logged value, by evaluating the autoclosure.
-  /// We then log the value asynchronously.
-  nonisolated public func log<T>(
+  /// The value is an autoclosure, so it is only evaluated when the channel is enabled.
+  /// It is converted to a string immediately and passed to the handler asynchronously.
+  public func log<T>(
     _ logged: @autoclosure () -> T, file: StaticString = #file, line: UInt = #line,
     column: UInt = #column, function: StaticString = #function, dso: UnsafeRawPointer = #dsohandle
   ) {
@@ -105,7 +110,8 @@ public actor Channel {
     }
   }
 
-  nonisolated public func debug<T>(
+  /// Logs a value if the channel is enabled, in debug builds only.
+  public func debug<T>(
     _ logged: @autoclosure () -> T, file: StaticString = #file, line: UInt = #line,
     column: UInt = #column, function: StaticString = #function, dso: UnsafeRawPointer = #dsohandle
   ) {
@@ -120,7 +126,8 @@ public actor Channel {
     #endif
   }
 
-  nonisolated public func fatal(
+  /// Logs a value and then calls the manager's fatal error handler, which does not return.
+  public func fatal(
     _ logged: @autoclosure () -> Any, file: StaticString = #file, line: UInt = #line,
     column: UInt = #column, function: StaticString = #function
   ) -> Never {
@@ -129,47 +136,49 @@ public actor Channel {
     manager.fatalHandler(value, self, file, line)
   }
 
+  /// Stops the channel.
+  ///
+  /// Values logged after this call are discarded. Values already queued are still passed
+  /// to the handler. Under normal conditions this does not need to be called; the manager
+  /// stops its channels when it shuts down.
+  public func shutdown() {
+    sequence.finish()
+  }
+
   /// Sets the enabled state without notifying the manager, and returns the previous state.
   ///
   /// The manager uses this to apply several changes, then notifies and saves once.
-  nonisolated func exchangeEnabled(_ isEnabled: Bool) -> Bool {
+  func exchangeEnabled(_ isEnabled: Bool) -> Bool {
     _enabled.value.exchange(isEnabled, ordering: .relaxed)
   }
 
-  /// Kick off the handler. It will pull items from the
-  /// stream until it is finished.
-  /// NB: Under normal conditions this function is called automatically
-  /// when the channel is created. For testing purposes it's useful to
-  /// be able to call it manually, in order to wait for all logged items
-  /// to be processed.
-  internal func run() async {
+  /// Passes queued items to the handler until the channel is shut down.
+  ///
+  /// Runs on the concurrent executor, so channels drain independently of the manager actor
+  /// that awaits this.
+  @concurrent
+  func run() async {
     for await item in sequence {
       await handler.log(item)
     }
   }
-
-  /// Shut down the channel.
-  /// Logging items to the channel after this call
-  /// will do nothing.
-  /// NB: Under normal conditions this function does not need to be called.
-  public func shutdown() {
-    print("shutdown \(name)")
-    sequence.continuation.finish()
-  }
 }
 
 extension Channel: Identifiable {
-  nonisolated public var id: String { "\(subsystem).\(name)" }
+  /// The channel's full identifier, `subsystem.name`.
+  public var id: String { "\(subsystem).\(name)" }
 }
 
 extension Channel: Hashable {
-  // For now, we treat channels with the same name as equal,
-  // as long as they belong to the same manager.
-  nonisolated public func hash(into hasher: inout Hasher) {
+  /// Hashes the channel's identifier.
+  ///
+  /// Channels with the same identifier and manager are treated as equal.
+  public func hash(into hasher: inout Hasher) {
     subsystem.hash(into: &hasher)
     name.hash(into: &hasher)
   }
 
+  /// Channels are equal when they have the same identifier and manager.
   public static func == (lhs: Channel, rhs: Channel) -> Bool {
     (lhs.subsystem == rhs.subsystem) && (lhs.name == rhs.name) && (lhs.manager === rhs.manager)
   }

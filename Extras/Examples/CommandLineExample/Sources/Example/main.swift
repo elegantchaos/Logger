@@ -28,4 +28,4 @@ for await _ in messages {
   received += 1
   if received == 2 { break }
 }
-await channel.shutdown()
+channel.shutdown()

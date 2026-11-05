@@ -3,32 +3,39 @@
 //  All code (c) 2024 - present day, Elegant Chaos Limited.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-public actor BasicHandler: Handler {
-  public typealias Logger = @Sendable (LoggedItem, BasicHandler) async -> Void
-
+/// Handler that passes each item to a closure.
+///
+/// The closure receives the handler too, so that it can use `tag(for:)` to label output
+/// with the channel's name or subsystem.
+public final class BasicHandler: Handler {
+  /// Name of the handler.
   public let name: String
-  let showName: Bool
-  let showSubsystem: Bool
-  let logger: Logger
 
+  /// Whether `tag(for:)` includes the channel name.
+  let showName: Bool
+
+  /// Whether `tag(for:)` includes the channel subsystem.
+  let showSubsystem: Bool
+
+  /// Closure that outputs each item.
+  let output: Output
+
+  /// Creates a handler that outputs items with a closure.
   public init(
-    _ name: String, showName: Bool = true, showSubsystem: Bool = false, logger: @escaping Logger
+    _ name: String, showName: Bool = true, showSubsystem: Bool = false,
+    output: @escaping Output
   ) {
     self.name = name
     self.showName = showName
     self.showSubsystem = showSubsystem
-    self.logger = logger
+    self.output = output
   }
 
-  /// Log something.
-  public func log(_ item: LoggedItem) async { await logger(item, self) }
+  /// Outputs an item with the closure.
+  public func log(_ item: LoggedItem) async { await output(item, self) }
 
-  public func shutdown() async {
-  }
-
-  /// Calculate a text tag indicating the context.
-  /// Provided as a utility for logger callbacks to use as they need.
-  internal func tag(for context: Context) -> String {
+  /// Returns a text tag identifying the item's channel, for output closures to use.
+  public func tag(for context: Context) -> String {
     let channel = context.channel
     if showName, showSubsystem {
       return "[\(channel.subsystem).\(channel.name)] "
@@ -40,4 +47,9 @@ public actor BasicHandler: Handler {
       return ""
     }
   }
+}
+
+extension BasicHandler {
+  /// Closure that outputs an item, given the item and the handler.
+  public typealias Output = @Sendable (LoggedItem, BasicHandler) async -> Void
 }

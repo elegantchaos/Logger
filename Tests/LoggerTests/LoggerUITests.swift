@@ -58,8 +58,8 @@ import Testing
       let second = Channel("beta.Shared", manager: manager)
       try await waitUntil { watcher.channels.count == 2 }
       #expect(watcher.channels.map(\.displayName) == ["alpha.Shared", "beta.Shared"])
-      await first.shutdown()
-      await second.shutdown()
+      first.shutdown()
+      second.shutdown()
       await manager.shutdown()
     }
 

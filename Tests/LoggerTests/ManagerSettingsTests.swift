@@ -28,7 +28,7 @@ struct ManagerSettingsTests {
     let restarted = Manager(settings: settings)
     let restored = Channel("com.example.disabled", manager: restarted)
     #expect(restored.enabled == false)
-    await restored.shutdown()
+    restored.shutdown()
   }
 
   /// Saving changes preserves enabled channels that have not yet registered.
@@ -56,9 +56,9 @@ struct ManagerSettingsTests {
     #expect(restoredDisabled.enabled == false)
     #expect(restoredEnabled.enabled == true)
     #expect(restoredLater.enabled == true)
-    await restoredDisabled.shutdown()
-    await restoredEnabled.shutdown()
-    await restoredLater.shutdown()
+    restoredDisabled.shutdown()
+    restoredEnabled.shutdown()
+    restoredLater.shutdown()
   }
 }
 

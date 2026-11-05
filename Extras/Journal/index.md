@@ -10,3 +10,4 @@
 - [2026-11-05 PR 37 Copilot Review](2026-11-05-pr37-copilot-review.md)
 - [2026-11-05 Logger UI Improvements](2026-11-05-logger-ui-improvements.md)
 - [2026-11-05 Channel Actions](2026-11-05-channel-actions.md)
+- [2026-11-05 Actor Cleanup](2026-11-05-actor-cleanup.md)

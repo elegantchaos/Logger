@@ -28,9 +28,11 @@ public actor Manager {
   /// Enablement state keyed by full channel identifier for this manager.
   private nonisolated let channelEnablements = Mutex<[Channel.ID: ChannelEnablement]>([:])
 
+  /// Settings that supply and store the enabled channel identifiers.
   let settings: ManagerSettings
+
+  /// Channels that have registered with this manager.
   public var channels: Channels = []
-  private var changedChannels: Channels?
 
   /// Channel tasks that have registered and not yet drained.
   private var runningChannels: [ObjectIdentifier: Channel] = [:]
@@ -44,16 +46,31 @@ public actor Manager {
   /// Callers waiting for shutdown to finish.
   private var shutdownWaiters: [CheckedContinuation<Void, Never>] = []
 
-  nonisolated(unsafe) var fatalHandler: FatalHandler = defaultFatalHandler
+  /// Handler called when a channel is sent a fatal message, guarded so that any thread
+  /// can read it.
+  private nonisolated let fatalHandlerStorage = Mutex<FatalHandler>(Manager.defaultFatalHandler)
 
   /// Manager events.
   public enum Event: Sendable {
+    /// The manager has started. Every subscriber receives this first.
     case started
+
+    /// Shutdown has begun; channels are being stopped.
     case shuttingDown
+
+    /// Every channel has drained. This is the last event.
     case shutdown
+
+    /// A channel has registered.
     case channelAdded(Channel)
+
+    /// A channel's enabled state has changed.
     case channelUpdated(Channel)
+
+    /// A channel has started passing items to its handler.
     case channelStarted(Channel)
+
+    /// A channel has stopped and drained.
     case channelShutdown(Channel)
   }
 
@@ -72,6 +89,7 @@ public actor Manager {
 
   let channelsEnabledInSettings: Set<Channel.ID>
 
+  /// Creates a manager that reads and saves channel states through the given settings.
   public init(settings: ManagerSettings) {
     self.settings = settings
     let enabled = settings.enabledChannelIDs
@@ -97,11 +115,8 @@ public actor Manager {
     if !isShuttingDown {
       isShuttingDown = true
       events.yield(.shuttingDown)
-      let activeChannels = Array(runningChannels.values)
-      await withTaskGroup(of: Void.self) { group in
-        for channel in activeChannels {
-          group.addTask { await channel.shutdown() }
-        }
+      for channel in runningChannels.values {
+        channel.shutdown()
       }
       finishShutdownIfPossible()
     }
@@ -201,7 +216,13 @@ public actor Manager {
 // MARK: Fatal Error Handling
 
 extension Manager {
-  public typealias FatalHandler = (Any, Channel, StaticString, UInt) -> Never
+  /// Function called with a fatal message, its channel, and its source location.
+  public typealias FatalHandler = @Sendable (Any, Channel, StaticString, UInt) -> Never
+
+  /// The current fatal error handler.
+  nonisolated var fatalHandler: FatalHandler {
+    fatalHandlerStorage.withLock { $0 }
+  }
 
   /**
      Default handler when a channel is sent a fatal error.
@@ -220,20 +241,22 @@ extension Manager {
      Install a custom handler for fatal errors.
      */
 
-  @discardableResult public func installFatalErrorHandler(_ handler: @escaping FatalHandler)
-    -> FatalHandler
-  {
-    let previous = fatalHandler
-    fatalHandler = handler
-    return previous
+  @discardableResult public nonisolated func installFatalErrorHandler(
+    _ handler: @escaping FatalHandler
+  ) -> FatalHandler {
+    fatalHandlerStorage.withLock { current in
+      let previous = current
+      current = handler
+      return previous
+    }
   }
 
   /**
      Restore the default fatal error handler.
      */
 
-  public func resetFatalErrorHandler() {
-    fatalHandler = Manager.defaultFatalHandler
+  public nonisolated func resetFatalErrorHandler() {
+    fatalHandlerStorage.withLock { $0 = Manager.defaultFatalHandler }
   }
 }
 
@@ -245,7 +268,7 @@ extension Manager {
   /// emit a `Event.channelShutdown` event.
   func run(channel: Channel) async {
     guard !isShuttingDown else {
-      await channel.shutdown()
+      channel.shutdown()
       return
     }
     channels.insert(channel)

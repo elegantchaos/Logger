@@ -3,38 +3,25 @@
 //  All code (c) 2024 - present day, Elegant Chaos Limited.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-public struct LoggedItem: Sendable {
-  public let value: Sendable
-  public let context: Context
-}
-
 /// An async stream of logged items.
 public typealias LogStream = AsyncStream<LoggedItem>
 
 /// Handler which outputs the logged items to an async stream.
-public actor StreamHandler: Handler {
-  public init(
-    _ name: String,
-    continuation: AsyncStream<LoggedItem>.Continuation
-  ) {
+public final class StreamHandler: Handler {
+  /// Name of the handler.
+  public let name: String
+
+  /// Continuation to yield logged items to.
+  let continuation: LogStream.Continuation
+
+  /// Creates a handler that yields items to the given continuation.
+  public init(_ name: String, continuation: LogStream.Continuation) {
     self.name = name
     self.continuation = continuation
   }
 
-  /// Name of the stream.
-  public let name: String
-
-  /// Continuation to yield logged items to.
-  let continuation: AsyncStream<LoggedItem>.Continuation
-
-  /// Log an item.
+  /// Yields an item to the stream.
   public func log(_ item: LoggedItem) async {
-    print("logged \(item.value)")
     continuation.yield(item)
-  }
-
-  public func shutdown() {
-    print("shutdown \(name)")
-    continuation.finish()
   }
 }

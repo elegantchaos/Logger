@@ -6,11 +6,9 @@
 #if os(macOS) || os(iOS)
   import Foundation
 
-  ///  Outputs log messages using NSLog()
-  let nslogHandler = BasicHandler("nslog") {
-    item, handler in
-    let tag = await handler.tag(for: item.context)
-    NSLog("\(tag)\(item.value)")
+  /// Outputs log messages using NSLog().
+  let nslogHandler = BasicHandler("nslog") { item, handler in
+    NSLog("\(handler.tag(for: item.context))\(item.value)")
   }
 
 #endif

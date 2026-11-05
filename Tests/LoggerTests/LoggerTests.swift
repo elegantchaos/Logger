@@ -31,7 +31,7 @@ func withTestChannel(action: @escaping @Sendable (Channel, StreamHandler) async 
       let handler = StreamHandler("test", continuation: continuation)
       let manager = Manager(settings: TestSettings())
       let channel = Channel(
-        "test", handler: handler, alwaysEnabled: true, manager: manager, autoRun: false)
+        "test", handler: handler, alwaysEnabled: true, manager: manager)
 
       // perform the test action(s), then wait for the
       // manager to shut down to ensure all log items have been processed
