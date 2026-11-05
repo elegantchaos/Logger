@@ -22,15 +22,15 @@ public actor Channel {
 
   /// Is this channel enabled?
   nonisolated public var enabled: Bool {
-    get { _enabled.load(ordering: .relaxed) }
+    get { _enabled.value.load(ordering: .relaxed) }
     set {
-      _enabled.store(newValue, ordering: .relaxed)
+      _enabled.value.store(newValue, ordering: .relaxed)
       Task { await manager.channelUpdated(self) }
     }
   }
 
-  /// Underlying atomic storage for the enabled flag.
-  private let _enabled: Atomic<Bool>
+  /// Enablement shared by channels with this identifier and manager.
+  private let _enabled: ChannelEnablement
 
   /// Manager that this channel is registered with.
   let manager: Manager
@@ -49,6 +49,9 @@ public actor Channel {
   static let defaultSubsystem = "com.elegantchaos.logger"
 
   /// Initialise the channel.
+  ///
+  /// Channels with the same manager and full identifier share enablement. The
+  /// first instance supplies its initial state; later instances do not reset it.
   public init(
     _ name: String, handler: Handler? = nil,
     alwaysEnabled: Bool = false, manager: Manager? = nil, autoRun: Bool = true
@@ -75,7 +78,7 @@ public actor Channel {
     self.name = shortName
     self.subsystem = subName
     self.manager = manager
-    self._enabled = .init(isEnabled)
+    self._enabled = manager.enablement(for: fullName, initially: isEnabled)
     self.handler = handler ?? Manager.defaultHandler
 
     Task {
@@ -165,5 +168,5 @@ extension Channel: Hashable {
   }
 }
 
-func asSendable<T>(_ value: () -> T) -> Sendable where T: Sendable { value() }
+/// Converts a logged value to a sendable representation.
 func asSendable<T>(_ value: () -> T) -> Sendable { String(describing: value()) }

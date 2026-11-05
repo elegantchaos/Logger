@@ -63,6 +63,23 @@ import Testing
       await manager.shutdown()
     }
 
+    /// A single row controls every channel instance with its full identifier.
+    @Test
+    func duplicateIdentitySharesToggle() async throws {
+      let manager = Manager(settings: TestSettings())
+      let watcher = ChannelWatcher(manager: manager)
+      let first = Channel("Example.Shared", manager: manager)
+      let second = Channel("Example.Shared", manager: manager)
+      try await waitUntil { watcher.channels.count == 1 }
+      watcher.setEnabled(true, for: first.id)
+      #expect(first.enabled == true)
+      #expect(second.enabled == true)
+      second.enabled = false
+      try await waitUntil { watcher.channels.first?.isEnabled == false }
+      #expect(first.enabled == false)
+      await manager.shutdown()
+    }
+
     /// Callers can route a channel action through their own command layer.
     @Test
     func publicChannelActionsUpdateState() async throws {

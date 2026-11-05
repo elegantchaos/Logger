@@ -5,6 +5,7 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import Foundation
+import Synchronization
 
 /// The main controller in charge of the logging system.
 /// This is typically a singleton, and in most cases should not need
@@ -23,6 +24,9 @@ import Foundation
 public actor Manager {
   /// A set of channels.
   public typealias Channels = Set<Channel>
+
+  /// Enablement state keyed by full channel identifier for this manager.
+  private nonisolated let channelEnablements = Mutex<[Channel.ID: ChannelEnablement]>([:])
 
   let settings: ManagerSettings
   public var channels: Channels = []
@@ -75,6 +79,16 @@ public actor Manager {
     self.events = BroadcastSequence(initial: .started)
 
     logStartup(channels: enabled)
+  }
+
+  /// Returns the existing enablement for an identifier, or creates it once.
+  nonisolated func enablement(for id: Channel.ID, initially enabled: Bool) -> ChannelEnablement {
+    channelEnablements.withLock { states in
+      if let existing = states[id] { return existing }
+      let state = ChannelEnablement(enabled)
+      states[id] = state
+      return state
+    }
   }
 
   /// Shut down registered channels, wait for their output to drain, and end events.
