@@ -31,6 +31,7 @@
       ) {
         Text(label)
       }
+      .disabled(channels.channels.isEmpty)
     }
   }
 

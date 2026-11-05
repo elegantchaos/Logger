@@ -58,7 +58,7 @@
 
     /// Whether every channel snapshot is currently enabled.
     public var allEnabled: Bool {
-      get { channels.allSatisfy(\.isEnabled) }
+      get { !channels.isEmpty && channels.allSatisfy(\.isEnabled) }
       set {
         channels = channels.map { entry in
           var updated = entry

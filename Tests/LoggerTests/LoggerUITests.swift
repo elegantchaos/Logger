@@ -39,6 +39,16 @@ import Testing
       await manager.shutdown()
     }
 
+    /// An empty manager has no enabled channels.
+    @Test
+    func emptyManagerIsNotAllEnabled() async {
+      let manager = Manager(settings: TestSettings())
+      let watcher = ChannelWatcher(manager: manager)
+      #expect(watcher.channels.isEmpty)
+      #expect(watcher.allEnabled == false)
+      await manager.shutdown()
+    }
+
     /// Individual and master controls update the channels immediately.
     @Test
     func controlsUpdateChannels() async throws {
