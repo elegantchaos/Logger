@@ -35,3 +35,9 @@ Added the current Logger checkout as an explicit local package in the standalone
 Replaced the example's relative Git dependency with an explicitly named local path dependency, so it uses the current checkout even in a differently named worktree. Updated its deployment targets, Swift manifest and source to use the current Logger API, and documented the GitHub dependency alternative for other projects. The obsolete resolved Git pin was removed by SwiftPM. The example now waits for its asynchronous handler to print the enabled messages before exiting.
 
 `agt validate --target Example --package-dirs Extras/Examples/CommandLineExample` built the example. `agt validate --fast` built the example, Logger and LoggerUI, and passed the Logger tests. Running the built executable printed the two enabled messages and omitted the disabled one. The standalone SwiftUI workspace remains outside that fast-validation result.
+
+## SwiftUI Example Project Follow-up
+
+Restored the example target's Logger and LoggerUI product memberships, removed the obsolete remote Logger dependency, and gave the workspace's local checkout reference the display name `Logger`. The workspace XML and relative path check pass. Sandboxed `agt validate --workspace Extras/Examples/SwiftUIExample/SwiftUIExample.xcworkspace --schemes SwiftUIExample --no-recursive-packages --platforms macOS --test-platforms macOS` still fails during Xcode workspace discovery, before any build. Neither the build nor Xcode's display of the new reference name has been verified.
+
+After the sandboxed discovery failure, Sam approved the same workspace validation outside the sandbox. An initial build stalled while Xcode had the workspace open; after Xcode was force-quit, the rerun passed the macOS SwiftUI example build and all nine Logger tests. Xcode removed the obsolete remote `Package.resolved` during resolution. The workspace package display name has not been visually checked in Xcode.

@@ -11,15 +11,6 @@
       "Base",
     ],
   },
-  "packages": [
-    {
-      "kind": "remote",
-      "repository": "https://github.com/elegantchaos/Logger",
-      "version": {
-        "up-to-next-major-version": "1.5.7",
-      },
-    },
-  ],
   "files": [
     {
       "kind": "group",
@@ -55,6 +46,15 @@
         "compile-sources",
         "frameworks",
         "resources",
+      ],
+      "package-product-members": [
+        {
+          "product-name": "Logger",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "product-name": "LoggerUI",
+          "build-phase": { "build-phase": "frameworks" },
+        },
       ],
       "build-settings": {
         "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",

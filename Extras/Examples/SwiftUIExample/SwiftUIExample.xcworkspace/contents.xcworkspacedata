@@ -8,7 +8,8 @@
       location = "container:"
       name = "Local Packages">
       <FileRef
-         location = "group:../../..">
+         location = "group:../../.."
+         name = "Logger">
       </FileRef>
    </Group>
 </Workspace>
