@@ -22,8 +22,17 @@ public protocol ManagerSettings {
 }
 
 extension ManagerSettings {
-  /// Store the channels that should be enabled.
+  /// Save registered channel states while preserving choices for unregistered channels.
   public func saveEnabledChannels(_ channels: Manager.Channels) {
-    saveEnabledChannelIDs(Set(channels.map(\.id)))
+    var enabled = enabledChannelIDs
+    for channel in channels {
+      if channel.enabled {
+        enabled.insert(channel.id)
+      } else {
+        enabled.remove(channel.id)
+        enabled.remove(channel.name)
+      }
+    }
+    saveEnabledChannelIDs(enabled)
   }
 }

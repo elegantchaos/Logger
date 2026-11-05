@@ -12,7 +12,7 @@
   ///
   /// The watcher keeps SwiftUI bound to simple value state instead of directly observing
   /// the underlying `Channel` actors, which do not participate in SwiftUI observation.
-  @MainActor @Observable public class ChannelWatcher {
+  @MainActor @Observable public final class ChannelWatcher {
     /// Immutable snapshot for one logger channel row.
     public struct Entry: Identifiable {
       /// Stable channel identifier used for diffing and bindings.
@@ -58,7 +58,7 @@
 
     /// Whether every channel snapshot is currently enabled.
     public var allEnabled: Bool {
-      get { channels.allSatisfy(\.isEnabled) }
+      get { !channels.isEmpty && channels.allSatisfy(\.isEnabled) }
       set {
         channels = channels.map { entry in
           var updated = entry
@@ -66,11 +66,8 @@
           return updated
         }
 
-        let channelsToUpdate = channels.map(\.channel)
-        Task {
-          for channel in channelsToUpdate {
-            channel.enabled = newValue
-          }
+        for entry in channels {
+          entry.channel.enabled = newValue
         }
       }
     }
@@ -97,18 +94,15 @@
     /// Starts a long-lived task that mirrors manager channel events into snapshots.
     private func watchChannels() {
       watchTask?.cancel()
-      watchTask = Task { [weak self] in
-        guard let self else { return }
-        await updateChannels()
+      let manager = manager
+      watchTask = Task { [weak self, manager] in
+        var events = await manager.events.makeAsyncIterator()
+        await self?.updateChannels()
 
-        for await event in await manager.events {
+        while let event = await events.next() {
           guard !Task.isCancelled else { return }
-          switch event {
-          case .channelAdded, .channelUpdated:
-            await updateChannels()
-          default:
-            break
-          }
+          _ = event
+          await self?.updateChannels()
         }
       }
     }
@@ -122,9 +116,7 @@
       updated[index].isEnabled = isEnabled
       channels = updated
 
-      Task {
-        channel.enabled = isEnabled
-      }
+      channel.enabled = isEnabled
     }
   }
 

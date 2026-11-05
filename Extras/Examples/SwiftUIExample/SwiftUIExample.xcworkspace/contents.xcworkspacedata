@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "container:SwiftUIExample.xcodeproj">
+   </FileRef>
+   <Group
+      location = "container:"
+      name = "Local Packages">
+      <FileRef
+         location = "group:../../.."
+         name = "Logger">
+      </FileRef>
+   </Group>
+</Workspace>

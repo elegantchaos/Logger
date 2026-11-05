@@ -1,40 +1,38 @@
-//
-//  ContentView.swift
-//  SwiftUIExample
-//
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //  Created by Sam Deane on 03/04/2023.
-//  Copyright © 2023 Elegant Chaos. All rights reserved.
-//
+//  All code (c) 2023 - present day, Elegant Chaos Limited.
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import Logger
 import LoggerUI
 import SwiftUI
 
-let contentChannel = Channel("Content")
+/// Example channels that can be enabled independently in the settings view.
+private let exampleChannels = [Channel("Example.General"), Channel("Example.Network")]
 
+/// Demonstrates the LoggerUI channel settings inside a list.
 struct ContentView: View {
-    var body: some View {
-        contentChannel.log("body called")
-        
-        return NavigationStack {
-            List {
-                Section(header: Text("Settings")) {
-                    
-                    NavigationLink(destination: LoggerChannelsView().listStyle(.plain)) {
-                        Text("Channels")
-                    }
-                }
-            }
-            
-            //        .listStyle(GroupedListStyle())
-            .padding()
+  /// Creates the example channels before the settings view appears.
+  init() {
+    _ = exampleChannels
+  }
+
+  /// Displays channel settings and a button that logs to both channels.
+  var body: some View {
+    NavigationStack {
+      List {
+        LoggerChannelsView()
+        Button("Log example messages") {
+          for channel in exampleChannels {
+            channel.log("Example message")
+          }
         }
+      }
+      .navigationTitle("Logger Example")
     }
-    
+  }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-    }
+#Preview {
+  ContentView()
 }
