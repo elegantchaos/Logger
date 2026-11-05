@@ -14,28 +14,42 @@
     @State private var watcher: ChannelWatcher
 
     /// Section title shown above the channel toggles.
-    @ViewBuilder private let label: () -> Label
+    private let label: Label
 
     /// Creates a new section backed by the specified logger manager.
-    public init(@ViewBuilder label: @escaping () -> Label, manager: Logger.Manager = .shared) {
-      self.label = label
+    public init(@ViewBuilder label: () -> Label, manager: Logger.Manager = .shared) {
+      self.label = label()
       self._watcher = State(initialValue: ChannelWatcher(manager: manager))
     }
 
     /// Creates a new section backed by the specified logger manager.
     public init(manager: Logger.Manager = .shared) where Label == Text {
-      self.label = { Text("All Channels") }
+      self.label = Text("All Channels")
       self._watcher = State(initialValue: ChannelWatcher(manager: manager))
+    }
+
+    /// Creates a section that shares an existing watcher with other controls.
+    public init(watcher: ChannelWatcher, @ViewBuilder label: () -> Label) {
+      self.label = label()
+      self._watcher = State(initialValue: watcher)
+    }
+
+    /// Creates a section that shares an existing watcher with other controls.
+    public init(watcher: ChannelWatcher) where Label == Text {
+      self.label = Text("All Channels")
+      self._watcher = State(initialValue: watcher)
     }
 
     /// Renders the channel settings section and the master toggle.
     public var body: some View {
-      Section(header: HStack {
-        label()
-        Spacer()
-        AllChannelsToggleView(watcher: watcher)
-          .labelsHidden()
-      }) {
+      Section(
+        header: HStack {
+          label
+          Spacer()
+          AllChannelsToggleView(watcher: watcher)
+            .labelsHidden()
+        }
+      ) {
         IndividualChannelsToggleView(watcher: watcher)
       }
     }

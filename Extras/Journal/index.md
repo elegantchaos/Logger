@@ -8,3 +8,4 @@
 - [2026-11-05 Full Review Logger](2026-11-05-full-review-logger.md)
 - [2026-11-05 Logger Consumer Review](2026-11-05-logger-consumer-review.md)
 - [2026-11-05 PR 37 Copilot Review](2026-11-05-pr37-copilot-review.md)
+- [2026-11-05 Logger UI Improvements](2026-11-05-logger-ui-improvements.md)

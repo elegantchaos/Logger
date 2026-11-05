@@ -4,29 +4,30 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 #if canImport(SwiftUI)
-
   import SwiftUI
 
-  /// Toggle row for one channel snapshot.
+  /// Toggle row for a channel, with a binding supplied by Logger or the host app.
   public struct ChannelToggleView: View {
-    /// Watcher that owns the channel snapshots.
-    private let watcher: ChannelWatcher
+    /// Channel label, including its subsystem when needed to disambiguate it.
+    private let name: String
 
-    /// Snapshot rendered by this row.
-    private let entry: ChannelWatcher.Entry
+    /// The channel's enabled state and action.
+    @Binding private var isEnabled: Bool
 
-    /// Creates a row toggle for the supplied watcher snapshot.
+    /// Creates a toggle that directly updates the watcher.
     public init(watcher: ChannelWatcher, entry: ChannelWatcher.Entry) {
-      self.watcher = watcher
-      self.entry = entry
+      self.init(entry: entry, isEnabled: watcher.binding(for: entry.id))
     }
 
-    /// Renders the row toggle for a single channel.
+    /// Creates a toggle with a host-supplied binding, such as one that dispatches a command.
+    public init(entry: ChannelWatcher.Entry, isEnabled: Binding<Bool>) {
+      self.name = entry.displayName
+      self._isEnabled = isEnabled
+    }
+
+    /// Renders the channel toggle.
     public var body: some View {
-      Toggle(isOn: watcher.binding(for: entry.id)) {
-        Text(entry.name)
-      }
+      Toggle(name, isOn: $isEnabled)
     }
   }
-
 #endif

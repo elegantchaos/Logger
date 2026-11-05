@@ -90,3 +90,9 @@ Or completely reset the list of enabled channels:
 You can import `LoggerUI` to get a simple UI for configuring channels at runtime.
 
 This allows you to view the list of channels, and enable or disable them.
+
+### Channel Controls
+
+`LoggerUI` provides a `LoggerChannelsView` section for use inside a `List` or `Form`. Create a `ChannelWatcher` when multiple surfaces need to share the same observed channel state, and pass it to the section. `AllChannelsToggleView` and `IndividualChannelsToggleView` can also be composed into a menu; the SwiftUI example uses them in a macOS **Debug → Channels** menu. The master toggle shows a mixed state when some channels are enabled and affects the currently registered channels. Channel names include their subsystem when needed to distinguish otherwise identical labels.
+
+Apps that route actions through their own command layer can use `ChannelWatcher.channels` to read the snapshots and call `setEnabled(_:for:)` or `setAllEnabled(_:)` from a command. `ChannelToggleView(entry:isEnabled:)` and `AllChannelsToggleView(label:sources:)` accept host-supplied bindings, so the controls can dispatch those commands without Logger depending on a command framework. The collection-based master toggle updates each supplied binding independently; an app that needs one bulk command can present a separate action calling `setAllEnabled(_:)`.

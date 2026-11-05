@@ -4,35 +4,33 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 #if canImport(SwiftUI)
-
   import SwiftUI
 
-  /// Toggle that enables or disables every visible logging channel.
+  /// Toggle that controls a collection of channels and displays a mixed state.
   public struct AllChannelsToggleView: View {
-    /// The channel snapshots.
-    private let channels: ChannelWatcher
+    /// Bindings to each channel's enabled state.
+    private let sources: [Binding<Bool>]
 
-    /// Toggle label
+    /// Toggle label.
     private let label: LocalizedStringResource
 
-    /// Creates the master toggle for the supplied watcher.
+    /// Creates a master toggle that directly updates the watcher.
     public init(label: LocalizedStringResource = "All Channels", watcher: ChannelWatcher) {
-      self.channels = watcher
-      self.label = label
+      self.init(label: label, sources: watcher.channels.map { watcher.binding(for: $0.id) })
     }
 
-    /// Renders the master toggle for all channels.
+    /// Creates a master toggle using host-supplied bindings.
+    public init(label: LocalizedStringResource = "All Channels", sources: [Binding<Bool>]) {
+      self.label = label
+      self.sources = sources
+    }
+
+    /// Renders the aggregate toggle, disabling it when there are no channels.
     public var body: some View {
-      Toggle(
-        isOn: Binding(
-          get: { channels.allEnabled },
-          set: { channels.allEnabled = $0 }
-        )
-      ) {
+      Toggle(sources: sources, isOn: \.self) {
         Text(label)
       }
-      .disabled(channels.channels.isEmpty)
+      .disabled(sources.isEmpty)
     }
   }
-
 #endif

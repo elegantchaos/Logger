@@ -49,6 +49,34 @@ import Testing
       await manager.shutdown()
     }
 
+    /// Duplicate short names remain distinguishable and have deterministic ordering.
+    @Test
+    func duplicateNamesIncludeSubsystems() async throws {
+      let manager = Manager(settings: TestSettings())
+      let watcher = ChannelWatcher(manager: manager)
+      let first = Channel("alpha.Shared", manager: manager)
+      let second = Channel("beta.Shared", manager: manager)
+      try await waitUntil { watcher.channels.count == 2 }
+      #expect(watcher.channels.map(\.displayName) == ["alpha.Shared", "beta.Shared"])
+      await first.shutdown()
+      await second.shutdown()
+      await manager.shutdown()
+    }
+
+    /// Callers can route a channel action through their own command layer.
+    @Test
+    func publicChannelActionsUpdateState() async throws {
+      let manager = Manager(settings: TestSettings())
+      let watcher = ChannelWatcher(manager: manager)
+      let channel = Channel("action", manager: manager)
+      try await waitUntil { watcher.channels.count == 1 }
+      watcher.setEnabled(true, for: channel.id)
+      #expect(channel.enabled == true)
+      watcher.setAllEnabled(false)
+      #expect(channel.enabled == false)
+      await manager.shutdown()
+    }
+
     /// Individual and master controls update the channels immediately.
     @Test
     func controlsUpdateChannels() async throws {

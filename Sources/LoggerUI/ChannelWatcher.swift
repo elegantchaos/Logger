@@ -18,8 +18,11 @@
       /// Stable channel identifier used for diffing and bindings.
       public let id: Channel.ID
 
-      /// Display name shown in the UI.
+      /// The channel's short name, without its subsystem.
       public let name: String
+
+      /// Name shown to distinguish channels with the same short name.
+      public let displayName: String
 
       /// Whether the channel is currently enabled.
       public var isEnabled: Bool
@@ -28,9 +31,10 @@
       fileprivate let channel: Channel
 
       /// Creates a value snapshot from a logger channel.
-      init(channel: Channel) {
+      init(channel: Channel, disambiguate: Bool) {
         self.id = channel.id
         self.name = channel.name
+        self.displayName = disambiguate ? channel.id : channel.name
         self.isEnabled = channel.enabled
         self.channel = channel
       }
@@ -59,21 +63,24 @@
     /// Whether every channel snapshot is currently enabled.
     public var allEnabled: Bool {
       get { !channels.isEmpty && channels.allSatisfy(\.isEnabled) }
-      set {
-        channels = channels.map { entry in
-          var updated = entry
-          updated.isEnabled = newValue
-          return updated
-        }
+      set { setAllEnabled(newValue) }
+    }
 
-        for entry in channels {
-          entry.channel.enabled = newValue
-        }
+    /// Enables or disables all currently registered channels.
+    public func setAllEnabled(_ isEnabled: Bool) {
+      channels = channels.map { entry in
+        var updated = entry
+        updated.isEnabled = isEnabled
+        return updated
+      }
+
+      for entry in channels {
+        entry.channel.enabled = isEnabled
       }
     }
 
     /// Returns a binding for the enabled state of the channel snapshot with the given identifier.
-    func binding(for entryID: Entry.ID) -> Binding<Bool> {
+    public func binding(for entryID: Entry.ID) -> Binding<Bool> {
       Binding(
         get: { [weak self] in
           self?.channels.first(where: { $0.id == entryID })?.isEnabled ?? false
@@ -86,9 +93,12 @@
 
     /// Refreshes the channel snapshots from the manager, sorted by channel name.
     private func updateChannels() async {
-      channels = await manager.channels
-        .sorted { $0.name < $1.name }
-        .map(Entry.init(channel:))
+      let registered = await manager.channels
+      let names = Dictionary(grouping: registered, by: \.name)
+      channels =
+        registered
+        .sorted { ($0.name, $0.id) < ($1.name, $1.id) }
+        .map { Entry(channel: $0, disambiguate: (names[$0.name]?.count ?? 0) > 1) }
     }
 
     /// Starts a long-lived task that mirrors manager channel events into snapshots.
@@ -108,7 +118,7 @@
     }
 
     /// Updates one channel snapshot and forwards the same state to the backing channel.
-    private func setEnabled(_ isEnabled: Bool, for entryID: Entry.ID) {
+    public func setEnabled(_ isEnabled: Bool, for entryID: Entry.ID) {
       guard let index = channels.firstIndex(where: { $0.id == entryID }) else { return }
 
       let channel = channels[index].channel
