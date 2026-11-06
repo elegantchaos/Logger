@@ -4,25 +4,30 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 #if canImport(SwiftUI)
-
   import SwiftUI
 
-  /// Per-channel toggles sourced from the watcher snapshots.
+  /// One toggle per channel, for use in a list, form or menu.
   public struct IndividualChannelsToggleView: View {
-    /// Watcher that owns the channel snapshots.
-    private let watcher: ChannelWatcher
+    /// Watcher that supplies the channels and applies their changes.
+    @Bindable private var watcher: ChannelWatcher
 
-    /// Creates row toggles for the supplied watcher.
+    /// Creates toggles for the watcher's channels.
     public init(watcher: ChannelWatcher) {
-      self.watcher = watcher
+      self._watcher = Bindable(watcher)
     }
 
-    /// Renders the list of per-channel toggles.
+    /// Renders a toggle for each channel.
     public var body: some View {
       ForEach(watcher.channels) { entry in
-        ChannelToggleView(watcher: watcher, entry: entry)
+        Toggle(entry.displayName, isOn: $watcher[enabled: entry.id])
       }
     }
   }
 
+  #Preview("Individual Channels") {
+    @Previewable @State var watcher = ChannelWatcher.preview
+    Form {
+      IndividualChannelsToggleView(watcher: watcher)
+    }
+  }
 #endif

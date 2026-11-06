@@ -5,6 +5,5 @@
 
 /// Outputs log messages using swift's print() function.
 let printHandler = BasicHandler("print") { item, handler in
-  let tag = await handler.tag(for: item.context)
-  print("\(tag)\(item.value)")
+  print("\(handler.tag(for: item.context))\(item.value)")
 }

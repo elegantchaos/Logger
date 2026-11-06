@@ -4,35 +4,44 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 #if canImport(SwiftUI)
-
   import SwiftUI
 
-  /// Toggle that enables or disables every visible logging channel.
+  /// Master toggle for every channel, showing a mixed state when only some are enabled.
+  ///
+  /// Choosing it when the channels are mixed or off enables them all; choosing it when
+  /// they are all on disables them. Each choice makes one `setAllEnabled(_:)` change.
   public struct AllChannelsToggleView: View {
-    /// The channel snapshots.
-    private let channels: ChannelWatcher
+    /// Watcher that supplies the channels and applies their changes.
+    @Bindable private var watcher: ChannelWatcher
 
-    /// Toggle label
+    /// Toggle label.
     private let label: LocalizedStringResource
 
-    /// Creates the master toggle for the supplied watcher.
-    public init(label: LocalizedStringResource = "All Channels", watcher: ChannelWatcher) {
-      self.channels = watcher
+    /// Creates a master toggle for the watcher's channels, labelled "All Channels".
+    public init(watcher: ChannelWatcher) {
+      self.init(watcher: watcher, label: .allChannels)
+    }
+
+    /// Creates a master toggle for the watcher's channels with a custom label.
+    public init(watcher: ChannelWatcher, label: LocalizedStringResource) {
+      self._watcher = Bindable(watcher)
       self.label = label
     }
 
-    /// Renders the master toggle for all channels.
+    /// Renders the master toggle, disabled when there are no channels.
     public var body: some View {
-      Toggle(
-        isOn: Binding(
-          get: { channels.allEnabled },
-          set: { channels.allEnabled = $0 }
-        )
-      ) {
+      Toggle(sources: [$watcher.anyEnabled, $watcher.allEnabled], isOn: \.self) {
         Text(label)
       }
-      .disabled(channels.channels.isEmpty)
+      .disabled(watcher.channels.isEmpty)
     }
   }
 
+  #Preview("All Channels") {
+    @Previewable @State var watcher = ChannelWatcher.preview
+    Form {
+      AllChannelsToggleView(watcher: watcher)
+      IndividualChannelsToggleView(watcher: watcher)
+    }
+  }
 #endif

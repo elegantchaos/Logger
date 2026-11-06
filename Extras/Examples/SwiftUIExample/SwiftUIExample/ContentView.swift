@@ -8,12 +8,20 @@ import LoggerUI
 import SwiftUI
 
 /// Example channels that can be enabled independently in the settings view.
-private let exampleChannels = [Channel("Example.General"), Channel("Example.Network")]
+private let exampleChannels = [
+  Channel("Example.General"),
+  Channel("Example.Network"),
+  Channel("Services.Network"),
+]
 
 /// Demonstrates the LoggerUI channel settings inside a list.
 struct ContentView: View {
+  /// Channel state shared with the menu.
+  private let watcher: ChannelWatcher
+
   /// Creates the example channels before the settings view appears.
-  init() {
+  init(watcher: ChannelWatcher) {
+    self.watcher = watcher
     _ = exampleChannels
   }
 
@@ -21,18 +29,21 @@ struct ContentView: View {
   var body: some View {
     NavigationStack {
       List {
-        LoggerChannelsView()
-        Button("Log example messages") {
-          for channel in exampleChannels {
-            channel.log("Example message")
-          }
-        }
+        LoggerChannelsView(watcher: watcher)
+        Button("Log example messages", action: logMessages)
       }
       .navigationTitle("Logger Example")
+    }
+  }
+
+  /// Sends one message through each example channel.
+  private func logMessages() {
+    for channel in exampleChannels {
+      channel.log("Example message")
     }
   }
 }
 
 #Preview {
-  ContentView()
+  ContentView(watcher: ChannelWatcher())
 }

@@ -5,6 +5,7 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import Foundation
+import Synchronization
 
 /// The main controller in charge of the logging system.
 /// This is typically a singleton, and in most cases should not need
@@ -24,9 +25,14 @@ public actor Manager {
   /// A set of channels.
   public typealias Channels = Set<Channel>
 
+  /// Enablement state keyed by full channel identifier for this manager.
+  private nonisolated let channelEnablements = Mutex<[Channel.ID: ChannelEnablement]>([:])
+
+  /// Settings that supply and store the enabled channel identifiers.
   let settings: ManagerSettings
+
+  /// Channels that have registered with this manager.
   public var channels: Channels = []
-  private var changedChannels: Channels?
 
   /// Channel tasks that have registered and not yet drained.
   private var runningChannels: [ObjectIdentifier: Channel] = [:]
@@ -40,16 +46,31 @@ public actor Manager {
   /// Callers waiting for shutdown to finish.
   private var shutdownWaiters: [CheckedContinuation<Void, Never>] = []
 
-  nonisolated(unsafe) var fatalHandler: FatalHandler = defaultFatalHandler
+  /// Handler called when a channel is sent a fatal message, guarded so that any thread
+  /// can read it.
+  private nonisolated let fatalHandlerStorage = Mutex<FatalHandler>(Manager.defaultFatalHandler)
 
   /// Manager events.
   public enum Event: Sendable {
+    /// The manager has started. Every subscriber receives this first.
     case started
+
+    /// Shutdown has begun; channels are being stopped.
     case shuttingDown
+
+    /// Every channel has drained. This is the last event.
     case shutdown
+
+    /// A channel has registered.
     case channelAdded(Channel)
+
+    /// A channel's enabled state has changed.
     case channelUpdated(Channel)
+
+    /// A channel has started passing items to its handler.
     case channelStarted(Channel)
+
+    /// A channel has stopped and drained.
     case channelShutdown(Channel)
   }
 
@@ -60,21 +81,40 @@ public actor Manager {
   /// 256 most recent events and may miss older ones.
   public let events: BroadcastSequence<Event>
 
-  /**
-     An array of the names of the log channels
-     that were persistently enabled - either in the settings
-     or on the command line.
-     */
+  /// Channel states read from the settings when the manager was created.
+  let savedChannelStates: ChannelStates
 
-  let channelsEnabledInSettings: Set<Channel.ID>
-
+  /// Creates a manager that reads and saves channel states through the given settings.
   public init(settings: ManagerSettings) {
     self.settings = settings
-    let enabled = settings.enabledChannelIDs
-    self.channelsEnabledInSettings = enabled
+    let saved = settings.channelStates
+    self.savedChannelStates = saved
     self.events = BroadcastSequence(initial: .started)
 
-    logStartup(channels: enabled)
+    logStartup(saved: saved)
+  }
+
+  /// Returns the existing enablement for a channel identifier, or creates it once.
+  ///
+  /// A new enablement starts in the state saved for the identifier or, failing that, for
+  /// its short name, or else in its default. Channels sharing an identifier must declare
+  /// the same default.
+  nonisolated func enablement(
+    for id: Channel.ID, name: String, isEnabledByDefault: Bool
+  ) -> ChannelEnablement {
+    channelEnablements.withLock { enablements in
+      if let existing = enablements[id] {
+        assert(
+          existing.isEnabledByDefault == isEnabledByDefault,
+          "Channels with the identifier \(id) declare different default states.")
+        return existing
+      }
+      let saved = savedChannelStates[id] ?? savedChannelStates[name]
+      let enablement = ChannelEnablement(
+        saved ?? isEnabledByDefault, isEnabledByDefault: isEnabledByDefault)
+      enablements[id] = enablement
+      return enablement
+    }
   }
 
   /// Shut down registered channels, wait for their output to drain, and end events.
@@ -83,11 +123,8 @@ public actor Manager {
     if !isShuttingDown {
       isShuttingDown = true
       events.yield(.shuttingDown)
-      let activeChannels = Array(runningChannels.values)
-      await withTaskGroup(of: Void.self) { group in
-        for channel in activeChannels {
-          group.addTask { await channel.shutdown() }
-        }
+      for channel in runningChannels.values {
+        channel.shutdown()
       }
       finishShutdownIfPossible()
     }
@@ -107,58 +144,27 @@ public actor Manager {
     for waiter in waiters { waiter.resume() }
   }
 
-  /**
-     Default log manager to use for channels if nothing else is specified.
+  /// Default manager for channels that do not specify one.
+  ///
+  /// Under normal circumstances everything shares this manager, which saves channel
+  /// states in the standard user defaults. Other managers can be created, for example
+  /// for testing, which is why this is not a true singleton.
+  public static let shared = Manager(settings: UserDefaultsManagerSettings())
 
-     Under normal circumstances it makes sense for everything to share the same manager,
-     which is why this exists.
-
-     There are times (particularly testing) when we might want to use a different manager
-     though, which is why it's not a true singleton.
-     */
-
-  public static let shared = initDefaultManager()
-
-  /**
-     Default handler to use for channels if nothing else is specified.
-
-     On the Mac this is an OSLogHandler, which will log directly to the console without
-     sending output to stdout/stderr.
-
-     On Linux it is a PrintHandler which will log to stdout.
-     */
-
-  static func initDefaultHandler() -> Handler {
-    #if os(macOS) || os(iOS) || os(watchOS)
-      return OSLogHandler()
+  /// Default handler for channels that do not specify one.
+  ///
+  /// Where the unified logging system is available this is an `OSLogHandler`, which logs
+  /// to the console without writing to stdout or stderr. Elsewhere it prints to stdout.
+  public static let defaultHandler: any Handler = {
+    #if canImport(os)
+      OSLogHandler()
     #else
-      return printHandler  // TODO: should perhaps be stderr instead?
+      printHandler  // TODO: should perhaps be stderr instead?
     #endif
-  }
+  }()
 
-  public static let defaultHandler = initDefaultHandler()
-
-  /// Initialise the default log manager.
-  static func initDefaultManager() -> Self {
-    #if !os(Linux)
-      /// We really do want there to only be a single instance of this, even if the logger library has mistakenly been
-      /// linked multiple times, so we store it in the thread dictionary for the main thread, and retrieve it from there if necessary
-      if let manager = Thread.main.threadDictionary["Logger.Manager"] {
-        // A normal cast can fail if the library was linked more than once.
-        return unsafeBitCast(manager as AnyObject, to: Self.self)
-      }
-    #endif
-
-    let manager = Self(settings: UserDefaultsManagerSettings(defaults: UserDefaults.standard))
-
-    #if !os(Linux)
-      Thread.main.threadDictionary["Logger.Manager"] = manager
-    #endif
-
-    return manager
-  }
-
-  nonisolated func logStartup(channels: Set<String>) {
+  /// Prints the saved channel states when the `LoggerDebug` environment variable is `1`.
+  nonisolated func logStartup(saved: ChannelStates) {
     if let mode = ProcessInfo.processInfo.environment["LoggerDebug"], mode == "1" {
       #if DEBUG
         let mode = "debug"
@@ -167,8 +173,8 @@ public actor Manager {
       #endif
       print("\nLogger running in \(mode) mode.")
       print(
-        channels.isEmpty
-          ? "All channels currently disabled.\n" : "Enabled log channels: \(channels)\n")
+        saved.isEmpty
+          ? "All channels are in their default states.\n" : "Saved channel states: \(saved)\n")
     }
   }
 
@@ -180,14 +186,20 @@ public actor Manager {
 
   /// Save settings for all the channels.
   public func saveChannelSettings() {
-    settings.saveEnabledChannels(channels)
+    settings.saveChannelStates(for: channels)
   }
 }
 
 // MARK: Fatal Error Handling
 
 extension Manager {
-  public typealias FatalHandler = (Any, Channel, StaticString, UInt) -> Never
+  /// Function called with a fatal message, its channel, and its source location.
+  public typealias FatalHandler = @Sendable (Any, Channel, StaticString, UInt) -> Never
+
+  /// The current fatal error handler.
+  nonisolated var fatalHandler: FatalHandler {
+    fatalHandlerStorage.withLock { $0 }
+  }
 
   /**
      Default handler when a channel is sent a fatal error.
@@ -206,20 +218,22 @@ extension Manager {
      Install a custom handler for fatal errors.
      */
 
-  @discardableResult public func installFatalErrorHandler(_ handler: @escaping FatalHandler)
-    -> FatalHandler
-  {
-    let previous = fatalHandler
-    fatalHandler = handler
-    return previous
+  @discardableResult public nonisolated func installFatalErrorHandler(
+    _ handler: @escaping FatalHandler
+  ) -> FatalHandler {
+    fatalHandlerStorage.withLock { current in
+      let previous = current
+      current = handler
+      return previous
+    }
   }
 
   /**
      Restore the default fatal error handler.
      */
 
-  public func resetFatalErrorHandler() {
-    fatalHandler = Manager.defaultFatalHandler
+  public nonisolated func resetFatalErrorHandler() {
+    fatalHandlerStorage.withLock { $0 = Manager.defaultFatalHandler }
   }
 }
 
@@ -231,7 +245,7 @@ extension Manager {
   /// emit a `Event.channelShutdown` event.
   func run(channel: Channel) async {
     guard !isShuttingDown else {
-      await channel.shutdown()
+      channel.shutdown()
       return
     }
     channels.insert(channel)

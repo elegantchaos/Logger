@@ -32,7 +32,7 @@ struct ManagerEventTests {
     if case .shuttingDown = shuttingDown {} else { Issue.record("Missing shuttingDown event.") }
     if case .shutdown = shutdown {} else { Issue.record("Missing shutdown event.") }
     if case .none = await events.next() {} else { Issue.record("Events did not end.") }
-    await channel.shutdown()
+    channel.shutdown()
   }
 
   /// Stopping the last channel does not stop observation of later channels.
@@ -45,14 +45,14 @@ struct ManagerEventTests {
     while let event = await events.next() {
       if case .channelStarted = event { break }
     }
-    await first.shutdown()
+    first.shutdown()
     while let event = await events.next() {
       if case .channelShutdown = event { break }
     }
     let second = Channel("second", manager: manager)
     let next = await events.next()
     if case .channelAdded = next {} else { Issue.record("The later channel was not observed.") }
-    await second.shutdown()
+    second.shutdown()
     await manager.shutdown()
   }
 
@@ -68,7 +68,7 @@ struct ManagerEventTests {
       startedContinuation.yield(())
       await gate.wait()
     }
-    let channel = Channel("drain", handler: handler, alwaysEnabled: true, manager: manager)
+    let channel = Channel("drain", handler: handler, default: .enabled, manager: manager)
     while let event = await events.next() {
       if case .channelStarted = event { break }
     }
@@ -114,7 +114,7 @@ struct ManagerEventTests {
     } else {
       Issue.record("The second subscriber missed the channel.")
     }
-    await channel.shutdown()
+    channel.shutdown()
     await manager.shutdown()
   }
 }

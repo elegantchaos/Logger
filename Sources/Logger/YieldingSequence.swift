@@ -3,31 +3,32 @@
 //  All code (c) 2024 - present day, Elegant Chaos Limited.
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-public struct YieldingSequence<E: Sendable>: AsyncSequence, Sendable {
-  public typealias Stream = AsyncStream<E>
-  public typealias AsyncIterator = Stream.Iterator
-  public typealias Element = E
+/// An async sequence that producers can add to synchronously from any thread.
+///
+/// A channel uses one as the queue between logging calls and its handler.
+struct YieldingSequence<Element: Sendable>: AsyncSequence, Sendable {
+  /// Stream that delivers the yielded elements.
+  private let stream: AsyncStream<Element>
 
-  let stream: Stream
-  let continuation: Stream.Continuation
+  /// Continuation that receives yielded elements.
+  private let continuation: AsyncStream<Element>.Continuation
 
-  public init() {
-    var c: Stream.Continuation?
-    let s = Stream { continuation in
-      c = continuation
-    }
-    self.stream = s
-    self.continuation = c!
+  /// Creates an empty sequence with an unbounded buffer.
+  init() {
+    (stream, continuation) = AsyncStream.makeStream(of: Element.self)
   }
 
-  public func makeAsyncIterator() -> AsyncIterator {
+  /// Returns an iterator over the yielded elements.
+  func makeAsyncIterator() -> AsyncStream<Element>.Iterator {
     stream.makeAsyncIterator()
   }
 
-  func yield(_ item: E) {
-    continuation.yield(item)
+  /// Adds an element to the sequence.
+  func yield(_ element: Element) {
+    continuation.yield(element)
   }
 
+  /// Ends the sequence once the elements already yielded have been consumed.
   func finish() {
     continuation.finish()
   }

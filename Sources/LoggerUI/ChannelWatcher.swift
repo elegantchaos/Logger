@@ -8,46 +8,37 @@
   import Logger
   import SwiftUI
 
-  /// Observable main-actor adapter that exposes logger channels as SwiftUI-friendly value snapshots.
+  /// Observable main-actor model that exposes a manager's channels to SwiftUI.
   ///
-  /// The watcher keeps SwiftUI bound to simple value state instead of directly observing
-  /// the underlying `Channel` actors, which do not participate in SwiftUI observation.
+  /// The watcher mirrors the manager's registered channels as sorted `Entry` snapshots,
+  /// refreshing them whenever the manager emits an event. `Channel` actors do not take
+  /// part in SwiftUI observation, so views read these snapshots instead.
+  ///
+  /// Views bind to `self[enabled:]` and `allEnabled` through `@Bindable`. By default,
+  /// writes, and `resetToDefaults()`, change the channels directly and update the snapshots
+  /// at once. When the
+  /// watcher has `ChannelActions`, writes are passed to them instead, and the snapshots
+  /// change when the manager reports the result. Share one watcher between the surfaces
+  /// that show the same channels, such as a settings list and a menu.
   @MainActor @Observable public final class ChannelWatcher {
-    /// Immutable snapshot for one logger channel row.
-    public struct Entry: Identifiable {
-      /// Stable channel identifier used for diffing and bindings.
-      public let id: Channel.ID
-
-      /// Display name shown in the UI.
-      public let name: String
-
-      /// Whether the channel is currently enabled.
-      public var isEnabled: Bool
-
-      /// Backing channel to update when the UI toggles this row.
-      fileprivate let channel: Channel
-
-      /// Creates a value snapshot from a logger channel.
-      init(channel: Channel) {
-        self.id = channel.id
-        self.name = channel.name
-        self.isEnabled = channel.enabled
-        self.channel = channel
-      }
-    }
-
     /// Sorted list of channel snapshots to display.
     public private(set) var channels: [Entry] = []
 
     /// The logger manager used to retrieve the channels.
     @ObservationIgnored private let manager: Logger.Manager
 
+    /// Host actions for channel changes, or nil to change channels directly.
+    @ObservationIgnored private let actions: (any ChannelActions)?
+
     /// Long-lived task that keeps the snapshots in sync with manager events.
     @ObservationIgnored private var watchTask: Task<Void, Never>?
 
-    /// Creates a watcher for the specified logger manager and starts mirroring its events.
-    public init(manager: Logger.Manager = .shared) {
+    /// Creates a watcher for a manager and starts mirroring its events.
+    ///
+    /// Pass `actions` to route channel changes through the host app.
+    public init(manager: Logger.Manager = .shared, actions: (any ChannelActions)? = nil) {
       self.manager = manager
+      self.actions = actions
       watchChannels()
     }
 
@@ -56,39 +47,84 @@
       watchTask?.cancel()
     }
 
-    /// Whether every channel snapshot is currently enabled.
+    /// Whether every channel is enabled. Setting it enables or disables every channel.
     public var allEnabled: Bool {
       get { !channels.isEmpty && channels.allSatisfy(\.isEnabled) }
-      set {
-        channels = channels.map { entry in
-          var updated = entry
-          updated.isEnabled = newValue
-          return updated
-        }
+      set { setAllEnabled(newValue) }
+    }
 
-        for entry in channels {
-          entry.channel.enabled = newValue
-        }
+    /// Whether any channel is enabled.
+    ///
+    /// Writing has no effect. The master toggle binds to this and `allEnabled` so that it
+    /// can show a mixed state, and SwiftUI writes the new value to both; only the
+    /// `allEnabled` write acts, so one click makes one change.
+    var anyEnabled: Bool {
+      get { channels.contains(where: \.isEnabled) }
+      set {}
+    }
+
+    /// Whether every channel is in its default state.
+    public var isAtDefaults: Bool {
+      channels.allSatisfy { $0.isEnabled == $0.isEnabledByDefault }
+    }
+
+    /// Whether the channel with the given identifier is enabled.
+    ///
+    /// Setting it enables or disables that channel. Bind a toggle to it with
+    /// `$watcher[enabled: id]`.
+    public subscript(enabled id: Channel.ID) -> Bool {
+      get { channels.first { $0.id == id }?.isEnabled ?? false }
+      set { setEnabled(newValue, for: id) }
+    }
+
+    /// Enables or disables the channel with the given identifier, through the actions if
+    /// there are any.
+    public func setEnabled(_ isEnabled: Bool, for id: Channel.ID) {
+      if let actions {
+        actions.setEnabled(isEnabled, for: id)
+      } else if let entry = channels.first(where: { $0.id == id }) {
+        entry.channel.enabled = isEnabled
+        refreshStates()
       }
     }
 
-    /// Returns a binding for the enabled state of the channel snapshot with the given identifier.
-    func binding(for entryID: Entry.ID) -> Binding<Bool> {
-      Binding(
-        get: { [weak self] in
-          self?.channels.first(where: { $0.id == entryID })?.isEnabled ?? false
-        },
-        set: { [weak self] newValue in
-          self?.setEnabled(newValue, for: entryID)
+    /// Enables or disables every channel, through the actions if there are any.
+    public func setAllEnabled(_ isEnabled: Bool) {
+      if let actions {
+        actions.setAllEnabled(isEnabled)
+      } else {
+        for entry in channels {
+          entry.channel.enabled = isEnabled
         }
-      )
+        refreshStates()
+      }
+    }
+
+    /// Returns every channel to its default state, through the actions if there are any.
+    public func resetToDefaults() {
+      if let actions {
+        actions.resetToDefaults()
+      } else {
+        for entry in channels {
+          entry.channel.enabled = entry.isEnabledByDefault
+        }
+        refreshStates()
+      }
+    }
+
+    /// Re-reads each snapshot's enabled state from its channel.
+    private func refreshStates() {
+      channels = channels.map { $0.refreshed() }
     }
 
     /// Refreshes the channel snapshots from the manager, sorted by channel name.
     private func updateChannels() async {
-      channels = await manager.channels
-        .sorted { $0.name < $1.name }
-        .map(Entry.init(channel:))
+      let registered = await manager.channels
+      let names = Dictionary(grouping: registered, by: \.name)
+      channels =
+        registered
+        .sorted { ($0.name, $0.id) < ($1.name, $1.id) }
+        .map { Entry(channel: $0, disambiguate: (names[$0.name]?.count ?? 0) > 1) }
     }
 
     /// Starts a long-lived task that mirrors manager channel events into snapshots.
@@ -99,24 +135,62 @@
         var events = await manager.events.makeAsyncIterator()
         await self?.updateChannels()
 
-        while let event = await events.next() {
+        while await events.next() != nil {
           guard !Task.isCancelled else { return }
-          _ = event
           await self?.updateChannels()
         }
       }
     }
+  }
 
-    /// Updates one channel snapshot and forwards the same state to the backing channel.
-    private func setEnabled(_ isEnabled: Bool, for entryID: Entry.ID) {
-      guard let index = channels.firstIndex(where: { $0.id == entryID }) else { return }
+  extension ChannelWatcher {
+    /// Immutable snapshot for one logger channel row.
+    public struct Entry: Identifiable, Equatable {
+      /// Stable channel identifier used for diffing and bindings.
+      public let id: Channel.ID
 
-      let channel = channels[index].channel
-      var updated = channels
-      updated[index].isEnabled = isEnabled
-      channels = updated
+      /// The channel's short name, without its subsystem.
+      public let name: String
 
-      channel.enabled = isEnabled
+      /// Name shown to distinguish channels with the same short name.
+      public let displayName: String
+
+      /// Whether the channel was enabled when the snapshot was taken.
+      public let isEnabled: Bool
+
+      /// Whether the channel is enabled when nothing is saved for it.
+      public let isEnabledByDefault: Bool
+
+      /// Backing channel that direct changes update.
+      fileprivate let channel: Channel
+
+      /// Creates a value snapshot from a logger channel.
+      init(channel: Channel, disambiguate: Bool) {
+        self.init(
+          channel: channel,
+          displayName: disambiguate ? channel.id : channel.name)
+      }
+
+      /// Creates a snapshot with an explicit display name.
+      private init(channel: Channel, displayName: String) {
+        self.id = channel.id
+        self.name = channel.name
+        self.displayName = displayName
+        self.isEnabled = channel.enabled
+        self.isEnabledByDefault = channel.defaultState == .enabled
+        self.channel = channel
+      }
+
+      /// Returns a copy with the channel's current enabled state.
+      fileprivate func refreshed() -> Entry {
+        Entry(channel: channel, displayName: displayName)
+      }
+
+      /// Snapshots are equal when they show the same values; the channel is identified by `id`.
+      public static func == (lhs: Entry, rhs: Entry) -> Bool {
+        lhs.id == rhs.id && lhs.displayName == rhs.displayName && lhs.isEnabled == rhs.isEnabled
+          && lhs.isEnabledByDefault == rhs.isEnabledByDefault
+      }
     }
   }
 

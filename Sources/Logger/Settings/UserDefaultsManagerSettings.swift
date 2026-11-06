@@ -5,124 +5,92 @@
 
 import Foundation
 
-/// Implementation of ManagerSettings that uses the UserDefaults system.
-/// The default Manager.shared instance uses one of these to read/write
-/// settings, and in normal situations it should be all you need.
-
+/// Settings that save channel states in user defaults.
+///
+/// The default `Manager.shared` uses one of these, and in normal situations it is all you
+/// need. States are saved as a dictionary of identifiers to booleans. When created, it
+/// applies any channel modifiers supplied with the `logs` argument, such as
+/// `-logs "+Network,-Cache"`, saves the result, and clears the argument.
 struct UserDefaultsManagerSettings: ManagerSettings {
-    let defaults: UserDefaults
+  /// Defaults that hold the saved states and the command-line modifiers.
+  let defaults: UserDefaults
 
-    init(defaults: UserDefaults = UserDefaults.standard) {
-        self.defaults = defaults
-        setup()
+  /// Creates settings for the given defaults and applies any command-line modifiers.
+  init(defaults: UserDefaults = UserDefaults.standard) {
+    self.defaults = defaults
+    applyCommandLineModifiers()
+  }
+
+  /// Saved states of channels that differ from their defaults.
+  var channelStates: Manager.ChannelStates {
+    defaults.dictionary(forKey: .channelStatesKey) as? Manager.ChannelStates ?? [:]
+  }
+
+  /// Replaces the saved channel states.
+  func saveChannelStates(_ states: Manager.ChannelStates) {
+    defaults.set(states, forKey: .channelStatesKey)
+  }
+
+  /// Applies and saves the modifiers in the `logs` setting, then clears it.
+  private func applyCommandLineModifiers() {
+    let modifiers = defaults.string(forKey: .logsKey) ?? ""
+    saveChannelStates(Self.updateStates(channelStates, applyingModifiers: modifiers))
+    defaults.set("", forKey: .logsKey)
+  }
+
+  /// Applies a comma-separated list of channel modifiers to saved states.
+  ///
+  /// `name` or `+name` enables a channel and `-name` disables it. If any item begins with
+  /// `=`, the saved states are cleared first, returning every channel to its default, and
+  /// `=name` enables that channel. Names can be full identifiers or short names.
+  static func updateStates(
+    _ states: Manager.ChannelStates, applyingModifiers modifiers: String
+  ) -> Manager.ChannelStates {
+    let items = modifiers.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+    var updated = items.contains { $0.hasPrefix("=") } ? [:] : states
+    for item in items where !item.isEmpty {
+      switch item.first {
+      case "-": updated[String(item.dropFirst())] = false
+      case "+", "=": updated[String(item.dropFirst())] = true
+      default: updated[item] = true
+      }
     }
+    return updated
+  }
 
-    /**
-     Calculate the list of enabled channels.
+  /**
+   Returns a copy of the input arguments array which has had any
+   arguments that we handle stripped out of it.
 
-     This is determined by two settings: `logsKey` and `persistentLogsKey`,
-     both of which contain comma-delimited strings.
+   This is useful for clients that are parsing the command line arguments,
+   particularly with something like Docopt.
 
-     The persistentLogs setting contains the names of all the channels that were
-     enabled last time. This is expected to be read from the user defaults.
+   Our options are meant to be semi-hidden, and we don't really want every
+   client of this library to have to know about all of them, or to have
+   to document them.
+   */
 
-     The logs setting contains modifiers, and if present, is expected to have
-     been supplied on the command line.
-     */
-
-    mutating func setup() {
-        let existingChannels = enabledChannelIDs
-        let modifiers = defaults.string(forKey: .logsKey) ?? ""
-        let updatedChannels = Self.updateChannels(existingChannels, applyingModifiers: modifiers)
-
-        // persist any changes for the next launch
-        saveEnabledChannelIDs(updatedChannels)
-
-        // we don't want the modifiers to persist between launches, so we clear them out after reading them
-        defaults.set("", forKey: .logsKey)
+  public func removeLoggingOptions(fromCommandLineArguments arguments: [String]) -> [String] {
+    let key: String = .logsKey
+    var args: [String] = []
+    var dropNext = false
+    for argument in arguments {
+      if argument == "-\(key)" {
+        dropNext = true
+      } else if dropNext {
+        dropNext = false
+      } else if !argument.starts(with: "--\(key)=") {
+        args.append(argument)
+      }
     }
-
-    /**
-     Update a set of enabled channels, using a list of channel modifiers.
-
-     Items in the modifiers can be in two forms:
-
-     - "name1,-name2,+name3": *modifies* the list by enabling/disabling named channels
-     - "=name1,name2,name3": *resets* the list to the named channels
-
-     Note that `+name` is a synonym for `name` in the first form - there just for symmetry.
-     Note also that if any item in the list begins with `=`, the second form is used and the list is reset.
-     */
-
-    static func updateChannels(_ channels: Set<Channel.ID>, applyingModifiers modifiers: String) -> Set<Channel.ID> {
-        var updatedChannels = channels
-        var onlyDeltas = true
-        var newItems = Set<Channel.ID>()
-        for item in modifiers.split(separator: ",").map({ $0.trimmingCharacters(in: .whitespaces) }) {
-            if let first = item.first {
-                switch first {
-                    case "=":
-                        newItems.insert(Channel.ID(item.dropFirst()))
-                        onlyDeltas = false
-                    case "-":
-                        updatedChannels.remove(Channel.ID(item.dropFirst()))
-                    case "+":
-                        newItems.insert(Channel.ID(item.dropFirst()))
-                    default:
-                        newItems.insert(Channel.ID(item))
-                }
-            }
-        }
-
-        if onlyDeltas {
-            updatedChannels.formUnion(newItems)
-        } else {
-            updatedChannels = newItems
-        }
-
-        return updatedChannels
-    }
-
-    var enabledChannelIDs: Set<Channel.ID> {
-        let s = defaults.string(forKey: .persistentLogsKey)?.split(separator: ",").map { String($0) }
-        return Set(s ?? [])
-    }
-
-    func saveEnabledChannelIDs(_ ids: Set<Channel.ID>) {
-        let sortedIDs = ids.sorted().joined(separator: ",")
-        defaults.set(sortedIDs, forKey: .persistentLogsKey)
-    }
-
-    /**
-     Returns a copy of the input arguments array which has had any
-     arguments that we handle stripped out of it.
-
-     This is useful for clients that are parsing the command line arguments,
-     particularly with something like Docopt.
-
-     Our options are meant to be semi-hidden, and we don't really want every
-     client of this library to have to know about all of them, or to have
-     to document them.
-     */
-
-    public func removeLoggingOptions(fromCommandLineArguments arguments: [String]) -> [String] {
-        let key: String = .logsKey
-        var args: [String] = []
-        var dropNext = false
-        for argument in arguments {
-            if argument == "-\(key)" {
-                dropNext = true
-            } else if dropNext {
-                dropNext = false
-            } else if !argument.starts(with: "--\(key)=") {
-                args.append(argument)
-            }
-        }
-        return args
-    }
+    return args
+  }
 }
 
 extension String {
-    static let persistentLogsKey = "logs-persistent"
-    static let logsKey = "logs"
+  /// Defaults key for the saved channel states.
+  static let channelStatesKey = "logs-states"
+
+  /// Defaults key for channel modifiers supplied on the command line.
+  static let logsKey = "logs"
 }

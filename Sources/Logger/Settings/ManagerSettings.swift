@@ -5,34 +5,39 @@
 
 import Foundation
 
-/// Protocol for reading/writing settings store by the manager.
+/// Reads and saves the channel states that a manager persists between runs.
 ///
-/// This is generalised into a protocol mostly to make it easier to
-/// inject settings during testing.
-
+/// The saved states record only channels whose state differs from their default, keyed by
+/// full identifier or, for states supplied by hand or on the command line, by short name.
+/// A full identifier takes precedence over a short name. This is a protocol mostly so that
+/// tests can inject settings.
 public protocol ManagerSettings {
-  /// The identifiers of the channels that should be enabled.
-  var enabledChannelIDs: Set<Channel.ID> { get }
+  /// Saved states of channels that differ from their defaults.
+  var channelStates: Manager.ChannelStates { get }
 
-  /// Store the identifiers of the channels that should be enabled.
-  func saveEnabledChannelIDs(_ ids: Set<Channel.ID>)
+  /// Replaces the saved channel states.
+  func saveChannelStates(_ states: Manager.ChannelStates)
 
   /// Strip any settings-related command line arguments.
   func removeLoggingOptions(fromCommandLineArguments arguments: [String]) -> [String]
 }
 
 extension ManagerSettings {
-  /// Save registered channel states while preserving choices for unregistered channels.
-  public func saveEnabledChannels(_ channels: Manager.Channels) {
-    var enabled = enabledChannelIDs
+  /// Saves the states of registered channels, keeping saved states for channels that have
+  /// not registered.
+  ///
+  /// A channel at its default state has no saved state, so a later change to its default
+  /// applies. A short-name state that disagrees with a registered channel is removed, since
+  /// the channel's full identifier now records its state.
+  public func saveChannelStates(for channels: Manager.Channels) {
+    var states = channelStates
     for channel in channels {
-      if channel.enabled {
-        enabled.insert(channel.id)
-      } else {
-        enabled.remove(channel.id)
-        enabled.remove(channel.name)
+      if let shortNameState = states[channel.name], shortNameState != channel.enabled {
+        states[channel.name] = nil
       }
+      let isEnabledByDefault = channel.defaultState == .enabled
+      states[channel.id] = channel.enabled == isEnabledByDefault ? nil : channel.enabled
     }
-    saveEnabledChannelIDs(enabled)
+    saveChannelStates(states)
   }
 }
