@@ -13,3 +13,4 @@
 - [2026-11-05 Actor Cleanup](2026-11-05-actor-cleanup.md)
 - [2026-11-05 Channel Defaults](2026-11-05-channel-defaults.md)
 - [2026-11-05 Pre-release Cleanup](2026-11-05-pre-release-cleanup.md)
+- [2026-11-06 Release 3.0.0](2026-11-06-release-3-0-0.md)
