@@ -204,16 +204,18 @@ import Testing
       #expect(watcher.allEnabled)
     }
 
-    /// Built-in labels resolve from LoggerUI's own string catalog, not to their keys.
+    /// Built-in labels show English text, not their keys, whether or not the toolchain
+    /// compiled the string catalog.
     @Test
     func builtInLabelsAreLocalized() {
       #expect(String(localized: .allChannels) == "All Channels")
       #expect(String(localized: .resetChannels) == "Reset to Defaults")
     }
 
-    /// Polls until `predicate` succeeds or throws after a short timeout.
+    /// Polls until `predicate` succeeds, or throws after ten seconds; slow CI simulators need
+    /// the margin, and a passing predicate returns at once.
     private func waitUntil(
-      timeoutNanoseconds: UInt64 = 1_000_000_000,
+      timeoutNanoseconds: UInt64 = 10_000_000_000,
       intervalNanoseconds: UInt64 = 10_000_000,
       predicate: @escaping @MainActor () -> Bool
     ) async throws {

@@ -19,3 +19,5 @@ A new test checks that the labels resolve from the catalog rather than to their 
 ## CI Follow-up
 
 Linux CI showed that the string catalog builds there, but the mismatched-default exit test failed: CI also runs the tests in release builds, where `assert` is compiled out, so nothing exits. The test now runs only in debug builds. A requested Copilot review did not run, because the requesting account had no remaining review quota.
+
+The next CI run failed on macOS: the Swift.org toolchains CI uses bundle the string catalog without compiling it, so the labels resolved to their keys. Locally, the Xcode toolchain compiles it, which hid the problem. The labels now have English default values, which also covers any other toolchain that skips the catalog. The same run showed the LoggerUI tests timing out intermittently on the iOS simulator, where the same commit passed in one run and failed in another; their polling helper now allows ten seconds instead of one. A second Copilot review request also failed for lack of quota.
